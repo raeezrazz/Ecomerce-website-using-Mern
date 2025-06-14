@@ -10,7 +10,7 @@ export default function Header() {
 
    
         const [openMenu, setOpenMenu] = useState(null);
-        const [isOpen, setIsOpen] = useState(false);
+        const [isOpen, setIsOpen] = useState('');
         const toggleMenu = (menuName) => {
           setOpenMenu(openMenu === menuName ? null : menuName);
         };
@@ -63,19 +63,33 @@ export default function Header() {
         {!isOpen ? (
           <motion.button
             layoutId="loginBox"
-            onClick={() => setIsOpen(true)}
+            onClick={() => setIsOpen('login')} 
             className="text-blue-600 text-sm"
           >
             Login
           </motion.button>
-        ):(<button className="text-blue-600 text-sm" onClick={()=>setIsOpen(false)}>Login</button>)}
+        ):(<button className="text-blue-600 text-sm" onClick={()=>setIsOpen('')}>Login</button>)}
 
-        {isOpen && <LoginModal onClose={() => setIsOpen(false)} page={()=>false}    />}
       </AnimatePresence>
     
            
             <h2 className='m-1 text-sm'>or</h2>
-            <button className='text-blue-600 text-sm'>Register </button>
+            <AnimatePresence>
+        {!isOpen ? (
+          <motion.button
+            layoutId="loginBox"
+            onClick={() => setIsOpen('register') }
+          
+            className="text-blue-600 text-sm"
+          >
+            Register
+          </motion.button>
+        ):(<button className="text-blue-600 text-sm" onClick={()=>setIsOpen(false)}>Register</button>)}
+
+        {isOpen && <LoginModal onClose={() => setIsOpen(false)} page={isOpen}    />}
+      </AnimatePresence>
+
+            {/* <button className='text-blue-600 text-sm'>Register </button> */}
         </div>
     </div>
     <div className="bg-blue-600 flex  text-white shadow-md " >
