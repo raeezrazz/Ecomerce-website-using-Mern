@@ -17,7 +17,7 @@ export default function Header() {
 
   return (
     <header>
-    <div className="bg-blue-600 text-white shadow-md">
+    <div className="bg-blue-600 text-white shadow-lg">
       <div className="max-w-4xl mx-auto px-6   flex justify-between items-center">
         <nav className="space-x-4 ">
           <a href="#" className="text-xs hover:rotate-6 transition">Home</a>
@@ -31,7 +31,7 @@ export default function Header() {
       </div>
       
     </div>
-    <div className='flex justify-between items-center m-3  '>
+    <div className='flex justify-between items-center m-2 '>
         <div className="flex items-center space-x-2">
             <img className='w-13 items-' src={rpmLogo} alt="" />
             <h1 className="text-xl font-bold text-indigo-600">

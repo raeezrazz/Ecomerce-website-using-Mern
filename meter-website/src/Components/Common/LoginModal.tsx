@@ -1,6 +1,6 @@
-// components/LoginModal.jsx
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
+import { signUp } from '../../api/user';
 
 const LoginModal = ({ onClose, page }) => {
   const isLogin = page === 'login';
@@ -39,10 +39,10 @@ const LoginModal = ({ onClose, page }) => {
     return newErrors;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const validationErrors = validate();
     setErrors(validationErrors);
-
+    console.log("started to sent")
     if (Object.keys(validationErrors).length === 0) {
       const formData = {
         email,
@@ -52,11 +52,12 @@ const LoginModal = ({ onClose, page }) => {
       };
 
       console.log('Submitting:', formData);
-      onClose(); // Close modal on success
+      const response = await signUp(formData)
+      console.log(response,"here is the response")
+      onClose();
     }
   };
 
-  // Optional: Auto-clear errors after 3 seconds
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
       const timer = setTimeout(() => setErrors({}), 3000);
@@ -77,16 +78,14 @@ const LoginModal = ({ onClose, page }) => {
         transition={{ type: 'spring', stiffness: 120, damping: 15 }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Error Alert Box */}
         {Object.keys(errors).length > 0 && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded-lg shadow-md w-[90%] md:w-[80%] max-w-md text-sm space-y-1">
-            {Object.values(errors).map((errMsg, idx) => (
-              <p key={idx}>{errMsg}</p>
-            ))}
+            {Object.entries(errors).map(([field, errMsg]) => (
+               <p key={field}>{errMsg}</p>
+              ))}
           </div>
         )}
 
-        {/* Left Side */}
         <div className="w-1/2 bg-blue-600 text-white p-10 hidden md:flex flex-col justify-center">
           <h2 className="text-3xl font-bold mb-4">Welcome to RK Meter Service</h2>
           <p className="text-lg">
@@ -96,13 +95,11 @@ const LoginModal = ({ onClose, page }) => {
           </p>
         </div>
 
-        {/* Right Side - Form */}
         <div className="w-full md:w-1/2 p-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
             {isLogin ? 'Login' : 'Register'}
           </h2>
 
-          {/* Email */}
           {!isLogin && (
             <div className="relative mb-4">
               <input
@@ -128,7 +125,6 @@ const LoginModal = ({ onClose, page }) => {
             </label>
           </div>
 
-          {/* Phone */}
           {!isLogin && (
           <div className="relative mb-4">
             <input
@@ -142,7 +138,6 @@ const LoginModal = ({ onClose, page }) => {
             </label>
           </div>
          )}
-          {/* Password */}
           <div className="relative mb-4">
             <input
               type="password"
@@ -155,10 +150,6 @@ const LoginModal = ({ onClose, page }) => {
             </label>
           </div>
 
-          {/* Full Name (Register only) */}
-        
-
-          {/* Submit Button */}
           <button
             onClick={handleSubmit}
             className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
