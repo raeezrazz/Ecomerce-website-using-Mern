@@ -14,42 +14,31 @@ export class UserController {
         this.userService = new UserService()
     }
   
-    async register(req: Request, res: Response) {
-      try {
-        const { name, email, password, phone } = req.body;
-  
-        // Validate input
-        if (!name || !email || !password || !phone) {
-          return res.status(400).json({ message: 'All fields are required' });
-        }
-  
-        // Check if user exists
-        const existingUser = await this.userService.userExist(email);
-        if (existingUser) {
+   
+async register(req: Request, res: Response) {
+  const { name, email, password, phone } = req.body;
+
+  if (!name || !email || !password || !phone) {
+      return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  try {
+      if (await this.userService.userExist(email)) {
           return res.status(409).json({ message: 'Email already in use' });
-        }
-        console.log("user existing checked")
-       
-        // Create user
-        const newUser = await this.userService.register(
-          name,
-          email,
-          phone,
-          password
-        )
-  
-        // Omit password from response
-        // const { password: _, ...userWithoutPassword } = newUser;
-  
-        res.status(201).json({
-          message: 'User registered successfully',
-        //   user: userWithoutPassword
-        });
-      } catch (error) {
-        console.error('Registration error:', error);
-        res.status(500).json({ message: 'Internal server error' });
       }
-    }
+
+      const newUser = await this.userService.registerUser(name, email, phone, password);
+      const { password: _, ...userWithoutPassword } = newUser;
+
+      return res.status(201).json({
+          message: 'User registered successfully',
+          user: userWithoutPassword
+      });
+  } catch (error) {
+      console.error('Registration error:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+  }
+}
 
 
 }

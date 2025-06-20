@@ -40,22 +40,27 @@ const LoginModal = ({ onClose, page }) => {
   };
 
   const handleSubmit = async () => {
-    const validationErrors = validate();
-    setErrors(validationErrors);
-    console.log("started to sent")
-    if (Object.keys(validationErrors).length === 0) {
-      const formData = {
-        email,
-        phone,
-        password,
-        ...(isLogin ? {} : { name }),
-      };
-
-      console.log('Submitting:', formData);
-      const response = await signUp(formData)
-      console.log(response,"here is the response")
-      onClose();
+    try {
+      const validationErrors = validate();
+      setErrors(validationErrors);
+      console.log("started to sent")
+      if (Object.keys(validationErrors).length === 0) {
+        const formData = {
+          email,
+          phone,
+          password,
+          ...(isLogin ? {} : { name }),
+        };
+  
+        console.log('Submitting:', formData);
+        const response = await signUp(formData)
+        console.log(response,"here is the response")
+        onClose();
+      }
+    } catch (error: any) {
+      console.error("❌ Signup failed:", error.response?.data || error.message);
     }
+  
   };
 
   useEffect(() => {

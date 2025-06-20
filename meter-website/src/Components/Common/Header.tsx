@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { FaSearch } from 'react-icons/fa';
 import freeShip from '../../assets/freeShip.png'
 import LoginModal from './LoginModal';
+import BikeBrandNavbar from './BikeBrandNavbar';
 import rpmLogo from '../../assets/rpmLogo.png'
 
 
@@ -92,58 +93,10 @@ export default function Header() {
             {/* <button className='text-blue-600 text-sm'>Register </button> */}
         </div>
     </div>
-    <div className="bg-blue-600 flex  text-white shadow-md " >
-    <nav className="ml-[20%] space-x-4 relative flex">
-      {/* Home */}
-      <div className="relative group">
-        <button
-          onClick={() => toggleMenu('home')}
-          className="text-xs hover:rotate-6 transition"
-        >
-          Home
-        </button>
-        {openMenu === 'home' && (
-          <div className="absolute hidden left-0 mt-2 w-32 bg-gray-700  border rounded shadow-lg text-sm z-10">
-            <a href="#" className="block px-4 py-2 hover:bg-gray-100">Dashboard</a>
-            <a href="#" className="block px-4 py-2 hover:bg-gray-100">Profile</a>
-          </div>
-        )}
-      </div>
+    {/* <div className="bg-blue-600 flex  text-white shadow-md " > */}
+    <BikeBrandNavbar/>
 
-      {/* Shop */}
-      <div className="relative group">
-        <button
-          onClick={() => toggleMenu('shop')}
-          className="text-xs hover:underline"
-        >
-          Shop
-        </button>
-        {openMenu === 'shop' && (
-          <div className="absolute block  hidden left-0 mt-2 w-32 group-hover:block bg-gray-700 border rounded shadow-lg text-sm z-10">
-            <a href="#" className="block px-4 py-2 hover:bg-gray-100">New Arrivals</a>
-            <a href="#" className="block px-4 py-2 hover:bg-gray-100">Popular</a>
-            <a href="#" className="block px-4 py-2 hover:bg-gray-100">Categories</a>
-          </div>
-        )}
-      </div>
-
-      {/* Contact */}
-      <div className="relative group">
-        <button
-          onClick={() => toggleMenu('contact')}
-          className="text-xs hover:underline"
-        >
-          Contact
-        </button>
-        {openMenu === 'contact' && (
-          <div className="absolute hidden group-hover:block bg-gray-700 shadow left-0 mt-2 w-32 bg-gray-700  border rounded shadow-lg text-sm z-10">
-            <a href="#" className="block px-4 py-2 hover:bg-gray-100">Email</a>
-            <a href="#" className="block px-4 py-2 hover:bg-gray-100">Support</a>
-          </div>
-        )}
-      </div>
-    </nav>
-    </div>
+    {/* </div> */}
     
     </header>
   );

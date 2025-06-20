@@ -3,7 +3,7 @@ import { Mail, Phone, Clock, MapPin } from "lucide-react"; // Install lucide-rea
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-[#f7f6f2] px-6 md:px-20 py-12">
+    <footer className="bg-blue-100 px-6 md:px-20 py-12">
       <div className="grid md:grid-cols-2 gap-10 items-start">
         {/* Left side: Company info */}
         <div>
