@@ -1,20 +1,23 @@
-import { injectable } from 'tsyringe';
+// src/services/userServices.ts
+import { inject, injectable } from 'inversify';
 import bcrypt from 'bcrypt';
-import { UserRepository } from '../repositories/userRepository';
-import { ConflictError } from '../errors/conflictError';
+import { IUserRepository } from '../repositories/userRepository';
+import { TYPES } from '../types/types';
+import { ConflictError } from '../errors/conflictErrors';
+import { User } from '../models/user';
+
+export interface IUserService {
+  registerUser(name: string, email: string, phone: string, password: string): Promise<Omit<User, 'password'>>;
+  userExists(email: string): Promise<boolean>;
+}
 
 @injectable()
-export class UserService {
+export class UserService implements IUserService {
   constructor(
-    private readonly userRepository: UserRepository
+    @inject(TYPES.UserRepository) private userRepository: IUserRepository
   ) {}
 
-  async registerUser(
-    name: string,
-    email: string,
-    phone: string,
-    password: string
-  ): Promise<Omit<User, 'password'>> {
+  async registerUser(name: string, email: string, phone: string, password: string): Promise<Omit<User, 'password'>> {
     if (await this.userRepository.findByEmail(email)) {
       throw new ConflictError('Email already registered');
     }

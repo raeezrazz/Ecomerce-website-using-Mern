@@ -1,11 +1,12 @@
+// src/routes/userRoutes.ts
 import { Router } from 'express';
-import { UserController } from '../controllers/userController';
-import { authenticateToken } from '../middleware/authMiddleware';
+import { container } from '../inversify.config';
+import { IUserController } from '../controllers/userController';
+import { TYPES } from '../types/types';
+
 const router = Router();
-const userController = new UserController();
+const userController = container.get<IUserController>(TYPES.UserController);
 
-// Bind the register method once
-
-router.post('/register', userController.register.bind(userController));
+router.post('/register', (req, res) => userController.register(req, res));
 
 export default router;

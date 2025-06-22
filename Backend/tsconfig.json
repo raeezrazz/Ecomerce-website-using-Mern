@@ -1,5 +1,10 @@
 {
   "compilerOptions": {
+   
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true,
+      // other options...
+  
     /* Visit https://aka.ms/tsconfig to read more about this file */
 
     /* Projects */
