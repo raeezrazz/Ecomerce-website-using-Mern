@@ -1,3 +1,4 @@
+import { UserService } from './../services/userServices';
 // src/controllers/userController.ts
 import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
@@ -13,7 +14,10 @@ export interface IUserController {
 export class UserController implements IUserController {
   constructor(
     @inject(TYPES.UserService) private userService: IUserService
-  ) {}
+  ) {
+    this._userService=userService;
+    this.
+  }
 
   async register(req: Request, res: Response) {
     const { name, email, password, phone } = req.body;
