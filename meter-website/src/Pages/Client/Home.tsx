@@ -9,11 +9,13 @@ import AboutSection from '../../Components/Client/AboutSection'
 export default function Home() {
   return (
     <>
+      <div className='bg-gray-100'>
         <Header/>
         <Hero/>
         <FeaturesAndServices/>
         <AboutSection/>
         <Footer/>
+        </div>
            </>
   )
 }

@@ -36,7 +36,7 @@ function BikeBrandNavbar() {
   ];
 
   return (
-    <nav className="relative  bg-blue  shadow-xl bg-blue-500">
+    <nav className="relative  bg-blue-800 shadow-lg ">
       <div className="flex space-x-6 min-w-max  ml-[15%]">
         {brands.map((brand) => (
           <div className="relative group" key={brand.name}>

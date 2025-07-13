@@ -4,10 +4,10 @@ import bcrypt from 'bcrypt';
 import { IUserRepository } from '../repositories/userRepository';
 import { TYPES } from '../types/types';
 import { ConflictError } from '../errors/conflictErrors';
-import { User } from '../models/user';
+import { IUser,User } from '../models/user';
 
 export interface IUserService {
-  registerUser(name: string, email: string, phone: string, password: string): Promise<Omit<User, 'password'>>;
+  registerUser(name: string, email: string, phone: string, password: string): Promise<Omit<IUser, 'password'>>;
   userExists(email: string): Promise<boolean>;
 }
 
@@ -17,11 +17,11 @@ export class UserService implements IUserService {
     @inject(TYPES.UserRepository) private userRepository: IUserRepository
   ) {}
 
-  async registerUser(name: string, email: string, phone: string, password: string): Promise<Omit<User, 'password'>> {
+  async registerUser(name: string, email: string, phone: string, password: string): Promise<Omit<IUser, 'password'>> {
     if (await this.userRepository.findByEmail(email)) {
       throw new ConflictError('Email already registered');
     }
-
+    
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await this.userRepository.createUser({
       name,

@@ -1,10 +1,10 @@
-import { UserService } from './../services/userServices';
 // src/controllers/userController.ts
-import { inject, injectable } from 'inversify';
 import { Request, Response } from 'express';
+import { inject, injectable } from 'inversify';
 import { IUserService } from '../services/userServices';
 import { TYPES } from '../types/types';
 import { ConflictError } from '../errors/conflictErrors';
+import { CreateUserDTO, CreateUserSchema } from '../dto/CreateUserDTO';
 
 export interface IUserController {
   register(req: Request, res: Response): Promise<void>;
@@ -13,37 +13,38 @@ export interface IUserController {
 @injectable()
 export class UserController implements IUserController {
   constructor(
-    @inject(TYPES.UserService) private userService: IUserService
-  ) {
-    this._userService=userService;
-    this.
-  }
+    @inject(TYPES.UserService) private readonly userService: IUserService
+  ) {}
 
-  async register(req: Request, res: Response) {
-    const { name, email, password, phone } = req.body;
-
-    if (!name || !email || !password || !phone) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
-
+  async register(req: Request, res: Response): Promise<void> {
     try {
-      if (await this.userService.userExists(email)) {
+      const parsed = CreateUserSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors[0].message });
+      }
+
+      const userData: CreateUserDTO = parsed.data;
+
+      const exists = await this.userService.userExists(userData.email);
+      if (exists) {
         return res.status(409).json({ message: 'Email already in use' });
       }
 
-      const newUser = await this.userService.registerUser(name, email, phone, password);
+      const newUser = await this.userService.registerUser(userData);
+
       const { password: _, ...userWithoutPassword } = newUser;
 
-      return res.status(201).json({
+      res.status(201).json({
         message: 'User registered successfully',
-        user: userWithoutPassword
+        user: userWithoutPassword,
       });
     } catch (error) {
       if (error instanceof ConflictError) {
-        return res.status(error.statusCode).json({ message: error.message });
+        res.status(error.statusCode).json({ message: error.message });
+      } else {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
       }
-      console.error(error);
-      return res.status(500).json({ message: "Internal server error" });
     }
   }
 }

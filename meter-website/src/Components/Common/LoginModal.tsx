@@ -43,7 +43,7 @@ const LoginModal = ({ onClose, page }) => {
     try {
       const validationErrors = validate();
       setErrors(validationErrors);
-      console.log("started to sent")
+      console.log("started to sent");
       if (Object.keys(validationErrors).length === 0) {
         const formData = {
           email,
@@ -51,16 +51,15 @@ const LoginModal = ({ onClose, page }) => {
           password,
           ...(isLogin ? {} : { name }),
         };
-  
+
         console.log('Submitting:', formData);
-        const response = await signUp(formData)
-        console.log(response,"here is the response")
+        const response = await signUp(formData);
+        console.log(response, "here is the response");
         onClose();
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("❌ Signup failed:", error.response?.data || error.message);
     }
-  
   };
 
   useEffect(() => {
@@ -76,7 +75,7 @@ const LoginModal = ({ onClose, page }) => {
       onClick={onClose}
     >
       <motion.div
-        className="relative flex w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="relative flex w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
@@ -86,12 +85,12 @@ const LoginModal = ({ onClose, page }) => {
         {Object.keys(errors).length > 0 && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded-lg shadow-md w-[90%] md:w-[80%] max-w-md text-sm space-y-1">
             {Object.entries(errors).map(([field, errMsg]) => (
-               <p key={field}>{errMsg}</p>
-              ))}
+              <p key={field}>{errMsg}</p>
+            ))}
           </div>
         )}
 
-        <div className="w-1/2 bg-blue-600 text-white p-10 hidden md:flex flex-col justify-center">
+        <div className="w-1/2 bg-gradient-to-br from-blue-700 to-blue-500 text-white p-10 hidden md:flex flex-col justify-center">
           <h2 className="text-3xl font-bold mb-4">Welcome to RK Meter Service</h2>
           <p className="text-lg">
             {isLogin
@@ -111,19 +110,20 @@ const LoginModal = ({ onClose, page }) => {
                 type="text"
                 placeholder=" "
                 onChange={(e) => setName(e.target.value)}
-                className="peer w-full px-3 pt-4 pb-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="peer w-full h-3 px-3 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
-              <label className="absolute left-3 top-2 text-sm text-gray-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600">
+              <label className="absolute left-3 top-2 text-sm text-gray-900 transition-all peer-placeholder-shown:top- peer-placeholder-shown:text-xs peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600">
                 Full Name
               </label>
             </div>
           )}
+
           <div className="relative mb-6">
             <input
               type="email"
               placeholder=" "
               onChange={(e) => setEmail(e.target.value)}
-              className="peer w-full px-3 pt-4 pb-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="peer w-full px-3 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <label className="absolute left-3 top-2 text-sm text-gray-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600">
               Email
@@ -131,24 +131,25 @@ const LoginModal = ({ onClose, page }) => {
           </div>
 
           {!isLogin && (
-          <div className="relative mb-4">
-            <input
-              type="tel"
-              placeholder=" "
-              onChange={(e) => setPhone(e.target.value)}
-              className="peer w-full px-3 pt-4 pb-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <label className="absolute left-3 top-2 text-sm text-gray-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600">
-              Phone Number
-            </label>
-          </div>
-         )}
-          <div className="relative mb-4">
+            <div className="relative mb-4">
+              <input
+                type="tel"
+                placeholder=" "
+                onChange={(e) => setPhone(e.target.value)}
+                className="peer w-full px-3 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <label className="absolute left-3 top-2 text-sm text-gray-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600">
+                Phone Number
+              </label>
+            </div>
+          )}
+
+          <div className="relative mb-6">
             <input
               type="password"
               placeholder=" "
               onChange={(e) => setPassword(e.target.value)}
-              className="peer w-full px-3 pt-4 pb-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="peer w-full px-3 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
             <label className="absolute left-3 top-2 text-sm text-gray-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600">
               Password

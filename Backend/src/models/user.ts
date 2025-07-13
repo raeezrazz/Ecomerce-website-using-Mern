@@ -2,7 +2,19 @@
 import mongoose , {Schema} from "mongoose"
 // import {IUser} from "../interfaces/userTypes"
 
-
+export interface IUser extends Document {
+    name: string;
+    email: string;
+    password: string;
+    bio?: string;
+    dob?: Date;
+    phone?: string;
+    isVerified: boolean;
+    isAdmin: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  }
+  
 const UserSchema : Schema = new Schema({
     name :{
         type: String,
@@ -26,7 +38,7 @@ const UserSchema : Schema = new Schema({
         required:false
     },
     phone:{
-        type:Number,
+        type:String,
         required:false
     },
     isVerified:{

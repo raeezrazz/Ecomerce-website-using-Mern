@@ -49,7 +49,7 @@ const features = [
 
 const FeaturesAndServices: React.FC = () => {
   return (
-    <section className="bg-white py-16 px-6 md:px-20">
+    <section className="bg-blue-200 py-16 px-6 md:px-20 rounded-lg  m-6">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold text-blue-600">
           Our <span className="text-blue-700">Services</span>
@@ -63,7 +63,7 @@ const FeaturesAndServices: React.FC = () => {
         {features.map((feature, index) => (
           <div
             key={index}
-            className="border border-gray-200 p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300"
+            className="border bg-gray-200 border-blue-100 p-6 rounded-xl shadow-sm hover:shadow-lg  transition duration-300"
           >
             <div className="mb-4">{feature.icon}</div>
             <h3 className="text-lg font-semibold text-blue-800">{feature.title}</h3>
