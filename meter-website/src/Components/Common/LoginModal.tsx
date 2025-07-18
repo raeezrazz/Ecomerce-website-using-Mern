@@ -99,70 +99,118 @@ const LoginModal = ({ onClose, page }) => {
           </p>
         </div>
 
-        <div className="w-full md:w-1/2 p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-            {isLogin ? 'Login' : 'Register'}
-          </h2>
+        <div className="w-full md:w-1/2 p-8 relative">
+  {/* Close Button */}
+  <button
+    onClick={onClose}
+    className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl font-bold"
+  >
+    ×
+  </button>
 
-          {!isLogin && (
-            <div className="relative mb-4">
-              <input
-                type="text"
-                placeholder=" "
-                onChange={(e) => setName(e.target.value)}
-                className="peer w-full h-3 px-3 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <label className="absolute left-3 top-2 text-sm text-gray-900 transition-all peer-placeholder-shown:top- peer-placeholder-shown:text-xs peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600">
-                Full Name
-              </label>
-            </div>
-          )}
+  <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+    {isLogin ? 'Login' : 'Register'}
+  </h2>
 
-          <div className="relative mb-6">
-            <input
-              type="email"
-              placeholder=" "
-              onChange={(e) => setEmail(e.target.value)}
-              className="peer w-full px-3 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <label className="absolute left-3 top-2 text-sm text-gray-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600">
-              Email
-            </label>
-          </div>
+  {!isLogin && (
+    <div className="relative mb-4">
+      <input
+        type="text"
+        placeholder=" "
+        onChange={(e) => setName(e.target.value)}
+        className="peer w-full h-9 px-3 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+      />
+          {name === '' && (
+       <label
+         className="absolute left-3 top-2 text-sm text-gray-500 pointer-events-none transition-all"
+       >
+        Enter Name
+       </label>
+     )}
+    </div>
+  )}
 
-          {!isLogin && (
-            <div className="relative mb-4">
-              <input
-                type="tel"
-                placeholder=" "
-                onChange={(e) => setPhone(e.target.value)}
-                className="peer w-full px-3 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-              <label className="absolute left-3 top-2 text-sm text-gray-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600">
-                Phone Number
-              </label>
-            </div>
-          )}
+  <div className="relative mb-4">
+    <input
+      type="email"
+      placeholder=" "
+      onChange={(e) => setEmail(e.target.value)}
+      className="peer w-full h-9 px-3 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+    />
+         {email === '' && (
+       <label
+         className="absolute left-3 top-2 text-sm text-gray-500 pointer-events-none transition-all"
+       >
+         Enter Email
+       </label>
+     )}
+  </div>
 
-          <div className="relative mb-6">
-            <input
-              type="password"
-              placeholder=" "
-              onChange={(e) => setPassword(e.target.value)}
-              className="peer w-full px-3 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <label className="absolute left-3 top-2 text-sm text-gray-500 transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-blue-600">
-              Password
-            </label>
-          </div>
+  {!isLogin && (
+     <div className="relative mb-4">
+     <input
+       type="number"
+       value={phone}
+       onChange={(e) => setPhone(e.target.value)}
+       placeholder=""
+       className="peer w-full h-9 px-3 pt-4 pb-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+     />
+     
+     {/* Show label only if input is empty */}
+     {phone === '' && (
+       <label
+         className="absolute left-3 top-2 text-sm text-gray-500 pointer-events-none transition-all"
+       >
+         Phone Number
+       </label>
+     )}
+   </div>
+  
+  )}
 
-          <button
-            onClick={handleSubmit}
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-          >
-            {isLogin ? 'Login' : 'Register'}
-          </button>
-        </div>
+  <div className="relative mb-6">
+    <input
+      type="password"
+      placeholder=" "
+      onChange={(e) => setPassword(e.target.value)}
+      className="peer w-full px-3 h-9 pt-4 pb-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+    />
+     {password === '' && (
+       <label
+         className="absolute left-3 top-2 text-sm text-gray-500 pointer-events-none transition-all"
+       >
+         Enter Password
+       </label>
+     )}
+  </div>
+
+  <button
+    onClick={handleSubmit}
+    className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+  >
+    {isLogin ? 'Login' : 'Register'}
+  </button>
+
+  {/* Google Login Button */}
+  <button className="w-full mt-4 py-2 border border-gray-300 rounded-lg text-sm font-medium flex items-center justify-center gap-2 hover:bg-gray-100 transition">
+    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+    Continue with Google
+  </button>
+
+  {/* Already have an account / switch */}
+  <p className="text-sm text-gray-600 text-center mt-4">
+    {isLogin ? (
+      <>
+        Don’t have an account? <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => window.location.reload()}>Register</span>
+      </>
+    ) : (
+      <>
+        Already have an account? <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => window.location.reload()}>Login</span>
+      </>
+    )}
+  </p>
+</div>
+
       </motion.div>
     </div>
   );

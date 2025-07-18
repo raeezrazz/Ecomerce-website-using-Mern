@@ -12,6 +12,7 @@ function ProductPage() {
   return (
     <div>
         <Header/>
+        <div className='px-9 py-2'>
         <Breadcrumbs
          items={[
             { label: "Home", path: "/" },
@@ -30,6 +31,7 @@ function ProductPage() {
             console.log("Added to cart!");
          }}
         />
+        </div>
         <Footer/>
     </div>
   )

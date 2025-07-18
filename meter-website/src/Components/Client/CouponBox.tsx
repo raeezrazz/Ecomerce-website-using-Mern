@@ -13,13 +13,13 @@ const CouponBox = () => {
   };
 
   return (
-    <div className="p-4 border rounded-lg bg-white shadow mt-6">
+    <div className="p-4 border border-gray-300 rounded-lg bg-white shadow mt-6">
       <h3 className="text-lg font-semibold mb-2">Have a promo code?</h3>
       <div className="flex items-center gap-2">
         <input
           type="text"
           placeholder="Enter coupon code"
-          className="w-full px-3 py-2 border rounded"
+          className="w-full px-3 py-2 border border-gray-300 rounded"
           value={code}
           onChange={(e) => setCode(e.target.value)}
         />

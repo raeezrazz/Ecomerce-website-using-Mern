@@ -85,7 +85,7 @@ const CheckoutMain = () => {
 
       {/* Right: Order Summary */}
       <div className="bg-white p-6 rounded-lg shadow space-y-6 h-fit sticky top-20">
-        <h2 className="text-lg font-semibold border-b pb-2">Order Summary</h2>
+        <h2 className="text-lg font-semibold border-b border-gray-300 pb-2">Order Summary</h2>
 
         {/* Product List */}
         <div className="space-y-3">
@@ -105,7 +105,7 @@ const CheckoutMain = () => {
           </div>
         </div>
 
-        <div className="border-t pt-4 space-y-2 text-sm">
+        <div className="border-t border-gray-300 pt-4 space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Subtotal</span>
             <span>₹3,698</span>

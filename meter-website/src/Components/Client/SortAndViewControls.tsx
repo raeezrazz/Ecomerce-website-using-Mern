@@ -14,7 +14,7 @@ const SortAndViewControls = () => {
           id="sort"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="border rounded px-3 py-1 text-sm"
+          className="shadow-sm  rounded px-3 py-1 text-sm"
         >
           <option value="newest">New Arrivals</option>
           <option value="priceLow">Price: Low to High</option>
@@ -24,7 +24,7 @@ const SortAndViewControls = () => {
       </div>
 
       {/* View Toggle */}
-      <div className="flex items-center gap-2">
+      {/* <div className="flex items-center gap-2">
         <button
           onClick={() => setViewType('grid')}
           className={`p-2 rounded ${viewType === 'grid' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
@@ -37,7 +37,7 @@ const SortAndViewControls = () => {
         >
           <List className="w-4 h-4" />
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };

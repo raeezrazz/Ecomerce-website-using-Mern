@@ -55,7 +55,7 @@ const CustomerReviews = () => {
       {/* Reviews List */}
       <div className="space-y-6">
         {mockReviews.map((review, idx) => (
-          <div key={idx} className="border p-4 rounded-lg shadow-sm bg-white">
+          <div key={idx} className="border border-gray-300 p-4 rounded-lg shadow-sm bg-white">
             <div className="flex items-center justify-between mb-1">
               <p className="font-medium">{review.name}</p>
               <span className="text-sm text-gray-500">{review.date}</span>
@@ -84,7 +84,7 @@ const CustomerReviews = () => {
       </div>
 
       {/* Write a Review Form */}
-      <div className="mt-8 border-t pt-6">
+      <div className="mt-8 border-t border-gray-300 pt-6">
         <h4 className="text-lg font-semibold mb-4">Write a Review</h4>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -93,14 +93,14 @@ const CustomerReviews = () => {
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full border rounded-lg p-2 text-sm"
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm"
           />
           <textarea
             placeholder="Your review"
             required
             value={form.comment}
             onChange={(e) => setForm({ ...form, comment: e.target.value })}
-            className="w-full border rounded-lg p-2 text-sm"
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm"
           ></textarea>
 
           <div className="flex items-center gap-2">

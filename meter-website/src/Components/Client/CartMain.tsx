@@ -66,7 +66,7 @@ const CartMain = () => {
           {cartItems.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-4 border p-4 rounded-lg shadow-sm"
+              className="flex items-center justify-between gap-4 border border-gray-300 p-4 rounded-lg shadow-sm"
             >
               <img src={item.image} alt={item.name} className="w-24 h-24 object-cover rounded" />
 
@@ -112,7 +112,7 @@ const CartMain = () => {
       </div>
 
       {/* Right: Summary */}
-      <div className="w-full md:w-1/3 border p-6 rounded-lg shadow-sm bg-gray-50">
+      <div className="w-full md:w-1/3 border border-gray-300 p-6 rounded-lg shadow-sm bg-gray-50">
         <h3 className="text-lg font-bold mb-4">Order Summary</h3>
         <div className="space-y-3 text-sm text-gray-700">
           <div className="flex justify-between">
@@ -127,7 +127,7 @@ const CartMain = () => {
             <span>Discount</span>
             <span>₹{discount}</span>
           </div>
-          <div className="border-t pt-3 flex justify-between font-semibold text-gray-900">
+          <div className="border-t border-gray-300 pt-3 flex justify-between font-semibold text-gray-900">
             <span>Total</span>
             <span>₹{total}</span>
           </div>
@@ -138,7 +138,7 @@ const CartMain = () => {
           <input
             type="text"
             placeholder="Promo Code"
-            className="w-full p-2 border rounded mb-2"
+            className="w-full p-2 border border-gray-300 rounded mb-2"
             onChange={(e) => setDiscount(e.target.value === "METER10" ? 100 : 0)}
           />
           <p className="text-xs text-gray-500">Use code <b>METER10</b> for ₹100 off</p>

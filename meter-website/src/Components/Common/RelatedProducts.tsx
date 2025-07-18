@@ -43,7 +43,7 @@ const RelatedProducts = () => {
         {relatedItems.map((item) => (
           <div
             key={item.id}
-            className="bg-white border rounded-xl shadow hover:shadow-md transition-all"
+            className="bg-white border border-gray-300 rounded-xl shadow hover:shadow-md transition-all"
           >
             <div className="relative">
               <img

@@ -7,7 +7,7 @@ type BreadcrumbsProps = {
 
 const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
   return (
-    <nav className="text-sm text-gray-600 mb-6" aria-label="Breadcrumb">
+    <nav className="text-sm text-gray-600 border-b border-gray-300 pb-2 " aria-label="Breadcrumb">
       <ol className="flex items-center space-x-1">
         {items.map((item, index) => (
           <li key={index} className="flex items-center">

@@ -3,7 +3,10 @@ import { Truck, RotateCcw, ShieldCheck, Clock } from "lucide-react";
 
 const DeliveryPolicy = () => {
   return (
-    <div className="mt-12 border-t pt-6 grid md:grid-cols-2 gap-6 text-gray-700 text-sm">
+    <>
+    <hr className="my-2 border-gray-300" />
+
+    <div className="mt-6  pt-6 grid md:grid-cols-2 gap-6 text-gray-700 text-sm shadow-lg p-3">
       {/* Estimated Delivery */}
       <div className="flex items-start gap-3">
         <Clock className="text-blue-600 w-6 h-6 mt-1" />
@@ -40,6 +43,7 @@ const DeliveryPolicy = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

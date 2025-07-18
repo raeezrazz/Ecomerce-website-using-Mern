@@ -4,7 +4,7 @@ import { inject, injectable } from 'inversify';
 import { IUserService } from '../services/userServices';
 import { TYPES } from '../types/types';
 import { ConflictError } from '../errors/conflictErrors';
-import { CreateUserDTO, CreateUserSchema } from '../dto/CreateUserDTO';
+import { CreateUserDTO, CreateUserSchema } from '../dtos/CreateUserDTO';
 
 export interface IUserController {
   register(req: Request, res: Response): Promise<void>;
@@ -16,28 +16,51 @@ export class UserController implements IUserController {
     @inject(TYPES.UserService) private readonly userService: IUserService
   ) {}
 
+
   async register(req: Request, res: Response): Promise<void> {
     try {
       const parsed = CreateUserSchema.safeParse(req.body);
       if (!parsed.success) {
-        return res.status(400).json({ message: parsed.error.errors[0].message });
+         res.status(400).json({
+          message: parsed.error.errors?.[0]?.message || 'Validation failed',
+        });
+        return
       }
-
+  
       const userData: CreateUserDTO = parsed.data;
-
+  
       const exists = await this.userService.userExists(userData.email);
       if (exists) {
-        return res.status(409).json({ message: 'Email already in use' });
+         res.status(409).json({ message: 'Email already in use' });
+         return
       }
+  
+      const {user ,accessToken,refreshToken} = await this.userService.registerUser(userData);
+      if (!user ||!accessToken || !refreshToken ) {
+         res.status(500).json({ message: 'User creation failed' });
+         return
+      }
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: true,
+        maxAge: 15 * 60 * 1000, // 15 minutes
+      });
 
-      const newUser = await this.userService.registerUser(userData);
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
 
-      const { password: _, ...userWithoutPassword } = newUser;
 
       res.status(201).json({
-        message: 'User registered successfully',
-        user: userWithoutPassword,
+        success: true,
+        data: user,
+        accessToken,
+        message: "User Reguister successfull",
       });
+
+
     } catch (error) {
       if (error instanceof ConflictError) {
         res.status(error.statusCode).json({ message: error.message });
@@ -47,4 +70,5 @@ export class UserController implements IUserController {
       }
     }
   }
+  
 }
