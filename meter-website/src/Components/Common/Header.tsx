@@ -2,9 +2,10 @@ import React ,{useState} from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { FaSearch } from 'react-icons/fa';
 import freeShip from '../../assets/freeShip.png'
-import LoginModal from './LoginModal';
+import LoginModal from '../Auth/LoginModal';
 import BikeBrandNavbar from './BikeBrandNavbar';
 import rpmLogo from '../../assets/rpmLogo.png'
+import { Navigate } from 'react-router-dom';
 
 
 export default function Header() {
@@ -21,8 +22,8 @@ export default function Header() {
     <div className=" text-white shadow-lg  ">
       <div className="max-w-4xl mx-auto px-6   flex justify-between items-center">
         <nav className="space-x-4 ">
-          <a href="#" className="text-xs hover:rotate-6 transition">Home</a>
-          <a href="shop" className="text-xs hover:underline">Shop</a>
+          <a href="" className="text-xs hover:rotate-6 transition">Home</a>
+          <a href='' className="text-xs hover:underline">Shop</a>
           <a href="#" className="text-xs hover:underline">Contact</a>
         </nav>
         <div className='flex justify-between items-center'>

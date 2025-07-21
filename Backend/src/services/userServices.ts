@@ -1,5 +1,4 @@
 import { CreateUserDTO } from './../dtos/CreateUserDTO';
-// src/services/userServices.ts
 import { inject, injectable } from 'inversify';
 import bcrypt from 'bcrypt';
 import { IUserRepository } from '../repositories/userRepository';

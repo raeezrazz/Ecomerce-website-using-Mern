@@ -4,7 +4,8 @@ export interface SignUpData {
     name: string;
     email: string;
     password: string;
-    phone?: string; // if phone is optional
+    phone?: string; 
+    otp?: string;
   }
 
 
@@ -13,3 +14,13 @@ export const signUp = async (formData:SignUpData) => {
         ...formData,
     });
 };
+
+export  const verifyOtp =async (formData: SignUpData)=>{
+    return await apiClient.post('/user/verifyOtp',{
+        ...formData
+    });
+};
+export const resendOtp = async (email: string) => {
+    return await apiClient.post("/user/resendOtp", { email });
+  };
+  

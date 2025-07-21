@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./meter-website
+    container_name: my_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: ./server
+    container_name: my_api
+    ports:
+      - "3040:3040"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - NODE_ENV=development
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: redis-server
+    ports:
+      - "6379:6379"
