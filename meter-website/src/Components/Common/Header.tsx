@@ -77,7 +77,7 @@ export default function Header() {
           >
             Login
           </motion.button>
-        ):(<button className="text-blue-900 text-sm" onClick={()=>setIsOpen('')}>Login</button>)}
+        ):(<button className="text-blue-900 text-sm" onClick={()=>setIsOpen('login')}>Login</button>)}
 
       </AnimatePresence>
     
@@ -93,7 +93,7 @@ export default function Header() {
           >
             Register
           </motion.button>
-        ):(<button className="text-blue-900 text-sm" onClick={()=>setIsOpen(false)}>Register</button>)}
+        ):(<button className="text-blue-900 text-sm" onClick={()=>setIsOpen('register')}>Register</button>)}
 
         {isOpen && <LoginModal onClose={() => setIsOpen(false)} page={isOpen}    />}
       </AnimatePresence>

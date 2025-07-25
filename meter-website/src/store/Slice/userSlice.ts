@@ -22,7 +22,7 @@ export const userTypeSlce = createSlice({
     reducers:{
         setCredentials: (state, action) =>{
             console.log(action,"here is the actio data")
-            state.userInfo = action.payload.data;
+            state.userInfo = action.payload;
 
         },
         logout: (state) => {

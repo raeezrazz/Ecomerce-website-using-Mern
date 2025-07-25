@@ -8,6 +8,8 @@ const router = Router();
 const userController = container.get<IUserController>(TYPES.UserController);
 
 router.post('/register', (req, res) => userController.register(req, res));
+router.post('/login', (req, res) => userController.login(req, res));
+
 router.post('/verifyOtp',(req,res)=>userController.verifyOtpAndRegister(req,res))
 router.post('/resendOtp',(req,res)=>userController.resendOtp(req,res))
-export default router;  
+export default router;       

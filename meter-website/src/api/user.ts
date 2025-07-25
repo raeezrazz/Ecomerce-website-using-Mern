@@ -24,3 +24,8 @@ export const resendOtp = async (email: string) => {
     return await apiClient.post("/user/resendOtp", { email });
   };
   
+  export const login = async (formData:SignUpData) => {
+    return await apiClient.post("/user/login", {
+        ...formData,
+    });
+};

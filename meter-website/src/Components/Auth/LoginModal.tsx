@@ -1,14 +1,22 @@
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
-import { resendOtp, signUp, verifyOtp } from '../../api/user';
+import { login, resendOtp, signUp, verifyOtp } from '../../api/user';
 import RegisterForm from './RegisterForm';
 import OtpVerification from './OtpVerification';
 import Success from './Success';
 import Loading from './Loading';
+import { setCredentials } from '../../store/Slice/userSlice';
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
+
+// const navigate = useNavigate();
+const dispatch = useDispatch;
+
 
 const LoginModal = ({ onClose, page }) => {
-  const isLogin = page === 'login';
 
+  const [isLogin, setIsLogin] = useState(page === 'login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('mhdrahees67@gmail.com');
   const [password, setPassword] = useState('');
@@ -20,7 +28,7 @@ const LoginModal = ({ onClose, page }) => {
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const [timer, setTimer] = useState(30);
-  const [timerKey, setTimerKey] = useState(0);
+  const [timerKey, setTimerKey] = useState(0);             
 
   const [isResendDisabled, setIsResendDisabled] = useState(true);
 
@@ -52,36 +60,56 @@ const LoginModal = ({ onClose, page }) => {
     return newErrors;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const validationErrors = validate();
-      setErrors(validationErrors);
-      if (Object.keys(validationErrors).length === 0) {
-        const formData = {
-          email,
-          phone,
-          password,
-          ...(isLogin ? {} : { name }),
-        };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-        const response = await signUp(formData);
-        if (response.data.success) {
-          setShowOtpPage(true);
-          setTimer(30)
-          setLoading(false)
-        } else {
-          setErrors({ general: response.data.message || 'Something went wrong' });
-          setLoading(false)
-        }
+  const validationErrors = validate();
+  setErrors(validationErrors);
+
+  if (Object.keys(validationErrors).length > 0) {
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const formData = {
+      email,
+      password,
+      ...(isLogin ? {} : { name, phone }),
+    };
+
+    if (isLogin) {
+      // 🔑 Login Flow
+      const response = await login(formData);
+
+      if (response.data.success) {
+        dispatch(setCredentials(response.data.data));
+        localStorage.setItem('accessToken', response.data.accessToken); 
+        setLoading(false);
+        onClose();
+        // navigate('/dashboard'); // Or home
+      } else {
+        setErrors({ general: response.data.message || 'Login failed' });
       }
-    } catch (error) {
-      console.error("❌ Signup failed:", error.response?.data || error.message);
-    } finally {
-      setLoading(false);
+    } else {
+      // 📝 Register Flow
+      const response = await signUp(formData);
+      if (response.data.success) {
+        setShowOtpPage(true);
+        setTimer(30);
+      } else {
+        setErrors({ general: response.data.message || 'Signup failed' });
+      }
     }
-  };
+  } catch (error) {
+    console.error('❌ Error:', error);
+    setErrors({ general: error.response?.data?.message || 'Something went wrong' });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleOtpSubmit = async () => {
     setLoading(true)
@@ -114,6 +142,9 @@ const LoginModal = ({ onClose, page }) => {
         setTimeout(() => {
           onClose(); //
         }, 3000);
+
+
+
       } else  {
         setErrors({ otp: response.message || 'OTP verification failed' });
         setLoading(false)
@@ -242,6 +273,7 @@ const LoginModal = ({ onClose, page }) => {
             password={password}
             setPassword={setPassword}
             handleSubmit={handleSubmit}
+            toggleForm={() => setIsLogin(!isLogin)}
           />
           )}
         </div>

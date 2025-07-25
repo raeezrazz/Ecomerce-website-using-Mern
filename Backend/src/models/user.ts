@@ -2,7 +2,7 @@
 import mongoose , {Schema} from "mongoose"
 // import {IUser} from "../interfaces/userTypes"
 
-export interface IUser extends Document {
+export interface IUser  {
     _id:string,
     name: string;
     email: string;
