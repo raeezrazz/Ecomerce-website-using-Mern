@@ -5,166 +5,131 @@ import RegisterForm from './RegisterForm';
 import OtpVerification from './OtpVerification';
 import Success from './Success';
 import Loading from './Loading';
+import { loginSchema, registerSchema, otpSchema } from '../../validation/authSchema';
+import { ZodError } from 'zod';
 import { setCredentials } from '../../store/Slice/userSlice';
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-
-
-// const navigate = useNavigate();
-const dispatch = useDispatch;
-
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const LoginModal = ({ onClose, page }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [isLogin, setIsLogin] = useState(page === 'login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('mhdrahees67@gmail.com');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('')
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [showOtpPage, setShowOtpPage] = useState(false );
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showOtpPage, setShowOtpPage] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-
   const [timer, setTimer] = useState(30);
-  const [timerKey, setTimerKey] = useState(0);             
-
+  const [timerKey, setTimerKey] = useState(0);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
 
-  const validate = () => {
-    const newErrors = {};
+  // Handle form submission (Login or Register)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrors({});
+    setErrorMessage('');
 
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[\w.-]+@[\w.-]+\.\w{2,}$/.test(email)) {
-      newErrors.email = 'Invalid email format';
-    }
-
-    if (!phone && !isLogin) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!isLogin && !/^\d{10}$/.test(phone)) {
-      newErrors.phone = 'Phone number must be 10 digits';
-    }
-
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    if (!isLogin && !name.trim()) {
-      newErrors.name = 'Full name is required';
-    }
-
-    return newErrors;
-  };
-
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-
-  const validationErrors = validate();
-  setErrors(validationErrors);
-
-  if (Object.keys(validationErrors).length > 0) {
-    setLoading(false);
-    return;
-  }
-
-  try {
     const formData = {
       email,
       password,
       ...(isLogin ? {} : { name, phone }),
     };
 
-    if (isLogin) {
-      // 🔑 Login Flow
-      const response = await login(formData);
-
-      if (response.data.success) {
-        dispatch(setCredentials(response.data.data));
-        localStorage.setItem('accessToken', response.data.accessToken); 
-        setLoading(false);
-        onClose();
-        // navigate('/dashboard'); // Or home
-      } else {
-        setErrors({ general: response.data.message || 'Login failed' });
-      }
-    } else {
-      // 📝 Register Flow
-      const response = await signUp(formData);
-      if (response.data.success) {
-        setShowOtpPage(true);
-        setTimer(30);
-      } else {
-        setErrors({ general: response.data.message || 'Signup failed' });
-      }
-    }
-  } catch (error) {
-    console.error('❌ Error:', error);
-    setErrors({ general: error.response?.data?.message || 'Something went wrong' });
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-  const handleOtpSubmit = async () => {
-    setLoading(true)
-    const newErrors: { otp?: string } = {};
-  
-   
-    if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
-      newErrors.otp = 'Please enter a valid 6-digit OTP sent to your email address.';
-      setErrors(newErrors);
-      setLoading(false)
-      return; 
-    }
-  
-
-    const formData = {
-      email,
-      phone,
-      password,
-      ...(isLogin ? {} : { name }), 
-      otp,
-    };
-  
     try {
-      
-      const response = await verifyOtp(formData);
-      console.log(response, '✅ OTP verification response');
-      if (response?.data?.success) {
-        setLoading(false)
-        setRegistrationSuccess(true); 
-        setTimeout(() => {
-          onClose(); //
-        }, 3000);
+      const parsedData = isLogin
+        ? loginSchema.parse(formData)
+        : registerSchema.parse(formData);
 
+      const response = await signUp(parsedData);
 
-
-      } else  {
-        setErrors({ otp: response.message || 'OTP verification failed' });
-        setLoading(false)
+      if (response.data.success) {
+        if (isLogin) {
+          dispatch(setCredentials(response.data.data));
+          localStorage.setItem('accessToken', response.data.accessToken);
+          onClose();
+          navigate('/');
+        } else {
+          setShowOtpPage(true);
+          setTimer(30);
+        }
       }
     } catch (error) {
-      console.error('❌ Error verifying OTP:', error);
-      setErrors({ otp: 'Something went wrong. Please try again.' });
+      if (error instanceof ZodError) {
+        const fieldErrors = {};
+        error.issues.forEach((issue) => {
+          fieldErrors[issue.path[0]] = issue.message;
+        });
+        setErrors(fieldErrors);
+      } else if (error?.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage('Something went wrong');
+      }
+    } finally {
+      setLoading(false);
     }
   };
-  
-  const handleResendClick =async() => {
-    setIsResendDisabled(true); 
-    setTimer(30);   
-    setTimerKey(prev => prev + 1);
-    const response = await resendOtp(email)
-    setErrors({otp :"Otp resent successfully"})      
 
+  // Handle OTP submission
+  const handleOtpSubmit = async () => {
+    setLoading(true);
+    setErrors({});
+    setErrorMessage('');
+
+    try {
+      otpSchema.parse({ otp });
+
+      const formData = {
+        email,
+        phone,
+        password,
+        ...(isLogin ? {} : { name }),
+        otp,
+      };
+
+      const response = await verifyOtp(formData);
+
+      if (response?.data?.success) {
+        dispatch(setCredentials(response.data.data));
+        localStorage.setItem('accessToken', response.data.accessToken);
+        setRegistrationSuccess(true);
+        setTimeout(() => onClose(), 3000);
+      } else {
+        setErrors({ otp: response.message || 'OTP verification failed' });
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const fieldErrors = {};
+        error.issues.forEach((e) => {
+          fieldErrors[e.path[0]] = e.message;
+        });
+        setErrors(fieldErrors);
+      } else {
+        setErrors({ otp: 'Something went wrong. Please try again.' });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // Handle Resend OTP
+  const handleResendClick = async () => {
+    setIsResendDisabled(true);
+    setTimer(30);
+    setTimerKey((prev) => prev + 1);
+    await resendOtp(email);
+    setErrors({ otp: 'OTP resent successfully' });
+  };
 
+  // Auto-clear errors
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
       const timer = setTimeout(() => setErrors({}), 3000);
@@ -172,32 +137,32 @@ const LoginModal = ({ onClose, page }) => {
     }
   }, [errors]);
 
-
+  // Countdown Timer
   useEffect(() => {
     let interval;
-  
+
     if (showOtpPage) {
       interval = setInterval(() => {
-        setTimer((prevTimer) => {
-          if (prevTimer <= 1) {
+        setTimer((prev) => {
+          if (prev <= 1) {
             clearInterval(interval);
             return 0;
           }
-          return prevTimer - 1;
+          return prev - 1;
         });
       }, 1000);
     }
-  
+
     return () => clearInterval(interval);
-  }, [showOtpPage, timerKey]); 
-  
+  }, [showOtpPage, timerKey]);
+
+  // Enable resend after timer ends
   useEffect(() => {
     if (timer === 0) {
       setIsResendDisabled(false);
     }
   }, [timer]);
 
-  
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
       <motion.div
@@ -206,7 +171,7 @@ const LoginModal = ({ onClose, page }) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 120, damping: 15 }}
-        onClick={(e) => e.stopPropagation()} // Prevent click-outside close
+        onClick={(e) => e.stopPropagation()}
       >
         {Object.keys(errors).length > 0 && (
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded-lg shadow-md w-[90%] md:w-[80%] max-w-md text-sm space-y-1">
@@ -216,7 +181,7 @@ const LoginModal = ({ onClose, page }) => {
           </div>
         )}
 
-        {/* Left side (image/text) */}
+        {/* Left Panel */}
         <div className="w-1/2 bg-gradient-to-br from-blue-700 to-blue-500 text-white p-10 hidden md:flex flex-col justify-center">
           <h2 className="text-3xl font-bold mb-4">Welcome to RK Meter Service</h2>
           <p className="text-lg">
@@ -226,29 +191,34 @@ const LoginModal = ({ onClose, page }) => {
           </p>
         </div>
 
-        {/* Right side (form) */}
+        {/* Right Panel */}
         <div className="w-full md:w-1/2 p-8 relative flex flex-col justify-center min-h-[480px]">
+          {/* Back button on OTP page */}
+          {showOtpPage && (
+            <button
+              onClick={() => setShowOtpPage(false)}
+              className="absolute top-2 left-4 text-gray-600 hover:text-black text-2xl font-bold"
+            >
+              ←
+            </button>
+          )}
 
-      {showOtpPage ? (
-      <button
-    onClick={()=>setShowOtpPage(false)} //
-    className="absolute text-xl top-2 left-8 text-gray-500 hover:text-gray-800 text-xl font-bold"
-  >
-    ←
-  </button>):(<></>)}
-  
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-2 right-4 text-gray-600 hover:text-black text-2xl font-bold"
+          >
+            ×
+          </button>
 
-  {/* Close Button (Top Right) */}
-  <button
-    onClick={onClose}
-    className="absolute top-2 right-4 text-gray-500 hover:text-gray-800 text-xl font-bold"
-  >
-    ×
-  </button>
+          {/* Global error message */}
+          {errorMessage && <p className="text-red-500 mb-2">{errorMessage}</p>}
+
+          {/* View rendering */}
           {loading ? (
-           <Loading/>
+            <Loading />
           ) : registrationSuccess ? (
-            <Success/>
+            <Success />
           ) : showOtpPage ? (
             <OtpVerification
               email={email}
@@ -259,22 +229,20 @@ const LoginModal = ({ onClose, page }) => {
               isResendDisabled={isResendDisabled}
               timer={timer}
             />
-
-      
-          ): (
+          ) : (
             <RegisterForm
-            isLogin={isLogin}
-            name={name}
-            setName={setName}
-            email={email}
-            setEmail={setEmail}
-            phone={phone}
-            setPhone={setPhone}
-            password={password}
-            setPassword={setPassword}
-            handleSubmit={handleSubmit}
-            toggleForm={() => setIsLogin(!isLogin)}
-          />
+              isLogin={isLogin}
+              name={name}
+              setName={setName}
+              email={email}
+              setEmail={setEmail}
+              phone={phone}
+              setPhone={setPhone}
+              password={password}
+              setPassword={setPassword}
+              handleSubmit={handleSubmit}
+              toggleForm={() => setIsLogin(!isLogin)}
+            />
           )}
         </div>
       </motion.div>
@@ -283,3 +251,4 @@ const LoginModal = ({ onClose, page }) => {
 };
 
 export default LoginModal;
+ 
