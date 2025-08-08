@@ -5,9 +5,8 @@ import Footer from "../../Components/Common/Footer";
 const ContactUs = () => {
   return (
     <>
-    <Header/>
+    
     <ContactUsBody/>
-    <Footer/>
     </>
   );
 };

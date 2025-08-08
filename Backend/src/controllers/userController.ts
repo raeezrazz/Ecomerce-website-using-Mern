@@ -15,6 +15,7 @@ export interface IUserController {
   resendOtp(req: Request, res: Response): Promise<void>;
   login(req: Request, rees:Response):Promise<void>
   verifyOtpAndRegister(req: Request, res: Response): Promise<void>;
+  getUserData(req:Request ,res: Response):Promise<void>
 }
 
 @injectable()
@@ -112,9 +113,6 @@ export class UserController implements IUserController {
     }
   }
   
-
-  
- 
 async resendOtp(req: Request, res: Response): Promise<void> {
   try {
     const { email } = req.body;
@@ -134,7 +132,6 @@ async resendOtp(req: Request, res: Response): Promise<void> {
     res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
   }
 }
-
 
 async login(req: Request, res: Response): Promise<void> {
   try {
@@ -186,5 +183,12 @@ async login(req: Request, res: Response): Promise<void> {
   }
 }
 
+async getUserData (req: Request ,res: Response):Promise<void>{
+  try {
+    console.log("getting user info in user service !!",req.params);
+  } catch (error) {
+    
+  }
+}
 
 }

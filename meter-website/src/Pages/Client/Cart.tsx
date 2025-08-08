@@ -10,8 +10,7 @@ import RelatedProducts from '../../Components/Common/RelatedProducts'
 function Cart() {
   return (
     <div>
-      <Header/>
-      <div className='px-9 py-3'>
+      
       <Breadcrumbs items={[
         { label: "Home", path: "/" },
          { label: "Cart" }
@@ -20,8 +19,7 @@ function Cart() {
       <CartMain/>
       <CouponBox/>
       <RelatedProducts/>
-      </div>
-      <Footer/>
+      
     </div>
   )
 }

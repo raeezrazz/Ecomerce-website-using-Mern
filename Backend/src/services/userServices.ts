@@ -10,9 +10,9 @@ import { strict } from 'assert';
 import { UserLoginDTO } from '../dtos/UserLoginDTO';
 
 export interface IUserService {
-  registerUser(userData:CreateUserDTO): Promise<{user:Omit<IUser, 'password'>;accessToken:string;refreshToken:string}>;
+  registerUser(userData:CreateUserDTO): Promise<{user:string;accessToken:string;refreshToken:string}>;
   userExists(email: string): Promise<boolean>;
-  userLogin(userData:UserLoginDTO ):Promise<{user:Omit<IUser, 'password'>;accessToken:string;refreshToken:string}>;
+  userLogin(userData:UserLoginDTO ):Promise<{user:string;accessToken:string;refreshToken:string}>;
 }
 
 @injectable()
@@ -21,7 +21,7 @@ export class UserService implements IUserService {
     @inject(TYPES.UserRepository) private userRepository: IUserRepository
   ) {}
 
-  async registerUser(userData:CreateUserDTO): Promise<{user:Omit<IUser, 'password'>;accessToken:string;refreshToken:string}> {
+  async registerUser(userData:CreateUserDTO): Promise<{user:string;accessToken:string;refreshToken:string}> {
     
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     userData.password= hashedPassword
@@ -36,14 +36,14 @@ export class UserService implements IUserService {
 
     const { password: _, ...userWithoutPassword } = user;
     return {
-      user:userWithoutPassword,accessToken,refreshToken
+      user:user._id,accessToken,refreshToken
     };
   }
 
     // src/services/userServices.ts
 
 async userLogin(userData: UserLoginDTO): Promise<{
-  user: Omit<IUser, 'password'>;
+  user: string;
   accessToken: string;
   refreshToken: string;
 }> {
@@ -63,10 +63,8 @@ async userLogin(userData: UserLoginDTO): Promise<{
   const accessToken = generateAccessToken(userId);  
   const refreshToken = generateRefreshToken(userId);
 
-  const { password: _, ...userWithoutPassword } = user;
-
   return {
-    user: userWithoutPassword,
+    user: user._id,
     accessToken,
     refreshToken,
   };

@@ -5,7 +5,7 @@ const SECRET_KEY = process.env.JWT_SECRET || "your_jwt_secret";
 
 export const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
-
+  console.log("Authendication is running successfully")
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Unauthorized" });
   }

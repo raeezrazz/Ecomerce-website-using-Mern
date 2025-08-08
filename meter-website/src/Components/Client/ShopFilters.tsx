@@ -18,7 +18,7 @@ const ShopFilters = () => {
 
       {/* Filters Panel */}
       <aside
-        className={`md:w-1/4 w-full space-y-6  pr-4 transition-all duration-300 ease-in-out ${
+        className={`md:w-1/4 w-full space-y-6 pr-4 transition-all duration-300 ease-in-out ${
           isOpen ? 'block' : 'hidden'
         } md:block`}
       ><div className='shadow-lg p-3   rounded-lg pl-4'>

@@ -9,7 +9,7 @@ import NewsletterBanner from '../../Components/Common/NewsLetterBanner'
 function Shop() {
   return (
     <>
-        <Header/>
+       
         <Breadcrumbs
          items={[
             { label: "Home", path: "/" },
@@ -23,7 +23,7 @@ function Shop() {
             <ProductGrid />
         </section>
         <NewsletterBanner/>
-        <Footer/>
+       
     </>
   )
 }

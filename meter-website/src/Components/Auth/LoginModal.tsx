@@ -48,7 +48,7 @@ const LoginModal = ({ onClose, page }) => {
         ? loginSchema.parse(formData)
         : registerSchema.parse(formData);
 
-      const response = await signUp(parsedData);
+      const response = await (isLogin? login(parsedData) :signUp(parsedData) ) ;
 
       if (response.data.success) {
         if (isLogin) {

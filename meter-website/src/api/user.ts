@@ -29,3 +29,10 @@ export const resendOtp = async (email: string) => {
         ...formData,
     });
 };
+export const getUserById = async (userId?: string) => {
+    if(userId){
+        
+        return await apiClient.get(`/user/${userId}`);
+         
+    }
+}
