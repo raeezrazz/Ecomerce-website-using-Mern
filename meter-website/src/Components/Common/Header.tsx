@@ -8,6 +8,7 @@ import rpmLogo from '../../assets/rpmLogo.png';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/Slice/userSlice';
 import { getUserById } from '../../api/user';
+import { useNavigate } from 'react-router-dom';
 
 export default function Header() {
   const [openMenu, setOpenMenu] = useState(null);
@@ -19,8 +20,8 @@ export default function Header() {
   const [userData, setUserData] = useState(null);
   const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  console.log(user )
 
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,8 +48,8 @@ export default function Header() {
       <div className="text-white shadow-lg">
         <div className="max-w-4xl mx-auto px-6 flex justify-between items-center">
           <nav className="space-x-4">
-            <a href="#" className="text-xs hover:underline">Home</a>
-            <a href="#" className="text-xs hover:underline">Shop</a>
+            <a href="#" className="text-xs hover:underline" onClick={()=>navigate('/')}>Home</a>
+            <a href="#" className="text-xs hover:underline" onClick={()=>navigate('/shop')}>Shop</a>
             <a href="#" className="text-xs hover:underline">Contact</a>
           </nav>
           <div className='flex items-center'>
