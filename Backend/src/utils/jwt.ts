@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken"
 interface TokenPayload {
     userId: string;
 
-}
+} 
 
 export const generateAccessToken = (userId: string) =>{
     const payload : TokenPayload = { userId}

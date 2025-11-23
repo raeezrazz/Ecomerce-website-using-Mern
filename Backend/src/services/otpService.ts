@@ -1,56 +1,52 @@
-import { inject, injectable } from 'inversify';
-import bcrypt from 'bcrypt';
-import { OtpRepository,IOtpRepository } from '../repositories/otpRepository';
-import { TYPES } from '../types/types';
-import { generateOtp } from '../utils/generateOtp';
-import { sendEmail } from '../utils/nodemailer';
+import bcrypt from "bcrypt";
+import Otp from "../models/otp";// You must have an OTP mongoose model
+import { generateOtp } from "../utils/generateOtp";
+import { sendEmail } from "../utils/nodemailer";
 
-@injectable()
-export class OtpService {
-  constructor(
-    @inject(TYPES.OtpRepository) private otpRepository: IOtpRepository
-  ) {}
-
+class OtpService {
   async generateOtp(email: string): Promise<void> {
-    const otp = generateOtp(); // e.g., '123456'
-    
-    const saltRounds = 10;
-    const hashedOtp = await bcrypt.hash(otp, saltRounds);
-  
-    await this.otpRepository.saveOrUpdateOtp(email, hashedOtp);
-  
-    
-await sendEmail(
-   email,
-    'Verify your Email',
-    'otpTemplate.html',
-    { OTP:otp }
-  );
-    console.log(`OTP for ${email}: ${otp}`);
+    const otp = generateOtp(); // Example: "123456"
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    console.log("2")
+
+    // store or update otp
+    await Otp.findOneAndUpdate(
+      { email },
+      { otp: hashedOtp, createdAt: new Date() },
+      { upsert: true }
+    );
+    console.log("3")
+
+    // Send OTP Email
+    await sendEmail(
+      email,
+      "Verify Your Email",
+      "otpTemplate.html",
+      { OTP: otp }
+    );
+    console.log("4")
+    console.log(`OTP sent to ${email}:`, otp);
   }
 
   async verifyOtp(email: string, inputOtp: string): Promise<boolean> {
-    const record = await this.otpRepository.getOtpByEmail(email);
-    if (!record) return false;
-  
-    const isMatch = await bcrypt.compare(inputOtp, record.otp); 
-  
+    if (!email || !inputOtp) return false;
+
+    const record = await Otp.findOne({ email });
+    if (!record || !record.otp) return false;
+
+    const isMatch = await bcrypt.compare(inputOtp, record.otp);
+
+    if (isMatch) {
+      // ❗ Delete OTP after success so it can't be reused
+      await Otp.deleteOne({ email });
+    }
+
     return isMatch;
   }
-  
 
-// async resendOtp(email: string): Promise<string> {
-  
-  
-//     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-  
-//     user.otp = newOtp;
-//     user.otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
-//     await user.save();
-  
-//     await this.emailService.sendOtp(email, newOtp); 
-  
-//     return "OTP resent successfully";
-//   }
-  
+  async resendOtp(email: string): Promise<void> {
+    return this.generateOtp(email);
+  }
 }
+
+export const otpService = new OtpService();

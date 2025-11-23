@@ -1,79 +1,49 @@
-import { CreateUserDTO } from './../dtos/CreateUserDTO';
-import { inject, injectable } from 'inversify';
-import bcrypt from 'bcrypt';
-import { IUserRepository } from '../repositories/userRepository';
-import { TYPES } from '../types/types';
-import { ConflictError } from '../errors/conflictErrors';
-import { IUser,User } from '../models/user';
-import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
-import { strict } from 'assert';
-import { UserLoginDTO } from '../dtos/UserLoginDTO';
+import bcrypt from "bcrypt";
+import { User } from "../models/user";
+import { generateAccessToken, generateRefreshToken } from "../utils/jwt";
+import { ConflictError } from "../errors/conflictErrors";
+import { CreateUserDTO } from "../dtos/CreateUserDTO";
+import { UserLoginDTO } from "../dtos/UserLoginDTO";
 
-export interface IUserService {
-  registerUser(userData:CreateUserDTO): Promise<{user:string;accessToken:string;refreshToken:string}>;
-  userExists(email: string): Promise<boolean>;
-  userLogin(userData:UserLoginDTO ):Promise<{user:string;accessToken:string;refreshToken:string}>;
-}
+export class UserService {
 
-@injectable()
-export class UserService implements IUserService {
-  constructor(       
-    @inject(TYPES.UserRepository) private userRepository: IUserRepository
-  ) {}
+  async registerUser(userData: CreateUserDTO) {
+    const existingUser = await User.findOne({ email: userData.email });
+    if (existingUser) throw new ConflictError("Email already registered");
 
-  async registerUser(userData:CreateUserDTO): Promise<{user:string;accessToken:string;refreshToken:string}> {
-    
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-    userData.password= hashedPassword
-    const user = await this.userRepository.createUser(userData);
+    userData.password = hashedPassword;
 
-    const userId:string=user._id.toString()
+    const user = await User.create(userData);
+    const userId = user._id.toString();
 
-    //Generating Tokens
-
-    const accessToken = generateAccessToken(userId)
-    const refreshToken = generateRefreshToken(userId)
-
-    const { password: _, ...userWithoutPassword } = user;
     return {
-      user:user._id,accessToken,refreshToken
+      user,
+      accessToken: generateAccessToken(userId),
+      refreshToken: generateRefreshToken(userId),
     };
   }
 
-    // src/services/userServices.ts
+  async userLogin(userData: UserLoginDTO) {
+    const user = await User.findOne({ email: userData.email });
 
-async userLogin(userData: UserLoginDTO): Promise<{
-  user: string;
-  accessToken: string;
-  refreshToken: string;
-}> {
-  const user = await this.userRepository.findByEmail(userData.email);
+    if (!user) throw new ConflictError("User not found");
 
-  if (!user) {
-    throw new ConflictError('User not found with this email');
+    const isPasswordValid = await bcrypt.compare(userData.password, user.password);
+    if (!isPasswordValid) throw new ConflictError("Invalid email or password");
+
+    const userId = user._id.toString();
+
+    return {
+      user,
+      accessToken: generateAccessToken(userId),
+      refreshToken: generateRefreshToken(userId),
+    };
   }
 
-  const isPasswordValid = await bcrypt.compare(userData.password, user.password);
-  if (!isPasswordValid) {
-    throw new ConflictError('Invalid Email or Password');
-  }
-
-  const userId = user._id.toString();
-
-  const accessToken = generateAccessToken(userId);  
-  const refreshToken = generateRefreshToken(userId);
-
-  return {
-    user: user._id,
-    accessToken,
-    refreshToken,
-  };
-}
-
-
-
-  async userExists(email: string): Promise<boolean> {
-    const user = await this.userRepository.findByEmail(email);
-    return !!user;
+  async userExists(email: string) {
+    return !!(await User.findOne({ email }));
   }
 }
+
+export const userService = new UserService();
