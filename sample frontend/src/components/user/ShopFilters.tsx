@@ -1,0 +1,76 @@
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Search } from 'lucide-react';
+
+interface ShopFiltersProps {
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
+  selectedCategory: string;
+  onCategoryChange: (value: string) => void;
+  sortBy: string;
+  onSortChange: (value: string) => void;
+  productCount: number;
+}
+
+export function ShopFilters({
+  searchQuery,
+  onSearchChange,
+  selectedCategory,
+  onCategoryChange,
+  sortBy,
+  onSortChange,
+  productCount,
+}: ShopFiltersProps) {
+  return (
+    <>
+      <div className="bg-card border rounded-lg p-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          <Select value={selectedCategory} onValueChange={onCategoryChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="Digital Meters">Digital Meters</SelectItem>
+              <SelectItem value="Meter Spares">Meter Spares</SelectItem>
+              <SelectItem value="Accessories">Accessories</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={sortBy} onValueChange={onSortChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Name (A-Z)</SelectItem>
+              <SelectItem value="price-low">Price (Low to High)</SelectItem>
+              <SelectItem value="price-high">Price (High to Low)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between mb-6">
+        <p className="text-muted-foreground">
+          Showing {productCount} product{productCount !== 1 ? 's' : ''}
+        </p>
+        {selectedCategory !== 'all' && (
+          <Badge variant="secondary" className="cursor-pointer" onClick={() => onCategoryChange('all')}>
+            {selectedCategory} ✕
+          </Badge>
+        )}
+      </div>
+    </>
+  );
+}
