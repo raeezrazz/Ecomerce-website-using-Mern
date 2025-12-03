@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "dist/server.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-templates",
+    "copy-templates": "mkdir -p dist/templates && cp -r src/templates/* dist/templates/ 2>/dev/null || xcopy /E /I /Y src\\templates dist\\templates 2>nul || echo Templates copy skipped",
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts"
   },
