@@ -354,7 +354,7 @@ export class UserController {
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
-  },
+  }
 
   async update(req: Request, res: Response) {
     try {
