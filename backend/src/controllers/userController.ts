@@ -46,7 +46,7 @@ export class UserController {
         error: error.message || "Registration failed",
       });
     }
-  },
+  }
 
   async login(req: Request, res: Response) {
     try {
@@ -79,7 +79,7 @@ export class UserController {
         error: error.message || "Login failed",
       });
     }
-  },
+  }
 
   async verifyOtpAndRegister(req: Request, res: Response) {
     try {
@@ -140,7 +140,7 @@ export class UserController {
         error: error.message || "Registration failed",
       });
     }
-  },
+  }
 
   async resendOtp(req: Request, res: Response) {
     try {
@@ -175,7 +175,7 @@ export class UserController {
         error: error.message || "Failed to resend OTP",
       });
     }
-  },
+  }
 
   async refreshToken(req: Request, res: Response) {
     try {
@@ -203,7 +203,7 @@ export class UserController {
         error: error.message || "Failed to refresh token",
       });
     }
-  },
+  }
 
   async logout(req: Request, res: Response) {
     try {
@@ -231,7 +231,7 @@ export class UserController {
         error: error.message || "Logout failed",
       });
     }
-  },
+  }
 
   async getProfile(req: Request, res: Response) {
     try {
@@ -273,7 +273,7 @@ export class UserController {
         error: error.message || "Failed to fetch profile",
       });
     }
-  },
+  }
 
   async updateProfile(req: Request, res: Response) {
     try {
@@ -331,7 +331,8 @@ export class UserController {
         error: error.message || "Failed to update profile",
       });
     }
-  },
+  }
+
   async getAll(req: Request, res: Response) {
     try {
       const users = await User.find({ isVerified: true })
@@ -341,7 +342,7 @@ export class UserController {
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
-  },
+  }
 
   async getById(req: Request, res: Response) {
     try {
@@ -370,7 +371,7 @@ export class UserController {
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
-  },
+  }
 
   async delete(req: Request, res: Response) {
     try {
