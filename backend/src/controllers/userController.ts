@@ -8,7 +8,7 @@ import { VerifyOtpSchema } from "../dtos/VerifyOtpDTO";
 import { ConflictError, UnauthorizedError, ValidationError, NotFoundError } from "../errors/conflictErrors";
 import { authenticateToken, AuthRequest } from "../middleware/authMiddleware";
 
-export const userController = {
+export class UserController {
   async register(req: Request, res: Response) {
     try {
       const validatedData = CreateUserSchema.parse(req.body);
@@ -383,4 +383,7 @@ export const userController = {
       res.status(500).json({ error: error.message });
     }
   }
-};
+}
+
+// Export instance for backward compatibility
+export const userController = new UserController();

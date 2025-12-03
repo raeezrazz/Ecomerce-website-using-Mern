@@ -10,7 +10,7 @@ const OTP_EXPIRY_TIME = 5 * 60 * 1000; // 5 minutes in milliseconds
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
 const MAX_OTP_REQUESTS = 3;
 
-class OtpService {
+export class OtpService {
   async generateOtp(email: string): Promise<void> {
     if (!email) {
       throw new ValidationError("Email is required");
@@ -94,4 +94,5 @@ class OtpService {
   }
 }
 
+// Export instance for backward compatibility
 export const otpService = new OtpService();
