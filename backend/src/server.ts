@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 
 app.use(cors({
-  origin: ['https://ecomerce-website-using-mern.onrender.com'],
+  origin: ['https://ecomerce-website-using-mern.onrender.com','ecomerce-website-using-mern-git-main-rahees-projects-cbd8887d.vercel.app','ecomerce-website-using-mern-git-main-rahees-projects-cbd8887d.vercel.app'],
   credentials: true
 }));
 
