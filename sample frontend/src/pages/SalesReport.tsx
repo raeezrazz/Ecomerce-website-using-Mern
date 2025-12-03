@@ -41,14 +41,49 @@ export default function SalesReport() {
     loadSalesData();
   }, [dateRange]);
 
-  const totalSales = salesData.reduce((sum, day) => sum + day.sales, 0);
-  const totalOrders = salesData.reduce((sum, day) => sum + day.orders, 0);
+  // Format and sort data
+  const formattedData = salesData
+    .map((item) => ({
+      ...item,
+      date: item.date || new Date().toISOString().split('T')[0],
+      sales: Number(item.sales) || 0,
+      orders: Number(item.orders) || 0,
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const totalSales = formattedData.reduce((sum, day) => sum + day.sales, 0);
+  const totalOrders = formattedData.reduce((sum, day) => sum + day.orders, 0);
   const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatTooltipDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'short',
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return dateStr;
+    }
+  };
 
   const handleExport = () => {
     const csv = [
       ['Date', 'Sales', 'Orders'],
-      ...salesData.map(d => [d.date, d.sales, d.orders])
+      ...formattedData.map(d => [d.date, d.sales, d.orders])
     ].map(row => row.join(',')).join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -145,31 +180,49 @@ export default function SalesReport() {
             <CardTitle>Sales Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={salesData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                />
-                <YAxis />
-                <Tooltip
-                  formatter={(value: number, name: string) => [
-                    name === 'sales' ? `₹${value.toLocaleString()}` : value,
-                    name === 'sales' ? 'Sales' : 'Orders'
-                  ]}
-                  labelFormatter={(date) => new Date(date).toLocaleDateString()}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="sales"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                  name="Sales"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {formattedData.length === 0 ? (
+              <div className="flex items-center justify-center h-[350px] text-muted-foreground">
+                No sales data available
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={350}>
+                <LineChart data={formattedData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={formatDate}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => `₹${value.toLocaleString()}`}
+                  />
+                  <Tooltip
+                    formatter={(value: number, name: string) => [
+                      name === 'sales' ? `₹${Number(value).toLocaleString()}` : value,
+                      name === 'sales' ? 'Sales' : 'Orders'
+                    ]}
+                    labelFormatter={formatTooltipDate}
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--background))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                    }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="sales"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
+                    name="Sales"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
@@ -179,21 +232,35 @@ export default function SalesReport() {
             <CardTitle>Daily Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={salesData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                />
-                <YAxis />
-                <Tooltip
-                  formatter={(value: number) => [value, 'Orders']}
-                  labelFormatter={(date) => new Date(date).toLocaleDateString()}
-                />
-                <Bar dataKey="orders" fill="hsl(var(--primary))" />
-              </BarChart>
-            </ResponsiveContainer>
+            {formattedData.length === 0 ? (
+              <div className="flex items-center justify-center h-[350px] text-muted-foreground">
+                No orders data available
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={350}>
+                <BarChart data={formattedData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={formatDate}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value: number) => [Number(value).toLocaleString(), 'Orders']}
+                    labelFormatter={formatTooltipDate}
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--background))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                    }}
+                  />
+                  <Bar dataKey="orders" fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </div>

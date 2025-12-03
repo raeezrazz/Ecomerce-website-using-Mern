@@ -17,6 +17,7 @@ export default function Categories() {
     name: '',
     description: '',
   });
+  const [errors, setErrors] = useState<{ name?: string; description?: string }>({});
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -48,14 +49,46 @@ export default function Categories() {
         description: '',
       });
     }
+
+    setErrors({}); // Clear errors when opening dialog
     setDialogOpen(true);
   };
 
   const handleFormDataChange = (updates: Partial<typeof formData>) => {
     setFormData({ ...formData, ...updates });
+    // Clear errors for fields being updated
+    if (Object.keys(updates).length > 0) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        Object.keys(updates).forEach((key) => {
+          delete newErrors[key as keyof typeof newErrors];
+        });
+        return newErrors;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: { name?: string; description?: string } = {};
+    if (!formData.name.trim()) {
+      newErrors.name = 'Category name is required';
+    } else if (formData.name.length < 3) {
+      newErrors.name = 'Category name must be at least 3 characters';
+    }
+
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
+    } else if (formData.description.length < 10) {
+      newErrors.description = 'Description must be at least 10 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
+    if (!validateForm()) return;
+
     try {
       const categoryData = {
         name: formData.name,
@@ -140,6 +173,7 @@ export default function Categories() {
           formData={formData}
           onFormDataChange={handleFormDataChange}
           onSubmit={handleSubmit}
+          errors={errors}
         />
       </div>
     </DashboardLayout>

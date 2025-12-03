@@ -30,6 +30,38 @@ export const resendOtp = async (email: string) => {
   
 export const userLogin = async (email: string, password: string) => {
   const res = await apiClient.post("/api/user/login", { email, password });
-  return res.data; // { token, user }
+  return res.data; // { accessToken, refreshToken, data }
+};
+
+export const getUserProfile = async () => {
+  const token = localStorage.getItem('userToken') || localStorage.getItem('accessToken');
+  const res = await apiClient.get("/api/user/profile", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
+
+export const updateUserProfile = async (profileData: {
+  name?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+}) => {
+  const token = localStorage.getItem('userToken') || localStorage.getItem('accessToken');
+  const res = await apiClient.put("/api/user/profile", profileData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
+
+export const googleLogin = async (token: string) => {
+  const res = await apiClient.post("/api/user/google-auth", { token });
+  return res.data;
 };
   

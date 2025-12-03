@@ -18,6 +18,22 @@ const UserSchema = new mongoose.Schema({
   email: String,
   phone: String,
   password: String,
+  address: {
+    type: String,
+    default: ''
+  },
+  city: {
+    type: String,
+    default: ''
+  },
+  state: {
+    type: String,
+    default: ''
+  },
+  pincode: {
+    type: String,
+    default: ''
+  },
   isAdmin: {
     type: Boolean,
     default: false

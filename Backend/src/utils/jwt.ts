@@ -1,29 +1,76 @@
-import jwt from "jsonwebtoken"
-
+import jwt from "jsonwebtoken";
 
 interface TokenPayload {
-    userId: string;
+  userId: string;
+}
 
-} 
+// Access token expires in 15 minutes
+const ACCESS_TOKEN_EXPIRY = "15m";
+// Refresh token expires in 7 days
+const REFRESH_TOKEN_EXPIRY = "7d";
 
-export const generateAccessToken = (userId: string) =>{
-    const payload : TokenPayload = { userId}
-    return jwt.sign(payload, process.env.JWT_ACCESS_SECRET! );
+export const generateAccessToken = (userId: string): string => {
+  const payload: TokenPayload = { userId };
+  const secret = process.env.JWT_ACCESS_SECRET;
+  
+  if (!secret) {
+    throw new Error("JWT_ACCESS_SECRET is not defined in environment variables");
+  }
+  
+  return jwt.sign(payload, secret, { expiresIn: ACCESS_TOKEN_EXPIRY });
 };
 
-export const generateRefreshToken = (userId: string) =>{
-    const payload: TokenPayload = {userId};
-    return jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {expiresIn: "2d"})
-}
-
-export const decodeAccessTokenData = (token:string)=>{
-    const secret = process.env.JWT_ACCESS_SECRET;
-
+export const generateRefreshToken = (userId: string): string => {
+  const payload: TokenPayload = { userId };
+  const secret = process.env.JWT_REFRESH_SECRET;
+  
   if (!secret) {
-    throw new Error("JWT Access Token Secret is not defined in environment variables");
+    throw new Error("JWT_REFRESH_SECRET is not defined in environment variables");
   }
+  
+  return jwt.sign(payload, secret, { expiresIn: REFRESH_TOKEN_EXPIRY });
+};
 
-  const decoded = jwt.verify(token, secret) 
-  return decoded;
+export const verifyAccessToken = (token: string): TokenPayload => {
+  const secret = process.env.JWT_ACCESS_SECRET;
+  
+  if (!secret) {
+    throw new Error("JWT_ACCESS_SECRET is not defined in environment variables");
+  }
+  
+  try {
+    const decoded = jwt.verify(token, secret) as TokenPayload;
+    return decoded;
+  } catch (error: any) {
+    if (error.name === "TokenExpiredError") {
+      throw new Error("Access token has expired");
+    } else if (error.name === "JsonWebTokenError") {
+      throw new Error("Invalid access token");
+    }
+    throw new Error("Token verification failed");
+  }
+};
 
-}
+export const verifyRefreshToken = (token: string): TokenPayload => {
+  const secret = process.env.JWT_REFRESH_SECRET;
+  
+  if (!secret) {
+    throw new Error("JWT_REFRESH_SECRET is not defined in environment variables");
+  }
+  
+  try {
+    const decoded = jwt.verify(token, secret) as TokenPayload;
+    return decoded;
+  } catch (error: any) {
+    if (error.name === "TokenExpiredError") {
+      throw new Error("Refresh token has expired");
+    } else if (error.name === "JsonWebTokenError") {
+      throw new Error("Invalid refresh token");
+    }
+    throw new Error("Token verification failed");
+  }
+};
+
+export const decodeAccessTokenData = (token: string): TokenPayload => {
+  return verifyAccessToken(token);
+};

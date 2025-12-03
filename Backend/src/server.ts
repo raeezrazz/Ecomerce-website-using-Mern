@@ -6,6 +6,7 @@ import userRoutes from './routes/userRoutes';
 import adminRoutes from './routes/adminRoutes'
 // import adminRoute
 import { requestLogger } from './middleware/loggerMiddleware';
+import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 app.use(express.json());
@@ -26,9 +27,15 @@ app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 
 // fallback route
-app.use("*", (req, res) => {
-  res.status(404).json({ message: "API endpoint not found" });
+// fallback route
+app.use("*", (req, res, next) => {
+  const error = new Error(`Can't find ${req.originalUrl} on this server!`) as any;
+  error.statusCode = 404;
+  next(error);
 });
+
+// Global Error Handler
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
 

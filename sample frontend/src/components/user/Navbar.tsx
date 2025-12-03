@@ -1,13 +1,36 @@
-import { Link } from 'react-router-dom';
-import { ShoppingCart, User, Search, Menu } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, User, Search, Menu, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCart } from '@/contexts/CartContext';
 import { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '@/store/store';
+import { logout } from '@/store/Slice/userSlice';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function Navbar() {
   const { cartCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { userInfo } = useSelector((state: RootState) => state.user);
+  
+  const handleLogout = () => {
+    dispatch(logout());
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('userData');
+    navigate('/');
+  };
 
   return (
     <nav className="bg-background border-b sticky top-0 z-50">
@@ -31,11 +54,39 @@ export function Navbar() {
               </div>
             </div>
             
-            <Link to="/auth">
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
+            {userInfo ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar>
+                      <AvatarFallback>{userInfo.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>{userInfo.name}</DropdownMenuLabel>
+                  <DropdownMenuLabel className="font-normal text-sm text-muted-foreground">
+                    {userInfo.email}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/auth">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
             
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="icon">

@@ -9,20 +9,26 @@ import { persistor, store } from './store/store'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+// import { GoogleOAuthProvider } from '@react-oauth/google' // Commented out - Google OAuth not configured
 
-createRoot(document.getElementById('root')).render(
+// const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+createRoot(document.getElementById('root')!).render(
 	<StrictMode>
-		<Provider store={store}>
-        <CartProvider>
-			<PersistGate loading={null} persistor={persistor}>
-			<BrowserRouter>
-				<Routes>
-					<Route path='/*' element={<App />} />
-				</Routes>
-			</BrowserRouter>
-			<ToastContainer />
-			</PersistGate>
-        </CartProvider>    
-		</Provider>
+		{/* Uncomment GoogleOAuthProvider when Google OAuth is configured */}
+		{/* <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}> */}
+			<Provider store={store}>
+				<CartProvider>
+					<PersistGate loading={null} persistor={persistor}>
+						<BrowserRouter>
+							<Routes>
+								<Route path='/*' element={<App />} />
+							</Routes>
+						</BrowserRouter>
+						<ToastContainer />
+					</PersistGate>
+				</CartProvider>    
+			</Provider>
+		{/* </GoogleOAuthProvider> */}
 	</StrictMode>
 )

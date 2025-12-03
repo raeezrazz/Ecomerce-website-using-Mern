@@ -5,14 +5,24 @@ import { otpService } from "../services/otpService";
 import { CreateUserSchema } from "../dtos/CreateUserDTO";
 import { UserLoginSchema } from "../dtos/UserLoginDTO";
 import { VerifyOtpSchema } from "../dtos/VerifyOtpDTO";
+import { ConflictError, UnauthorizedError, ValidationError, NotFoundError } from "../errors/conflictErrors";
+import { authenticateToken, AuthRequest } from "../middleware/authMiddleware";
 
 export const userController = {
   async register(req: Request, res: Response) {
     try {
       const validatedData = CreateUserSchema.parse(req.body);
       
+      // Check if user already exists
+      const existingUser = await userService.userExists(validatedData.email);
+      if (existingUser) {
+        return res.status(409).json({
+          success: false,
+          error: "Email already registered",
+        });
+      }
+      
       // Generate and send OTP
-      console.log("1")
       await otpService.generateOtp(validatedData.email);
       
       return res.status(200).json({
@@ -23,10 +33,12 @@ export const userController = {
       if (error.name === 'ZodError') {
         return res.status(400).json({
           success: false,
-          error: error.errors[0]?.message || "Validation error",
+          error: error.errors.map((e: any) => e.message).join(", ") || "Validation error",
         });
       }
-      return res.status(400).json({
+      
+      const statusCode = error.statusCode || 400;
+      return res.status(statusCode).json({
         success: false,
         error: error.message || "Registration failed",
       });
@@ -54,10 +66,12 @@ export const userController = {
       if (error.name === 'ZodError') {
         return res.status(400).json({
           success: false,
-          error: error.errors[0]?.message || "Validation error",
+          error: error.errors.map((e: any) => e.message).join(", ") || "Validation error",
         });
       }
-      return res.status(401).json({
+      
+      const statusCode = error.statusCode || 401;
+      return res.status(statusCode).json({
         success: false,
         error: error.message || "Login failed",
       });
@@ -73,7 +87,16 @@ export const userController = {
       if (!isOtpValid) {
         return res.status(400).json({
           success: false,
-          error: "Invalid or expired OTP",
+          error: "Invalid or expired OTP. Please request a new OTP.",
+        });
+      }
+      
+      // Check if user already exists (double-check)
+      const existingUser = await userService.userExists(validatedData.email);
+      if (existingUser) {
+        return res.status(409).json({
+          success: false,
+          error: "Email already registered",
         });
       }
       
@@ -101,12 +124,205 @@ export const userController = {
       if (error.name === 'ZodError') {
         return res.status(400).json({
           success: false,
-          error: error.errors[0]?.message || "Validation error",
+          error: error.errors.map((e: any) => e.message).join(", ") || "Validation error",
         });
       }
-      return res.status(400).json({
+      
+      const statusCode = error.statusCode || 400;
+      return res.status(statusCode).json({
         success: false,
         error: error.message || "Registration failed",
+      });
+    }
+  },
+
+  async resendOtp(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: "Email is required",
+        });
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid email format",
+        });
+      }
+
+      await otpService.resendOtp(email);
+      
+      return res.status(200).json({
+        success: true,
+        message: "OTP resent to your email. Please check your inbox.",
+      });
+    } catch (error: any) {
+      const statusCode = error.statusCode || 400;
+      return res.status(statusCode).json({
+        success: false,
+        error: error.message || "Failed to resend OTP",
+      });
+    }
+  },
+
+  async refreshToken(req: Request, res: Response) {
+    try {
+      const { refreshToken } = req.body;
+      
+      if (!refreshToken) {
+        return res.status(400).json({
+          success: false,
+          error: "Refresh token is required",
+        });
+      }
+
+      const { accessToken, refreshToken: newRefreshToken } = await userService.refreshAccessToken(refreshToken);
+      
+      return res.status(200).json({
+        success: true,
+        message: "Token refreshed successfully",
+        accessToken,
+        refreshToken: newRefreshToken,
+      });
+    } catch (error: any) {
+      const statusCode = error.statusCode || 401;
+      return res.status(statusCode).json({
+        success: false,
+        error: error.message || "Failed to refresh token",
+      });
+    }
+  },
+
+  async logout(req: Request, res: Response) {
+    try {
+      const authReq = req as AuthRequest;
+      const userId = authReq.user?.userId;
+      const { refreshToken } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: "User not authenticated",
+        });
+      }
+
+      await userService.logout(userId, refreshToken);
+      
+      return res.status(200).json({
+        success: true,
+        message: "Logged out successfully",
+      });
+    } catch (error: any) {
+      const statusCode = error.statusCode || 500;
+      return res.status(statusCode).json({
+        success: false,
+        error: error.message || "Logout failed",
+      });
+    }
+  },
+
+  async getProfile(req: Request, res: Response) {
+    try {
+      const authReq = req as AuthRequest;
+      const userId = authReq.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: "User not authenticated",
+        });
+      }
+
+      const user = await User.findById(userId).select("-password");
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          error: "User not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          address: (user as any).address || '',
+          city: (user as any).city || '',
+          state: (user as any).state || '',
+          pincode: (user as any).pincode || '',
+        },
+      });
+    } catch (error: any) {
+      const statusCode = error.statusCode || 500;
+      return res.status(statusCode).json({
+        success: false,
+        error: error.message || "Failed to fetch profile",
+      });
+    }
+  },
+
+  async updateProfile(req: Request, res: Response) {
+    try {
+      const authReq = req as AuthRequest;
+      const userId = authReq.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          error: "User not authenticated",
+        });
+      }
+
+      const { name, phone, address, city, state, pincode } = req.body;
+
+      const updateData: any = {};
+      if (name) updateData.name = name;
+      if (phone) updateData.phone = phone;
+      if (address !== undefined) updateData.address = address;
+      if (city !== undefined) updateData.city = city;
+      if (state !== undefined) updateData.state = state;
+      if (pincode !== undefined) updateData.pincode = pincode;
+
+      const user = await User.findByIdAndUpdate(
+        userId,
+        updateData,
+        { new: true, runValidators: true }
+      ).select("-password");
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          error: "User not found",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Profile updated successfully",
+        data: {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          phone: user.phone || '',
+          address: (user as any).address || '',
+          city: (user as any).city || '',
+          state: (user as any).state || '',
+          pincode: (user as any).pincode || '',
+        },
+      });
+    } catch (error: any) {
+      const statusCode = error.statusCode || 500;
+      return res.status(statusCode).json({
+        success: false,
+        error: error.message || "Failed to update profile",
       });
     }
   },

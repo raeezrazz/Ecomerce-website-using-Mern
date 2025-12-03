@@ -58,6 +58,7 @@ export default function Tally() {
     notes: '',
     photos: [] as string[],
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const loadData = async () => {
@@ -117,6 +118,7 @@ export default function Tally() {
         photos: [],
       });
     }
+    setErrors({});
     setDialogOpen(true);
   };
 
@@ -144,11 +146,23 @@ export default function Tally() {
     localStorage.setItem('warehouseItems', JSON.stringify(updatedWarehouse));
   };
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.customerName) newErrors.customerName = 'Customer Name is required';
+    if (!formData.phone) newErrors.phone = 'Phone is required';
+    else if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Phone must be 10 digits';
+    if (!formData.itemType) newErrors.itemType = 'Item Type is required';
+    if (!formData.serviceCharge) newErrors.serviceCharge = 'Service Charge is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
-    if (!formData.customerName || !formData.phone || !formData.itemType || !formData.serviceCharge) {
+    if (!validateForm()) {
       toast({
-        title: 'Missing Fields',
-        description: 'Please fill in all required fields.',
+        title: 'Validation Error',
+        description: 'Please fix the errors in the form.',
         variant: 'destructive',
       });
       return;
@@ -524,7 +538,9 @@ export default function Tally() {
                       setFormData({ ...formData, customerName: e.target.value })
                     }
                     placeholder="John Doe"
+                    className={errors.customerName ? "border-red-500" : ""}
                   />
+                  {errors.customerName && <p className="text-sm text-red-500">{errors.customerName}</p>}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="phone">Phone *</Label>
@@ -535,7 +551,9 @@ export default function Tally() {
                       setFormData({ ...formData, phone: e.target.value })
                     }
                     placeholder="9876543210"
+                    className={errors.phone ? "border-red-500" : ""}
                   />
+                  {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
                 </div>
               </div>
 
@@ -548,7 +566,9 @@ export default function Tally() {
                     setFormData({ ...formData, itemType: e.target.value })
                   }
                   placeholder="LCD Digital Speedometer"
+                  className={errors.itemType ? "border-red-500" : ""}
                 />
+                {errors.itemType && <p className="text-sm text-red-500">{errors.itemType}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -602,7 +622,9 @@ export default function Tally() {
                       setFormData({ ...formData, serviceCharge: e.target.value })
                     }
                     placeholder="500"
+                    className={errors.serviceCharge ? "border-red-500" : ""}
                   />
+                  {errors.serviceCharge && <p className="text-sm text-red-500">{errors.serviceCharge}</p>}
                 </div>
                 <div className="grid gap-2">
                   <Label>Total Amount</Label>

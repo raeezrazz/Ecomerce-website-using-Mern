@@ -17,9 +17,10 @@ interface ProfileFormProps {
   profile: ProfileData;
   onProfileChange: (profile: ProfileData) => void;
   onSave: () => void;
+  saving?: boolean;
 }
 
-export function ProfileForm({ profile, onProfileChange, onSave }: ProfileFormProps) {
+export function ProfileForm({ profile, onProfileChange, onSave, saving = false }: ProfileFormProps) {
   const handleChange = (field: keyof ProfileData, value: string) => {
     onProfileChange({ ...profile, [field]: value });
   };
@@ -44,8 +45,10 @@ export function ProfileForm({ profile, onProfileChange, onSave }: ProfileFormPro
             id="email"
             type="email"
             value={profile.email}
-            onChange={(e) => handleChange('email', e.target.value)}
+            disabled
+            className="bg-muted cursor-not-allowed"
           />
+          <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
         </div>
 
         <div>
@@ -94,7 +97,9 @@ export function ProfileForm({ profile, onProfileChange, onSave }: ProfileFormPro
         </div>
       </div>
 
-      <Button onClick={onSave}>Save Changes</Button>
+      <Button onClick={onSave} disabled={saving}>
+        {saving ? 'Saving...' : 'Save Changes'}
+      </Button>
     </Card>
   );
 }

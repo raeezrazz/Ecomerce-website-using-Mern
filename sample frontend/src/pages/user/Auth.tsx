@@ -1,15 +1,22 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+// import { useGoogleLogin } from '@react-oauth/google'; // Commented out - Google OAuth not configured
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { UserCircle, ArrowLeft, Mail } from 'lucide-react';
-import { userLogin, userRegister, verifyOtp, resendOtp } from '@/api/userApi';
+import { userLogin, userRegister, verifyOtp, resendOtp, googleLogin } from '@/api/userApi';
+import { setCredentials } from '@/store/Slice/userSlice';
 
 export default function Auth() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { toast } = useToast();
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [signupName, setSignupName] = useState('');
@@ -22,8 +29,10 @@ export default function Auth() {
   const [timer, setTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
   const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  
+  // Error states for form validation
+  const [loginErrors, setLoginErrors] = useState<{ email?: string; password?: string }>({});
+  const [signupErrors, setSignupErrors] = useState<{ name?: string; email?: string; phone?: string; password?: string }>({});
 
   // Timer effect
   useEffect(() => {
@@ -131,8 +140,22 @@ export default function Auth() {
         otpString
       );
 
+      // Save tokens
       localStorage.setItem("userToken", response.accessToken);
+      localStorage.setItem("refreshToken", response.refreshToken);
       localStorage.setItem("userData", JSON.stringify(response.data));
+      localStorage.setItem("accessToken", response.accessToken); // For backward compatibility
+      
+      // Save userInfo to localStorage for Redux persistence
+      const userInfo = {
+        _id: response.data.id,
+        name: response.data.name,
+        email: response.data.email,
+      };
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
+      
+      // Dispatch to Redux store
+      dispatch(setCredentials(userInfo));
 
       toast({
         title: "Account created",
@@ -156,38 +179,166 @@ export default function Auth() {
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-  
-    if (!loginEmail || !loginPassword) {
+  const handleGoogleLoginSuccess = async (tokenResponse: any) => {
+    // Dummy implementation - Google OAuth not configured
+    toast({
+      title: "Google Login Not Available",
+      description: "Google authentication is not configured yet. Please use email/password to login.",
+      variant: "default",
+    });
+    setLoading(false);
+    
+    /* 
+    // Uncomment when Google OAuth is configured
+    try {
+      setLoading(true);
+      const response = await googleLogin(tokenResponse.access_token);
+
+      // Save tokens
+      localStorage.setItem("userToken", response.accessToken);
+      localStorage.setItem("refreshToken", response.refreshToken);
+      localStorage.setItem("userData", JSON.stringify(response.data));
+      localStorage.setItem("accessToken", response.accessToken);
+      
+      // Save userInfo to localStorage for Redux persistence
+      const userInfo = {
+        _id: response.data.id,
+        name: response.data.name,
+        email: response.data.email,
+      };
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
+      
+      // Dispatch to Redux store
+      dispatch(setCredentials(userInfo));
+
       toast({
-        title: "Missing fields",
-        description: "Please enter both email and password",
+        title: "Welcome!",
+        description: `Hello ${response.data.name}`,
+      });
+
+      navigate("/");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      toast({
+        title: "Google login failed",
+        description: error?.response?.data?.error || "Failed to authenticate with Google",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
+    }
+    */
+  };
+
+  const handleGoogleLoginError = () => {
+    toast({
+      title: "Google login cancelled",
+      description: "You cancelled the Google login process",
+      variant: "destructive",
+    });
+  };
+
+  // Dummy Google login hook - will show message instead of actual login
+  const googleLoginHook = () => {
+    handleGoogleLoginSuccess({ access_token: 'dummy' });
+  };
+
+  // Uncomment when Google OAuth is configured:
+  // const googleLoginHook = useGoogleLogin({
+  //   onSuccess: (tokenResponse) => handleGoogleLoginSuccess(tokenResponse),
+  //   onError: handleGoogleLoginError,
+  //   flow: 'auth-code',
+  // });
+
+  const validateLogin = (): boolean => {
+    const errors: { email?: string; password?: string } = {};
+    
+    // Email validation
+    if (!loginEmail.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginEmail)) {
+      errors.email = "Please enter a valid email address";
+    }
+    
+    // Password validation
+    if (!loginPassword) {
+      errors.password = "Password is required";
+    } else if (loginPassword.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+    }
+    
+    setLoginErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Clear previous errors
+    setLoginErrors({});
+  
+    // Validate form
+    if (!validateLogin()) {
+      const firstError = Object.values(loginErrors)[0];
+      if (firstError) {
+        toast({
+          title: "Validation Error",
+          description: firstError,
+          variant: "destructive",
+        });
+      }
       return;
     }
   
     setLoading(true);
   
     try {
-      const response = await userLogin(loginEmail, loginPassword);
+      const response = await userLogin(loginEmail.trim().toLowerCase(), loginPassword);
   
+      // Save tokens
       localStorage.setItem("userToken", response.accessToken);
       localStorage.setItem("refreshToken", response.refreshToken);
       localStorage.setItem("userData", JSON.stringify(response.data));
-  
+      localStorage.setItem("accessToken", response.accessToken);
+      
+      // Save userInfo to localStorage for Redux persistence
+      const userInfo = {
+        _id: response.data.id,
+        name: response.data.name,
+        email: response.data.email,
+      };
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
+      
+      // Dispatch to Redux store
+      dispatch(setCredentials(userInfo));
+
       toast({
         title: "Welcome back!",
         description: `Hello ${response.data.name}`,
       });
   
+      // Clear form
+      setLoginEmail('');
+      setLoginPassword('');
+      setLoginErrors({});
+      
       navigate("/");
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: { error?: string } } };
+    } catch (err: any) {
+      const error = err as { response?: { data?: { error?: string; success?: boolean } } };
+      const errorMessage = error?.response?.data?.error || "An unexpected error occurred. Please try again.";
+      
+      // Set field-specific errors
+      if (errorMessage.toLowerCase().includes("email") || errorMessage.toLowerCase().includes("user not found")) {
+        setLoginErrors({ email: errorMessage });
+      } else if (errorMessage.toLowerCase().includes("password") || errorMessage.toLowerCase().includes("invalid")) {
+        setLoginErrors({ password: errorMessage });
+      } else if (errorMessage.toLowerCase().includes("verify")) {
+        setLoginErrors({ email: errorMessage });
+      }
+      
       toast({
-        title: "Login failed",
-        description: error?.response?.data?.error || "Invalid email or password",
+        title: "Login Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -360,6 +511,43 @@ export default function Auth() {
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
+                </Button>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => googleLoginHook()}
+                  disabled={loading}
+                >
+                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    />
+                    <path
+                      fill="currentColor"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    />
+                  </svg>
+                  Continue with Google
                 </Button>
               </form>
             </TabsContent>

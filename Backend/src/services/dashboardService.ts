@@ -42,8 +42,10 @@ class DashboardService {
 
   async getDailySales(days: number = 30) {
     const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999); // End of today
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
+    startDate.setHours(0, 0, 0, 0); // Start of day
 
     const orders = await Order.find({
       orderDate: { $gte: startDate, $lte: endDate },
@@ -53,22 +55,26 @@ class DashboardService {
     const salesMap = new Map<string, { sales: number; orders: number }>();
 
     orders.forEach(order => {
-      const date = order.orderDate.toISOString().split('T')[0];
+      const orderDate = new Date(order.orderDate);
+      orderDate.setHours(0, 0, 0, 0); // Normalize to start of day
+      const date = orderDate.toISOString().split('T')[0];
       const existing = salesMap.get(date) || { sales: 0, orders: 0 };
-      existing.sales += order.totalAmount;
+      existing.sales += order.totalAmount || 0;
       existing.orders += 1;
       salesMap.set(date, existing);
     });
 
+    // Generate all dates in range, ensuring proper formatting
     const result = [];
     for (let i = 0; i < days; i++) {
       const date = new Date(startDate);
       date.setDate(date.getDate() + i);
+      date.setHours(0, 0, 0, 0);
       const dateStr = date.toISOString().split('T')[0];
       const data = salesMap.get(dateStr) || { sales: 0, orders: 0 };
       result.push({
         date: dateStr,
-        sales: data.sales,
+        sales: Number(data.sales.toFixed(2)), // Ensure proper number format
         orders: data.orders
       });
     }

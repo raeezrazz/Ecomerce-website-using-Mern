@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { PhotoUpload } from '@/components/admin/PhotoUpload';
 import type { Product } from '@/types';
 
 interface ProductDialogProps {
@@ -30,6 +31,16 @@ interface ProductDialogProps {
     price: string;
     stock: string;
     description: string;
+    images: string[];
+  };
+  errors: {
+    name?: string;
+    sku?: string;
+    category?: string;
+    price?: string;
+    stock?: string;
+    description?: string;
+    images?: string;
   };
   onFormDataChange: (data: Partial<ProductDialogProps['formData']>) => void;
   onSubmit: () => void;
@@ -42,6 +53,7 @@ export function ProductDialog({
   formData,
   onFormDataChange,
   onSubmit,
+  errors,
 }: ProductDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -60,7 +72,9 @@ export function ProductDialog({
               value={formData.name}
               onChange={(e) => onFormDataChange({ name: e.target.value })}
               placeholder="LCD Digital Speedometer"
+              className={errors.name ? "border-red-500" : ""}
             />
+            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
@@ -70,7 +84,9 @@ export function ProductDialog({
                 value={formData.sku}
                 onChange={(e) => onFormDataChange({ sku: e.target.value })}
                 placeholder="SKU-00001"
+                className={errors.sku ? "border-red-500" : ""}
               />
+              {errors.sku && <p className="text-sm text-red-500">{errors.sku}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="category">Category</Label>
@@ -87,6 +103,7 @@ export function ProductDialog({
                   <SelectItem value="Accessories">Accessories</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.category && <p className="text-sm text-red-500">{errors.category}</p>}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -98,7 +115,9 @@ export function ProductDialog({
                 value={formData.price}
                 onChange={(e) => onFormDataChange({ price: e.target.value })}
                 placeholder="2500"
+                className={errors.price ? "border-red-500" : ""}
               />
+              {errors.price && <p className="text-sm text-red-500">{errors.price}</p>}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="stock">Stock</Label>
@@ -108,7 +127,9 @@ export function ProductDialog({
                 value={formData.stock}
                 onChange={(e) => onFormDataChange({ stock: e.target.value })}
                 placeholder="50"
+                className={errors.stock ? "border-red-500" : ""}
               />
+              {errors.stock && <p className="text-sm text-red-500">{errors.stock}</p>}
             </div>
           </div>
           <div className="grid gap-2">
@@ -119,7 +140,17 @@ export function ProductDialog({
               onChange={(e) => onFormDataChange({ description: e.target.value })}
               placeholder="High-quality digital speedometer with excellent durability..."
               rows={3}
+              className={errors.description ? "border-red-500" : ""}
             />
+            {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
+          </div>
+          <div className="grid gap-2">
+            <PhotoUpload
+              photos={formData.images || []}
+              maxPhotos={5}
+              onPhotosChange={(images) => onFormDataChange({ images })}
+            />
+            {errors.images && <p className="text-sm text-red-500">{errors.images}</p>}
           </div>
         </div>
         <DialogFooter>

@@ -21,7 +21,9 @@ import {
 } from '@/components/ui/select';
 import { SearchInput } from '@/components/shared/SearchInput';
 import type { WarehouseItem } from '@/types';
-import { fetchWarehouseItems } from '@/api/adminApi';
+import { fetchWarehouseItems, createWarehouseItem, updateWarehouseItem, deleteWarehouseItem } from '@/api/adminApi';
+import { WarehouseDialog } from '@/components/admin/WarehouseDialog';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Warehouse() {
@@ -30,6 +32,19 @@ export default function Warehouse() {
   const [filteredItems, setFilteredItems] = useState<WarehouseItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<WarehouseItem | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    sku: '',
+    category: '',
+    location: '',
+    currentStock: '',
+    unit: 'pcs',
+    costPrice: '',
+    sellingPrice: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const loadItems = async () => {
@@ -71,6 +86,111 @@ export default function Warehouse() {
     setFilteredItems(filtered);
   }, [searchTerm, categoryFilter, items]);
 
+  const handleOpenDialog = (item?: WarehouseItem) => {
+    if (item) {
+      setEditingItem(item);
+      setFormData({
+        name: item.name,
+        sku: item.sku,
+        category: item.category,
+        location: item.location || '',
+        currentStock: item.currentStock.toString(),
+        unit: item.unit,
+        costPrice: item.costPrice.toString(),
+        sellingPrice: item.sellingPrice.toString(),
+      });
+    } else {
+      setEditingItem(null);
+      setFormData({
+        name: '',
+        sku: '',
+        category: '',
+        location: '',
+        currentStock: '',
+        unit: 'pcs',
+        costPrice: '',
+        sellingPrice: '',
+      });
+    }
+    setErrors({});
+    setDialogOpen(true);
+  };
+
+  const handleFormDataChange = (updates: Partial<typeof formData>) => {
+    setFormData({ ...formData, ...updates });
+    if (Object.keys(updates).length > 0) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        Object.keys(updates).forEach((key) => delete newErrors[key]);
+        return newErrors;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.sku.trim()) newErrors.sku = 'SKU is required';
+    if (!formData.category) newErrors.category = 'Category is required';
+    if (!formData.currentStock) newErrors.currentStock = 'Stock is required';
+    else if (parseInt(formData.currentStock) < 0) newErrors.currentStock = 'Stock cannot be negative';
+    if (!formData.unit) newErrors.unit = 'Unit is required';
+    if (!formData.costPrice) newErrors.costPrice = 'Cost Price is required';
+    else if (parseFloat(formData.costPrice) < 0) newErrors.costPrice = 'Price cannot be negative';
+    if (!formData.sellingPrice) newErrors.sellingPrice = 'Selling Price is required';
+    else if (parseFloat(formData.sellingPrice) < 0) newErrors.sellingPrice = 'Price cannot be negative';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    try {
+      const itemData = {
+        ...formData,
+        currentStock: parseInt(formData.currentStock),
+        costPrice: parseFloat(formData.costPrice),
+        sellingPrice: parseFloat(formData.sellingPrice),
+      };
+
+      if (editingItem) {
+        await updateWarehouseItem(editingItem.id, itemData);
+        toast({ title: 'Success', description: 'Item updated successfully' });
+      } else {
+        await createWarehouseItem(itemData);
+        toast({ title: 'Success', description: 'Item created successfully' });
+      }
+
+      const updatedItems = await fetchWarehouseItems();
+      setItems(updatedItems);
+      setDialogOpen(false);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.error || 'Failed to save item',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this item?')) return;
+    try {
+      await deleteWarehouseItem(id);
+      toast({ title: 'Success', description: 'Item deleted successfully' });
+      const updatedItems = await fetchWarehouseItems();
+      setItems(updatedItems);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.error || 'Failed to delete item',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getStockBadge = (stock: number) => {
     if (stock === 0) return <Badge variant="destructive">Out of Stock</Badge>;
     if (stock < 10) return <Badge variant="secondary">Low Stock</Badge>;
@@ -88,6 +208,12 @@ export default function Warehouse() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Warehouse</h1>
           <p className="text-muted-foreground">Manage inventory and stock levels</p>
+        </div>
+        <div className="flex justify-end">
+           <Button onClick={() => handleOpenDialog()}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Item
+          </Button>
         </div>
 
         {/* Summary Cards */}
@@ -176,6 +302,7 @@ export default function Warehouse() {
                     <TableHead>Cost Price</TableHead>
                     <TableHead>Selling Price</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -201,6 +328,16 @@ export default function Warehouse() {
                         <TableCell>₹{item.costPrice.toLocaleString()}</TableCell>
                         <TableCell>₹{item.sellingPrice.toLocaleString()}</TableCell>
                         <TableCell>{getStockBadge(item.currentStock)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)}>
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -209,6 +346,16 @@ export default function Warehouse() {
             </div>
           </CardContent>
         </Card>
+
+        <WarehouseDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          editingItem={editingItem}
+          formData={formData}
+          errors={errors}
+          onFormDataChange={handleFormDataChange}
+          onSubmit={handleSubmit}
+        />
       </div>
     </DashboardLayout>
   );

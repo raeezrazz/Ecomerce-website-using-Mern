@@ -1,11 +1,30 @@
 import { Request, Response } from "express";
 import { productService } from "../services/productService";
 
+// Helper function to transform product data for frontend
+const transformProduct = (product: any) => {
+  if (!product) return null;
+  
+  return {
+    id: product._id?.toString() || product.id,
+    name: product.name,
+    sku: product.sku,
+    category: product.category,
+    price: product.price,
+    stock: product.stock,
+    description: product.description || '',
+    images: product.images || [],
+    createdAt: product.createdAt ? new Date(product.createdAt).toISOString() : new Date().toISOString(),
+    updatedAt: product.updatedAt ? new Date(product.updatedAt).toISOString() : new Date().toISOString(),
+  };
+};
+
 export const productController = {
   async getAll(req: Request, res: Response) {
     try {
       const products = await productService.getAllProducts();
-      res.json(products);
+      const transformed = products.map(transformProduct);
+      res.json(transformed);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -17,7 +36,7 @@ export const productController = {
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
       }
-      res.json(product);
+      res.json(transformProduct(product));
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -26,7 +45,7 @@ export const productController = {
   async create(req: Request, res: Response) {
     try {
       const product = await productService.createProduct(req.body);
-      res.status(201).json(product);
+      res.status(201).json(transformProduct(product));
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
@@ -38,7 +57,7 @@ export const productController = {
       if (!product) {
         return res.status(404).json({ error: "Product not found" });
       }
-      res.json(product);
+      res.json(transformProduct(product));
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }

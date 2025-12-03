@@ -20,6 +20,10 @@ interface CategoryDialogProps {
     name: string;
     description: string;
   };
+  errors: {
+    name?: string;
+    description?: string;
+  };
   onFormDataChange: (data: Partial<CategoryDialogProps['formData']>) => void;
   onSubmit: () => void;
 }
@@ -31,6 +35,7 @@ export function CategoryDialog({
   formData,
   onFormDataChange,
   onSubmit,
+  errors,
 }: CategoryDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,7 +54,9 @@ export function CategoryDialog({
               value={formData.name}
               onChange={(e) => onFormDataChange({ name: e.target.value })}
               placeholder="Digital Meters"
+              className={errors.name ? "border-red-500" : ""}
             />
+            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="category-description">Description</Label>
@@ -59,7 +66,9 @@ export function CategoryDialog({
               onChange={(e) => onFormDataChange({ description: e.target.value })}
               placeholder="High-quality digital speedometers and odometers"
               rows={3}
+              className={errors.description ? "border-red-500" : ""}
             />
+            {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
           </div>
         </div>
         <DialogFooter>

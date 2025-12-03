@@ -29,7 +29,17 @@ export default function Products() {
     price: '',
     stock: '',
     description: '',
+    images: [] as string[],
   });
+  const [errors, setErrors] = useState<{
+    name?: string;
+    sku?: string;
+    category?: string;
+    price?: string;
+    stock?: string;
+    description?: string;
+    images?: string;
+  }>({});
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -83,6 +93,7 @@ export default function Products() {
         price: product.price.toString(),
         stock: product.stock.toString(),
         description: product.description,
+        images: product.images || [],
       });
     } else {
       setEditingProduct(null);
@@ -93,13 +104,39 @@ export default function Products() {
         price: '',
         stock: '',
         description: '',
+        images: [],
       });
     }
+    setErrors({});
     setDialogOpen(true);
   };
 
   const handleFormDataChange = (updates: Partial<typeof formData>) => {
     setFormData({ ...formData, ...updates });
+    // Clear errors for fields being updated
+    if (Object.keys(updates).length > 0) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        Object.keys(updates).forEach((key) => {
+          delete newErrors[key as keyof typeof newErrors];
+        });
+        return newErrors;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: typeof errors = {};
+    if (!formData.name.trim()) newErrors.name = 'Product name is required';
+    if (!formData.sku.trim()) newErrors.sku = 'SKU is required';
+    if (!formData.category) newErrors.category = 'Category is required';
+    if (!formData.price) newErrors.price = 'Price is required';
+    else if (parseFloat(formData.price) <= 0) newErrors.price = 'Price must be greater than 0';
+    if (!formData.stock) newErrors.stock = 'Stock is required';
+    else if (parseInt(formData.stock) < 0) newErrors.stock = 'Stock cannot be negative';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleDelete = async (product: Product) => {
@@ -126,6 +163,8 @@ export default function Products() {
   };
 
   const handleSubmit = async () => {
+    if (!validateForm()) return;
+
     try {
       const productData = {
         name: formData.name,
@@ -134,6 +173,7 @@ export default function Products() {
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
         description: formData.description,
+        images: formData.images || [],
       };
 
       if (editingProduct) {
@@ -210,6 +250,7 @@ export default function Products() {
           formData={formData}
           onFormDataChange={handleFormDataChange}
           onSubmit={handleSubmit}
+          errors={errors}
         />
       </div>
     </DashboardLayout>
