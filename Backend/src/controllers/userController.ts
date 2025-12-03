@@ -13,17 +13,20 @@ export const userController = {
     try {
       const validatedData = CreateUserSchema.parse(req.body);
       
+      // Normalize email
+      const normalizedEmail = validatedData.email.trim().toLowerCase();
+      
       // Check if user already exists
-      const existingUser = await userService.userExists(validatedData.email);
+      const existingUser = await userService.userExists(normalizedEmail);
       if (existingUser) {
         return res.status(409).json({
           success: false,
-          error: "Email already registered",
+          error: "This email address is already registered. Please use a different email or try logging in instead.",
         });
       }
       
       // Generate and send OTP
-      await otpService.generateOtp(validatedData.email);
+      await otpService.generateOtp(normalizedEmail);
       
       return res.status(200).json({
         success: true,
@@ -82,29 +85,32 @@ export const userController = {
     try {
       const validatedData = VerifyOtpSchema.parse(req.body);
       
+      // Normalize email
+      const normalizedEmail = validatedData.email.trim().toLowerCase();
+      
       // Verify OTP
-      const isOtpValid = await otpService.verifyOtp(validatedData.email, validatedData.otp);
+      const isOtpValid = await otpService.verifyOtp(normalizedEmail, validatedData.otp);
       if (!isOtpValid) {
         return res.status(400).json({
           success: false,
-          error: "Invalid or expired OTP. Please request a new OTP.",
+          error: "Invalid or expired OTP. The code you entered is incorrect or has expired. Please request a new OTP.",
         });
       }
       
       // Check if user already exists (double-check)
-      const existingUser = await userService.userExists(validatedData.email);
+      const existingUser = await userService.userExists(normalizedEmail);
       if (existingUser) {
         return res.status(409).json({
           success: false,
-          error: "Email already registered",
+          error: "This email address is already registered. Please use a different email or try logging in instead.",
         });
       }
       
       // Create user
       const { user, accessToken, refreshToken } = await userService.registerUser({
-        name: validatedData.name,
-        email: validatedData.email,
-        phone: validatedData.phone,
+        name: validatedData.name.trim(),
+        email: normalizedEmail,
+        phone: validatedData.phone.trim(),
         password: validatedData.password,
       });
       

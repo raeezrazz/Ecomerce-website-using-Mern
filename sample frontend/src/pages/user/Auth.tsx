@@ -346,22 +346,73 @@ export default function Auth() {
     }
   };
   
+  const validateSignup = (): boolean => {
+    const errors: { name?: string; email?: string; phone?: string; password?: string } = {};
+    
+    // Name validation
+    if (!signupName.trim()) {
+      errors.name = "Name is required";
+    } else if (signupName.trim().length < 2) {
+      errors.name = "Name must be at least 2 characters";
+    } else if (!/^[a-zA-Z\s]+$/.test(signupName.trim())) {
+      errors.name = "Name can only contain letters and spaces";
+    }
+    
+    // Email validation
+    if (!signupEmail.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupEmail)) {
+      errors.email = "Please enter a valid email address";
+    }
+    
+    // Phone validation
+    if (!signupPhone.trim()) {
+      errors.phone = "Phone number is required";
+    } else if (!/^\d{10}$/.test(signupPhone.trim())) {
+      errors.phone = "Phone number must be exactly 10 digits";
+    }
+    
+    // Password validation
+    if (!signupPassword) {
+      errors.password = "Password is required";
+    } else if (signupPassword.length < 6) {
+      errors.password = "Password must be at least 6 characters";
+    } else if (signupPassword.length > 50) {
+      errors.password = "Password must be less than 50 characters";
+    }
+    
+    setSignupErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setSignupErrors({});
   
-    if (!signupName || !signupEmail || !signupPassword || !signupPhone) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill all fields before signing up.",
-        variant: "destructive",
-      });
+    // Validate form
+    if (!validateSignup()) {
+      const firstError = Object.values(signupErrors)[0];
+      if (firstError) {
+        toast({
+          title: "Validation Error",
+          description: firstError,
+          variant: "destructive",
+        });
+      }
       return;
     }
   
     setLoading(true);
   
     try {
-      await userRegister(signupName, signupEmail, signupPhone, signupPassword);
+      await userRegister(
+        signupName.trim(),
+        signupEmail.trim().toLowerCase(),
+        signupPhone.trim(),
+        signupPassword
+      );
       
       toast({
         title: "OTP Sent",
@@ -371,11 +422,24 @@ export default function Auth() {
       setShowOtpPage(true);
       setTimer(30);
       setCanResend(false);
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: { error?: string } } };
+    } catch (err: any) {
+      const error = err as { response?: { data?: { error?: string; success?: boolean } } };
+      const errorMessage = error?.response?.data?.error || "Registration failed. Please try again.";
+      
+      // Set field-specific errors
+      if (errorMessage.toLowerCase().includes("email") && errorMessage.toLowerCase().includes("already")) {
+        setSignupErrors({ email: "This email is already registered. Please use a different email or try logging in." });
+      } else if (errorMessage.toLowerCase().includes("email")) {
+        setSignupErrors({ email: errorMessage });
+      } else if (errorMessage.toLowerCase().includes("phone")) {
+        setSignupErrors({ phone: errorMessage });
+      } else if (errorMessage.toLowerCase().includes("password")) {
+        setSignupErrors({ password: errorMessage });
+      }
+      
       toast({
-        title: "Registration failed",
-        description: error?.response?.data?.error || "Something went wrong",
+        title: "Registration Failed",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -494,9 +558,18 @@ export default function Auth() {
                     type="email"
                     placeholder="your@email.com"
                     value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
+                    onChange={(e) => {
+                      setLoginEmail(e.target.value);
+                      if (loginErrors.email) {
+                        setLoginErrors({ ...loginErrors, email: undefined });
+                      }
+                    }}
+                    className={loginErrors.email ? "border-red-500" : ""}
                     required
                   />
+                  {loginErrors.email && (
+                    <p className="text-sm text-red-500 mt-1">{loginErrors.email}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="login-password">Password</Label>
@@ -505,9 +578,18 @@ export default function Auth() {
                     type="password"
                     placeholder="••••••••"
                     value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
+                    onChange={(e) => {
+                      setLoginPassword(e.target.value);
+                      if (loginErrors.password) {
+                        setLoginErrors({ ...loginErrors, password: undefined });
+                      }
+                    }}
+                    className={loginErrors.password ? "border-red-500" : ""}
                     required
                   />
+                  {loginErrors.password && (
+                    <p className="text-sm text-red-500 mt-1">{loginErrors.password}</p>
+                  )}
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
@@ -561,9 +643,18 @@ export default function Auth() {
                     type="text"
                     placeholder="John Doe"
                     value={signupName}
-                    onChange={(e) => setSignupName(e.target.value)}
+                    onChange={(e) => {
+                      setSignupName(e.target.value);
+                      if (signupErrors.name) {
+                        setSignupErrors({ ...signupErrors, name: undefined });
+                      }
+                    }}
+                    className={signupErrors.name ? "border-red-500" : ""}
                     required
                   />
+                  {signupErrors.name && (
+                    <p className="text-sm text-red-500 mt-1">{signupErrors.name}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
@@ -572,20 +663,41 @@ export default function Auth() {
                     type="email"
                     placeholder="your@email.com"
                     value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
+                    onChange={(e) => {
+                      setSignupEmail(e.target.value);
+                      if (signupErrors.email) {
+                        setSignupErrors({ ...signupErrors, email: undefined });
+                      }
+                    }}
+                    className={signupErrors.email ? "border-red-500" : ""}
                     required
                   />
+                  {signupErrors.email && (
+                    <p className="text-sm text-red-500 mt-1">{signupErrors.email}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-phone">Phone</Label>
+                  <Label htmlFor="signup-phone">Phone Number</Label>
                   <Input
                     id="signup-phone"
                     type="tel"
                     placeholder="1234567890"
+                    maxLength={10}
                     value={signupPhone}
-                    onChange={(e) => setSignupPhone(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+                      setSignupPhone(value);
+                      if (signupErrors.phone) {
+                        setSignupErrors({ ...signupErrors, phone: undefined });
+                      }
+                    }}
+                    className={signupErrors.phone ? "border-red-500" : ""}
                     required
                   />
+                  {signupErrors.phone && (
+                    <p className="text-sm text-red-500 mt-1">{signupErrors.phone}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">Enter 10-digit phone number</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
@@ -594,9 +706,19 @@ export default function Auth() {
                     type="password"
                     placeholder="••••••••"
                     value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
+                    onChange={(e) => {
+                      setSignupPassword(e.target.value);
+                      if (signupErrors.password) {
+                        setSignupErrors({ ...signupErrors, password: undefined });
+                      }
+                    }}
+                    className={signupErrors.password ? "border-red-500" : ""}
                     required
                   />
+                  {signupErrors.password && (
+                    <p className="text-sm text-red-500 mt-1">{signupErrors.password}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Creating account...' : 'Create Account'}

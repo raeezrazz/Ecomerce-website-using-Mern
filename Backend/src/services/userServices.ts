@@ -8,14 +8,21 @@ import { UserLoginDTO } from "../dtos/UserLoginDTO";
 
 export class UserService {
   async registerUser(userData: CreateUserDTO) {
-    const existingUser = await User.findOne({ email: userData.email });
+    // Normalize email
+    const normalizedEmail = userData.email.trim().toLowerCase();
+    
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
-      throw new ConflictError("Email already registered");
+      throw new ConflictError("This email address is already registered. Please use a different email or try logging in instead.");
     }
 
     // Validate password strength
     if (userData.password.length < 6) {
       throw new ConflictError("Password must be at least 6 characters long");
+    }
+    
+    if (userData.password.length > 50) {
+      throw new ConflictError("Password must be less than 50 characters");
     }
 
     const hashedPassword = await bcrypt.hash(userData.password, 10);
@@ -47,20 +54,23 @@ export class UserService {
   }
 
   async userLogin(userData: UserLoginDTO) {
-    const user = await User.findOne({ email: userData.email });
+    // Normalize email
+    const normalizedEmail = userData.email.trim().toLowerCase();
+    
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
-      throw new UnauthorizedError("Invalid email or password");
+      throw new UnauthorizedError("No account found with this email address. Please check your email or sign up.");
     }
 
     // Check if user is verified
     if (!user.isVerified) {
-      throw new UnauthorizedError("Please verify your email before logging in");
+      throw new UnauthorizedError("Your email is not verified. Please verify your email address before logging in. Check your inbox for the verification code.");
     }
 
     const isPasswordValid = await bcrypt.compare(userData.password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedError("Invalid email or password");
+      throw new UnauthorizedError("Incorrect password. Please try again or use 'Forgot Password' if you've forgotten it.");
     }
 
     const userId = user._id.toString();

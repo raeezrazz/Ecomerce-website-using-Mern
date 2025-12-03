@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/server.ts",
-    "start": "ts-node src/server.ts"
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -30,7 +31,6 @@
     "react-redux": "^9.1.2",
     "redux-persist": "^6.0.0",
     "reflect-metadata": "^0.2.2",
-    "ts-node": "^10.9.2",
     "tsyringe": "^4.10.0",
     "zod": "^3.25.76"
   },
@@ -42,7 +42,9 @@
     "@types/express": "^4.17.13",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.96",
-    "@types/node": "^22.7.4",
-    "@types/nodemailer": "^6.4.16"
+    "@types/node": "^22.19.1",
+    "@types/nodemailer": "^6.4.16",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
