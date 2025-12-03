@@ -11,9 +11,25 @@ import { errorHandler } from './middleware/errorHandler';
 const app = express();
 app.use(express.json());
 
+const allowedOrigins = [
+  'https://ecomerce-website-using-mern.vercel.app',
+  'https://ecomerce-website-using-mern-git-main-rahees-projects-cbd8887d.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5174',
+];
+
+// Add FRONTEND_URL from environment if it exists
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 app.use(cors({
-  origin: ['https://ecomerce-website-using-mern.onrender.com','ecomerce-website-using-mern-git-main-rahees-projects-cbd8887d.vercel.app','ecomerce-website-using-mern-git-main-rahees-projects-cbd8887d.vercel.app'],
-  credentials: true
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Authorization']
 }));
 
 // 🔥 Log every incoming API request
