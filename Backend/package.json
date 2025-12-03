@@ -1,10 +1,10 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
-    "start": "node src/server.ts",
+    "start": "node dist/server.js",
     "dev": "nodemon src/server.ts"
   },
   "keywords": [],
@@ -45,6 +45,7 @@
     "@types/node": "^22.19.1",
     "@types/nodemailer": "^6.4.16",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "nodemon": "^3.1.0"
   }
 }
