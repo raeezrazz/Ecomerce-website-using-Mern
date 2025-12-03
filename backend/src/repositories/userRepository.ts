@@ -1,5 +1,5 @@
 import { CreateUserDTO } from '../dtos/CreateUserDTO';
-import { IUser, User } from './../models/user';
+import { IUser, User } from '../models/user';
 // src/repositories/userRepository.ts
 import { injectable } from 'inversify';
 
