@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon src/server.ts"
+    "dev": "nodemon src/server.ts",
+    "start": "ts-node src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +30,7 @@
     "react-redux": "^9.1.2",
     "redux-persist": "^6.0.0",
     "reflect-metadata": "^0.2.2",
+    "ts-node": "^10.9.2",
     "tsyringe": "^4.10.0",
     "zod": "^3.25.76"
   },
