@@ -94,13 +94,13 @@ export default function Profile() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-4xl font-bold mb-8">My Account</h1>
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">My Account</h1>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="orders">My Orders</TabsTrigger>
+      <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
+        <TabsList className="w-full sm:w-auto">
+          <TabsTrigger value="profile" className="flex-1 sm:flex-none text-sm sm:text-base">Profile</TabsTrigger>
+          <TabsTrigger value="orders" className="flex-1 sm:flex-none text-sm sm:text-base">My Orders</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -112,7 +112,7 @@ export default function Profile() {
             <OrderHistory orders={userOrders} />
           ) : (
             <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
+              <CardContent className="py-8 text-center text-muted-foreground text-sm sm:text-base">
                 No orders found
               </CardContent>
             </Card>

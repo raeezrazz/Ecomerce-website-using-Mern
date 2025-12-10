@@ -12,9 +12,9 @@ interface CartItemProps {
 
 export function CartItem({ item, onRemove, onUpdateQuantity }: CartItemProps) {
   return (
-    <Card className="p-6">
-      <div className="flex gap-6">
-        <div className="w-24 h-24 bg-muted rounded-md overflow-hidden flex-shrink-0">
+    <Card className="p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6">
+        <div className="w-full sm:w-20 md:w-24 h-48 sm:h-20 md:h-24 bg-muted rounded-md overflow-hidden flex-shrink-0">
           <img 
             src={item.images[0]} 
             alt={item.name}
@@ -22,41 +22,44 @@ export function CartItem({ item, onRemove, onUpdateQuantity }: CartItemProps) {
           />
         </div>
 
-        <div className="flex-1">
-          <Link to={`/product/${item.id}`}>
-            <h3 className="font-semibold text-lg hover:text-primary transition">{item.name}</h3>
-          </Link>
-          <p className="text-sm text-muted-foreground mb-2">SKU: {item.sku}</p>
-          <p className="text-lg font-bold text-primary">₹{item.price.toLocaleString()}</p>
-        </div>
-
-        <div className="flex flex-col items-end justify-between">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onRemove(item.id)}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-
-          <div className="flex items-center border rounded-md">
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-start gap-2 mb-2">
+            <Link to={`/product/${item.id}`} className="flex-1 min-w-0">
+              <h3 className="font-semibold text-base sm:text-lg hover:text-primary transition line-clamp-2">{item.name}</h3>
+            </Link>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-              disabled={item.quantity <= 1}
+              className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
+              onClick={() => onRemove(item.id)}
             >
-              <Minus className="h-4 w-4" />
+              <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
-            <span className="px-4 py-2 font-semibold">{item.quantity}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-              disabled={item.quantity >= item.stock}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+          </div>
+          <p className="text-xs sm:text-sm text-muted-foreground mb-2">SKU: {item.sku}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+            <p className="text-base sm:text-lg font-bold text-primary">₹{item.price.toLocaleString()}</p>
+            <div className="flex items-center border rounded-md w-fit">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 sm:h-9 sm:w-9"
+                onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                disabled={item.quantity <= 1}
+              >
+                <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+              <span className="px-3 sm:px-4 py-1 sm:py-2 font-semibold text-sm sm:text-base min-w-[2.5rem] sm:min-w-[3rem] text-center">{item.quantity}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 sm:h-9 sm:w-9"
+                onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                disabled={item.quantity >= item.stock}
+              >
+                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>

@@ -11,11 +11,11 @@ export default function Cart() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-4xl font-bold mb-8">Shopping Cart</h1>
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">Shopping Cart</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+        <div className="lg:col-span-2 space-y-3 sm:space-y-4">
           {cart.map((item) => (
             <CartItem
               key={item.id}
@@ -26,7 +26,7 @@ export default function Cart() {
           ))}
         </div>
 
-        <div>
+        <div className="lg:sticky lg:top-20 lg:self-start">
           <CartSummary itemCount={cartCount} total={cartTotal} />
         </div>
       </div>

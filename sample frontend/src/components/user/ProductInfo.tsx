@@ -13,29 +13,29 @@ interface ProductInfoProps {
 
 export function ProductInfo({ product, quantity, onQuantityChange, onAddToCart }: ProductInfoProps) {
   return (
-    <div>
-      <Badge variant="secondary" className="mb-4">{product.category}</Badge>
-      <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
-      <p className="text-sm text-muted-foreground mb-6">SKU: {product.sku}</p>
+    <div className="px-0 sm:px-2">
+      <Badge variant="secondary" className="mb-3 sm:mb-4 text-xs sm:text-sm">{product.category}</Badge>
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">{product.name}</h1>
+      <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">SKU: {product.sku}</p>
       
-      <div className="text-4xl font-bold text-primary mb-6">
+      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-4 sm:mb-6">
         ₹{product.price.toLocaleString()}
       </div>
 
       {product.stock > 0 ? (
-        <p className="text-green-600 mb-6">In Stock ({product.stock} available)</p>
+        <p className="text-sm sm:text-base text-green-600 mb-4 sm:mb-6">In Stock ({product.stock} available)</p>
       ) : (
-        <p className="text-destructive mb-6">Out of Stock</p>
+        <p className="text-sm sm:text-base text-destructive mb-4 sm:mb-6">Out of Stock</p>
       )}
 
-      <div className="mb-6">
-        <h3 className="font-semibold mb-2">Description</h3>
-        <p className="text-muted-foreground">{product.description}</p>
+      <div className="mb-4 sm:mb-6">
+        <h3 className="font-semibold mb-2 text-sm sm:text-base">Description</h3>
+        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{product.description}</p>
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center space-x-4">
-          <label className="font-semibold">Quantity:</label>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+          <label className="font-semibold text-sm sm:text-base whitespace-nowrap">Quantity:</label>
           <QuantitySelector
             quantity={quantity}
             maxQuantity={product.stock}
@@ -45,11 +45,11 @@ export function ProductInfo({ product, quantity, onQuantityChange, onAddToCart }
 
         <Button 
           size="lg" 
-          className="w-full"
+          className="w-full text-sm sm:text-base"
           onClick={onAddToCart}
           disabled={product.stock === 0}
         >
-          <ShoppingCart className="h-5 w-5 mr-2" />
+          <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           Add to Cart
         </Button>
       </div>

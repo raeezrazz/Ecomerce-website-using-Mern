@@ -11,28 +11,30 @@ interface OrderSummaryProps {
 
 export function OrderSummary({ items, total, onPlaceOrder, showPlaceOrder = false }: OrderSummaryProps) {
   return (
-    <Card className="p-6 sticky top-24">
-      <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+    <Card className="p-4 sm:p-5 md:p-6">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Order Summary</h2>
       
-      <div className="space-y-3 mb-6">
+      <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 max-h-48 sm:max-h-64 overflow-y-auto">
         {items.map((item) => (
-          <div key={item.id} className="flex justify-between text-sm">
-            <span className="text-muted-foreground">
+          <div key={item.id} className="flex justify-between text-xs sm:text-sm">
+            <span className="text-muted-foreground line-clamp-1 flex-1 mr-2">
               {item.name} × {item.quantity}
             </span>
-            <span>₹{(item.price * item.quantity).toLocaleString()}</span>
+            <span className="flex-shrink-0">₹{(item.price * item.quantity).toLocaleString()}</span>
           </div>
         ))}
-        
-        <div className="border-t pt-3 flex justify-between">
+      </div>
+      
+      <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+        <div className="border-t pt-2 sm:pt-3 flex justify-between text-sm sm:text-base">
           <span className="text-muted-foreground">Subtotal</span>
           <span>₹{total.toLocaleString()}</span>
         </div>
-        <div className="flex justify-between">
+        <div className="flex justify-between text-sm sm:text-base">
           <span className="text-muted-foreground">Shipping</span>
           <span className="text-green-600">Free</span>
         </div>
-        <div className="border-t pt-3 flex justify-between text-lg font-bold">
+        <div className="border-t pt-2 sm:pt-3 flex justify-between text-base sm:text-lg font-bold">
           <span>Total</span>
           <span className="text-primary">₹{total.toLocaleString()}</span>
         </div>
@@ -40,11 +42,11 @@ export function OrderSummary({ items, total, onPlaceOrder, showPlaceOrder = fals
 
       {showPlaceOrder && (
         <>
-          <Button type="submit" size="lg" className="w-full">
+          <Button type="submit" size="lg" className="w-full text-sm sm:text-base">
             Place Order
           </Button>
           
-          <p className="text-xs text-muted-foreground text-center mt-4">
+          <p className="text-xs text-muted-foreground text-center mt-3 sm:mt-4">
             By placing your order, you agree to our terms and conditions
           </p>
         </>

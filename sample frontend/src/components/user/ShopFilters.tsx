@@ -24,20 +24,20 @@ export function ShopFilters({
 }: ShopFiltersProps) {
   return (
     <>
-      <div className="bg-card border rounded-lg p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
+      <div className="bg-card border rounded-lg p-4 sm:p-5 md:p-6 mb-4 sm:mb-6 md:mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="relative sm:col-span-2 md:col-span-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10"
+              className="pl-10 text-sm sm:text-base"
             />
           </div>
 
           <Select value={selectedCategory} onValueChange={onCategoryChange}>
-            <SelectTrigger>
+            <SelectTrigger className="text-sm sm:text-base">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
@@ -49,7 +49,7 @@ export function ShopFilters({
           </Select>
 
           <Select value={sortBy} onValueChange={onSortChange}>
-            <SelectTrigger>
+            <SelectTrigger className="text-sm sm:text-base">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -61,12 +61,12 @@ export function ShopFilters({
         </div>
       </div>
 
-      <div className="flex items-center justify-between mb-6">
-        <p className="text-muted-foreground">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
+        <p className="text-sm sm:text-base text-muted-foreground">
           Showing {productCount} product{productCount !== 1 ? 's' : ''}
         </p>
         {selectedCategory !== 'all' && (
-          <Badge variant="secondary" className="cursor-pointer" onClick={() => onCategoryChange('all')}>
+          <Badge variant="secondary" className="cursor-pointer text-xs sm:text-sm" onClick={() => onCategoryChange('all')}>
             {selectedCategory} ✕
           </Badge>
         )}

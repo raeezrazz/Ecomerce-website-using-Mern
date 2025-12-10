@@ -50,18 +50,18 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <p className="text-muted-foreground">Loading product...</p>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 md:py-16 text-center">
+        <p className="text-sm sm:text-base text-muted-foreground">Loading product...</p>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-4">Product not found</h1>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 md:py-16 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-4">Product not found</h1>
         <Link to="/shop">
-          <Button>Back to Shop</Button>
+          <Button className="text-sm sm:text-base">Back to Shop</Button>
         </Link>
       </div>
     );
@@ -76,13 +76,13 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Link to="/shop" className="inline-flex items-center text-muted-foreground hover:text-primary mb-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+      <Link to="/shop" className="inline-flex items-center text-sm sm:text-base text-muted-foreground hover:text-primary mb-4 sm:mb-6">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Shop
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-10 lg:gap-12 mb-8 sm:mb-12 md:mb-16">
         <ProductImage src={product.images[0]} alt={product.name} />
         <ProductInfo
           product={product}

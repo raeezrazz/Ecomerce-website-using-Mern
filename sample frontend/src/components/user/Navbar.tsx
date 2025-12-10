@@ -34,32 +34,32 @@ export function Navbar() {
 
   return (
     <nav className="bg-background border-b sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-2xl font-bold text-primary">RsMeters</Link>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
+          <Link to="/" className="text-lg sm:text-xl md:text-2xl font-bold text-primary truncate">RsMeters</Link>
           
-          <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-foreground hover:text-primary transition">Home</Link>
-            <Link to="/shop" className="text-foreground hover:text-primary transition">Shop</Link>
-            <Link to="/shop?category=Digital Meters" className="text-foreground hover:text-primary transition">Digital Meters</Link>
-            <Link to="/shop?category=Meter Spares" className="text-foreground hover:text-primary transition">Spares</Link>
-            <Link to="/shop?category=Accessories" className="text-foreground hover:text-primary transition">Accessories</Link>
+          <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
+            <Link to="/" className="text-sm lg:text-base text-foreground hover:text-primary transition">Home</Link>
+            <Link to="/shop" className="text-sm lg:text-base text-foreground hover:text-primary transition">Shop</Link>
+            <Link to="/shop?category=Digital Meters" className="text-sm lg:text-base text-foreground hover:text-primary transition">Digital Meters</Link>
+            <Link to="/shop?category=Meter Spares" className="text-sm lg:text-base text-foreground hover:text-primary transition">Spares</Link>
+            <Link to="/shop?category=Accessories" className="text-sm lg:text-base text-foreground hover:text-primary transition">Accessories</Link>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="hidden md:block">
+          <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
+            <div className="hidden lg:block">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search products..." className="pl-10 w-64" />
+                <Input placeholder="Search products..." className="pl-10 w-48 xl:w-64" />
               </div>
             </div>
             
             {userInfo ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar>
-                      <AvatarFallback>{userInfo.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                  <Button variant="ghost" className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-full">
+                    <Avatar className="h-9 w-9 sm:h-10 sm:w-10">
+                      <AvatarFallback className="text-xs sm:text-sm">{userInfo.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -82,36 +82,42 @@ export function Navbar() {
               </DropdownMenu>
             ) : (
               <Link to="/auth">
-                <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </Link>
             )}
             
             <Link to="/cart" className="relative">
-              <Button variant="ghost" size="icon">
-                <ShoppingCart className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
+                <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-xs flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
               </Button>
             </Link>
 
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              <Menu className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 sm:h-10 sm:w-10" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden pb-4 space-y-2">
-            <Link to="/" className="block py-2 text-foreground hover:text-primary transition">Home</Link>
-            <Link to="/shop" className="block py-2 text-foreground hover:text-primary transition">Shop</Link>
-            <Link to="/shop?category=Digital Meters" className="block py-2 text-foreground hover:text-primary transition">Digital Meters</Link>
-            <Link to="/shop?category=Meter Spares" className="block py-2 text-foreground hover:text-primary transition">Spares</Link>
-            <Link to="/shop?category=Accessories" className="block py-2 text-foreground hover:text-primary transition">Accessories</Link>
+          <div className="md:hidden pb-4 pt-2 border-t space-y-1">
+            <div className="px-2 py-2">
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search products..." className="pl-10 w-full" />
+              </div>
+            </div>
+            <Link to="/" className="block px-2 py-2 text-sm text-foreground hover:text-primary transition rounded-md hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+            <Link to="/shop" className="block px-2 py-2 text-sm text-foreground hover:text-primary transition rounded-md hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>Shop</Link>
+            <Link to="/shop?category=Digital Meters" className="block px-2 py-2 text-sm text-foreground hover:text-primary transition rounded-md hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>Digital Meters</Link>
+            <Link to="/shop?category=Meter Spares" className="block px-2 py-2 text-sm text-foreground hover:text-primary transition rounded-md hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>Spares</Link>
+            <Link to="/shop?category=Accessories" className="block px-2 py-2 text-sm text-foreground hover:text-primary transition rounded-md hover:bg-muted" onClick={() => setMobileMenuOpen(false)}>Accessories</Link>
           </div>
         )}
       </div>
