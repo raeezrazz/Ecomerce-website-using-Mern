@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-    baseURL: 'https://ecomerce-website-using-mern.onrender.com',
+    baseURL: 'https://rsmeter.onrender.com',
     withCredentials: true
 })
 
