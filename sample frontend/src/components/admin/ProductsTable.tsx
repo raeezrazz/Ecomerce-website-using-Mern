@@ -30,7 +30,6 @@ export function ProductsTable({ products, onEditProduct, onDeleteProduct }: Prod
         <TableHeader>
           <TableRow>
             <TableHead>Product</TableHead>
-            <TableHead>SKU</TableHead>
             <TableHead>Category</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Stock</TableHead>
@@ -48,9 +47,19 @@ export function ProductsTable({ products, onEditProduct, onDeleteProduct }: Prod
                   <span className="font-medium">{product.name}</span>
                 </div>
               </TableCell>
-              <TableCell>{product.sku}</TableCell>
               <TableCell>{product.category}</TableCell>
-              <TableCell>₹{product.price.toLocaleString()}</TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  {product.offerPrice && product.offerPrice > 0 && product.actualPrice ? (
+                    <>
+                      <span className="font-semibold text-primary">₹{product.offerPrice.toLocaleString()}</span>
+                      <span className="text-xs text-muted-foreground line-through">₹{(product.actualPrice || product.price || 0).toLocaleString()}</span>
+                    </>
+                  ) : (
+                    <span className="font-semibold">₹{(product.actualPrice || product.price || 0).toLocaleString()}</span>
+                  )}
+                </div>
+              </TableCell>
               <TableCell>{getStockBadge(product.stock)}</TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">

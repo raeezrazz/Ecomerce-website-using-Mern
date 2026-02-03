@@ -5,7 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { CartProvider } from "@/contexts/CartContext";
-import  UserLayout  from "@/components/layout/UserLayout";
+import { FormDialogProvider } from "@/contexts/FormDialogContext";
+import UserLayout from "@/components/layout/UserLayout";
 
 // Admin Pages
 import Login from "./pages/Login";
@@ -53,6 +54,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <FormDialogProvider>
           <Routes>
             {/* User-facing routes */}
             <Route path="/" element={<UserLayout><Home /></UserLayout>} />
@@ -76,6 +78,7 @@ const App = () => (
             
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </FormDialogProvider>
         </BrowserRouter>
       </CartProvider>
     </TooltipProvider>

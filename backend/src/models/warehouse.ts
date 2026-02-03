@@ -4,7 +4,7 @@ export interface IWarehouseItem {
   _id: string;
   name: string;
   sku: string;
-  category: 'Digital Meters' | 'Meter Spares' | 'Accessories';
+  category: string; // Changed to string to support dynamic categories
   currentStock: number;
   unit: string;
   costPrice: number;
@@ -16,21 +16,57 @@ export interface IWarehouseItem {
 }
 
 const WarehouseItemSchema = new Schema<IWarehouseItem>({
-  name: { type: String, required: true },
-  sku: { type: String, required: true, unique: true },
+  name: { 
+    type: String, 
+    required: [true, 'Item name is required'],
+    trim: true
+  },
+  sku: { 
+    type: String, 
+    required: [true, 'SKU is required'],
+    unique: true,
+    trim: true
+  },
   category: {
     type: String,
-    enum: ['Digital Meters', 'Meter Spares', 'Accessories'],
-    required: true
+    required: [true, 'Category is required'],
+    trim: true
   },
-  currentStock: { type: Number, required: true, min: 0, default: 0 },
-  unit: { type: String, default: 'pcs' },
-  costPrice: { type: Number, required: true, min: 0 },
-  sellingPrice: { type: Number, required: true, min: 0 },
-  location: { type: String, default: 'Main Warehouse' },
-  minStockLevel: { type: Number, default: 10 },
+  currentStock: { 
+    type: Number, 
+    required: [true, 'Current stock is required'], 
+    min: [0, 'Current stock cannot be negative'], 
+    default: 0 
+  },
+  unit: { 
+    type: String, 
+    default: 'pcs',
+    trim: true
+  },
+  costPrice: { 
+    type: Number, 
+    required: [true, 'Cost price is required'], 
+    min: [0, 'Cost price cannot be negative'] 
+  },
+  sellingPrice: { 
+    type: Number, 
+    required: [true, 'Selling price is required'], 
+    min: [0, 'Selling price cannot be negative'] 
+  },
+  location: { 
+    type: String, 
+    default: 'Main Warehouse',
+    trim: true
+  },
+  minStockLevel: { 
+    type: Number, 
+    default: 10,
+    min: 0
+  },
   lastUpdated: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now }
+}, {
+  timestamps: false // We're handling timestamps manually
 });
 
 WarehouseItemSchema.pre('save', function(next) {

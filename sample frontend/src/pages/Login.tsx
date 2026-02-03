@@ -23,9 +23,12 @@ export default function Login() {
     setLoading(true);
   
     try {
-      const { token, user } = await login(email, password);
-      console.log(token,user, "here is the token and user")
-      localStorage.setItem('authToken', token);
+      const response = await login(email, password);
+      const { accessToken, refreshToken, user } = response;
+      
+      // Store tokens
+      localStorage.setItem('authToken', accessToken);
+      localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('adminUser', JSON.stringify(user));
   
       toast({ title: 'Success', description: 'Welcome Back!' });

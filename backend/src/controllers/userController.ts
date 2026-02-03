@@ -61,6 +61,7 @@ export class UserController {
           name: user.name,
           email: user.email,
           phone: user.phone,
+          role: user.role || 'user',
         },
         accessToken,
         refreshToken,
@@ -122,6 +123,7 @@ export class UserController {
           name: user.name,
           email: user.email,
           phone: user.phone,
+          role: user.role || 'user',
         },
         accessToken,
         refreshToken,
@@ -260,6 +262,7 @@ export class UserController {
           name: user.name,
           email: user.email,
           phone: user.phone || '',
+          role: user.role || 'user',
           address: (user as any).address || '',
           city: (user as any).city || '',
           state: (user as any).state || '',
@@ -338,7 +341,18 @@ export class UserController {
       const users = await User.find({ isVerified: true })
         .select("-password")
         .sort({ createdAt: -1 });
-      res.json(users);
+      
+      const transformedUsers = users.map(user => ({
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        phone: user.phone || '',
+        role: user.role || 'user',
+        isVerified: user.isVerified,
+        createdAt: user.createdAt,
+      }));
+      
+      res.json(transformedUsers);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

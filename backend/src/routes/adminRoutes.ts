@@ -7,28 +7,38 @@ import { orderController } from "../controllers/orderController";
 import { tallyController } from "../controllers/tallyController";
 import { warehouseController } from "../controllers/warehouseController";
 import { dashboardController } from "../controllers/dashboardController";
+import { itemTypeController } from "../controllers/itemTypeController";
+import { customerController } from "../controllers/customerController";
+import { authenticateToken, adminOnly } from "../middleware/authMiddleware";
 
 const router = Router();
 
-// Auth
+// Auth (public)
 router.post("/auth/login", adminController.login);
+router.post("/auth/refreshToken", adminController.refreshToken);
 
-// Users
+// Public routes - Products and Categories (GET only, no auth required)
+router.get("/products", productController.getAll);
+router.get("/products/:id", productController.getById);
+router.get("/categories", categoryController.getAll);
+router.get("/categories/:id", categoryController.getById);
+
+// All other admin routes require authentication and admin role
+router.use(authenticateToken);
+router.use(adminOnly);
+
+// Users (admin only)
 router.get("/users", userController.getAll);
 router.get("/users/:id", userController.getById);
 router.put("/users/:id", userController.update);
 router.delete("/users/:id", userController.delete);
 
-// Products
-router.get("/products", productController.getAll);
-router.get("/products/:id", productController.getById);
+// Products (POST, PUT, DELETE require admin)
 router.post("/products", productController.create);
 router.put("/products/:id", productController.update);
 router.delete("/products/:id", productController.delete);
 
-// Categories
-router.get("/categories", categoryController.getAll);
-router.get("/categories/:id", categoryController.getById);
+// Categories (POST, PUT, DELETE require admin)
 router.post("/categories", categoryController.create);
 router.put("/categories/:id", categoryController.update);
 router.delete("/categories/:id", categoryController.delete);
@@ -56,5 +66,16 @@ router.delete("/warehouse/:id", warehouseController.delete);
 // Dashboard
 router.get("/dashboard/kpi", dashboardController.getKPI);
 router.get("/dashboard/sales", dashboardController.getDailySales);
+router.get("/dashboard/report", dashboardController.getReport);
+
+// Item Types (for autocomplete suggestions)
+router.get("/item-types", itemTypeController.getAll);
+router.get("/item-types/search", itemTypeController.search);
+router.post("/item-types", itemTypeController.create);
+router.delete("/item-types/:id", itemTypeController.delete);
+
+// Customers (name + phone for tally autocomplete)
+router.get("/customers/search", customerController.search);
+router.post("/customers", customerController.create);
 
 export default router;

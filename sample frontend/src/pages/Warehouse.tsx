@@ -20,16 +20,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { SearchInput } from '@/components/shared/SearchInput';
-import type { WarehouseItem } from '@/types';
-import { fetchWarehouseItems, createWarehouseItem, updateWarehouseItem, deleteWarehouseItem } from '@/api/adminApi';
+import type { WarehouseItem, Category } from '@/types';
+import { fetchWarehouseItems, createWarehouseItem, updateWarehouseItem, deleteWarehouseItem, fetchCategories } from '@/api/adminApi';
 import { WarehouseDialog } from '@/components/admin/WarehouseDialog';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useFormDialog } from '@/contexts/FormDialogContext';
 
 export default function Warehouse() {
   const { toast } = useToast();
+  const { setFormOpen } = useFormDialog();
   const [items, setItems] = useState<WarehouseItem[]>([]);
   const [filteredItems, setFilteredItems] = useState<WarehouseItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -45,16 +48,21 @@ export default function Warehouse() {
     sellingPrice: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const loadItems = async () => {
+    const loadData = async () => {
       try {
-        const data = await fetchWarehouseItems();
-        setItems(data);
+        const [itemsData, categoriesData] = await Promise.all([
+          fetchWarehouseItems(),
+          fetchCategories()
+        ]);
+        setItems(itemsData);
+        setCategories(categoriesData);
       } catch (error) {
         toast({
           title: 'Error',
-          description: 'Failed to load warehouse items. Please try again.',
+          description: 'Failed to load warehouse data. Please try again.',
           variant: 'destructive',
         });
         // Fallback to localStorage if API fails
@@ -64,7 +72,7 @@ export default function Warehouse() {
         }
       }
     };
-    loadItems();
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -113,6 +121,7 @@ export default function Warehouse() {
       });
     }
     setErrors({});
+    setFormOpen(true);
     setDialogOpen(true);
   };
 
@@ -147,31 +156,100 @@ export default function Warehouse() {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
+    if (submitting) return; // Prevent double submission
+
+    setSubmitting(true);
     try {
+      // Validate and parse numeric fields
+      const currentStock = parseInt(formData.currentStock);
+      const costPrice = parseFloat(formData.costPrice);
+      const sellingPrice = parseFloat(formData.sellingPrice);
+
+      if (isNaN(currentStock) || currentStock < 0) {
+        toast({
+          title: 'Error',
+          description: 'Current stock must be a valid number',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (isNaN(costPrice) || costPrice < 0) {
+        toast({
+          title: 'Error',
+          description: 'Cost price must be a valid number',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (isNaN(sellingPrice) || sellingPrice < 0) {
+        toast({
+          title: 'Error',
+          description: 'Selling price must be a valid number',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Build clean item data object
       const itemData = {
-        ...formData,
-        currentStock: parseInt(formData.currentStock),
-        costPrice: parseFloat(formData.costPrice),
-        sellingPrice: parseFloat(formData.sellingPrice),
+        name: formData.name.trim(),
+        sku: formData.sku.trim(),
+        category: formData.category,
+        location: formData.location.trim() || 'Main Warehouse',
+        currentStock: currentStock,
+        unit: formData.unit,
+        costPrice: costPrice,
+        sellingPrice: sellingPrice,
       };
 
       if (editingItem) {
-        await updateWarehouseItem(editingItem.id, itemData);
+        const itemId = editingItem.id || (editingItem as any)._id;
+        if (!itemId) {
+          toast({
+            title: 'Error',
+            description: 'Item ID is missing. Please try again.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        await updateWarehouseItem(itemId, itemData);
         toast({ title: 'Success', description: 'Item updated successfully' });
       } else {
-        await createWarehouseItem(itemData);
+        const createdItem = await createWarehouseItem(itemData);
+        console.log('Created warehouse item:', createdItem);
         toast({ title: 'Success', description: 'Item created successfully' });
       }
 
       const updatedItems = await fetchWarehouseItems();
       setItems(updatedItems);
+      
+      // Reset form and close dialog
+      setFormOpen(false);
       setDialogOpen(false);
+      setEditingItem(null);
+      setFormData({
+        name: '',
+        sku: '',
+        category: '',
+        location: '',
+        currentStock: '',
+        unit: 'pcs',
+        costPrice: '',
+        sellingPrice: '',
+      });
+      setErrors({});
     } catch (error: any) {
+      console.error('Warehouse item save error:', error);
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to save item';
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to save item',
+        description: errorMessage,
         variant: 'destructive',
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -281,9 +359,11 @@ export default function Warehouse() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Digital Meters">Digital Meters</SelectItem>
-                  <SelectItem value="Meter Spares">Meter Spares</SelectItem>
-                  <SelectItem value="Accessories">Accessories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -349,12 +429,17 @@ export default function Warehouse() {
 
         <WarehouseDialog
           open={dialogOpen}
-          onOpenChange={setDialogOpen}
+          onOpenChange={(open) => {
+            setFormOpen(open);
+            setDialogOpen(open);
+          }}
           editingItem={editingItem}
+          categories={categories}
           formData={formData}
           errors={errors}
           onFormDataChange={handleFormDataChange}
           onSubmit={handleSubmit}
+          loading={submitting}
         />
       </div>
     </DashboardLayout>

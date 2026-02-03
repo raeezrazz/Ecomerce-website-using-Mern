@@ -16,7 +16,7 @@ const allowedOrigins = [
   'https://ecomerce-website-using-mern-git-main-rahees-projects-cbd8887d.vercel.app',
   'http://localhost:3000',
   'http://localhost:5173',
-  'http://localhost:5174',
+  'http://localhost:8080',
 ];
 
 // Add FRONTEND_URL from environment if it exists
@@ -24,13 +24,28 @@ if (process.env.FRONTEND_URL) {
   allowedOrigins.push(process.env.FRONTEND_URL);
 }
 
+// app.use(cors({
+//   origin: allowedOrigins,
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+//   exposedHeaders: ['Authorization']
+// }));
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("❌ CORS BLOCKED:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   exposedHeaders: ['Authorization']
 }));
+
 
 // 🔥 Log every incoming API request
 app.use(requestLogger);

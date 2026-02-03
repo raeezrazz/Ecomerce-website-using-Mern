@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store/store';
 
 interface CartSummaryProps {
   itemCount: number;
@@ -8,6 +10,25 @@ interface CartSummaryProps {
 }
 
 export function CartSummary({ itemCount, total }: CartSummaryProps) {
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state: RootState) => state.user);
+  
+  // Check if user is logged in
+  const isLoggedIn = () => {
+    const userToken = localStorage.getItem('userToken');
+    const accessToken = localStorage.getItem('accessToken');
+    const userData = localStorage.getItem('userData');
+    return !!(userToken || accessToken || userData || userInfo);
+  };
+
+  const handleCheckout = () => {
+    if (!isLoggedIn()) {
+      navigate('/auth');
+    } else {
+      navigate('/checkout');
+    }
+  };
+
   return (
     <Card className="p-4 sm:p-5 md:p-6">
       <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Order Summary</h2>
@@ -27,11 +48,13 @@ export function CartSummary({ itemCount, total }: CartSummaryProps) {
         </div>
       </div>
 
-      <Link to="/checkout" className="block mb-3 sm:mb-4">
-        <Button size="lg" className="w-full text-sm sm:text-base">
-          Proceed to Checkout
-        </Button>
-      </Link>
+      <Button 
+        size="lg" 
+        className="w-full text-sm sm:text-base mb-3 sm:mb-4"
+        onClick={handleCheckout}
+      >
+        {isLoggedIn() ? 'Proceed to Checkout' : 'Login to Checkout'}
+      </Button>
 
       <Link to="/shop" className="block">
         <Button variant="outline" className="w-full text-sm sm:text-base">

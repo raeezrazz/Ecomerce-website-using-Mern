@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PhotoUpload } from '@/components/admin/PhotoUpload';
-import type { Product } from '@/types';
+import type { Product, Category } from '@/types';
 
 interface ProductDialogProps {
   open: boolean;
@@ -26,22 +26,23 @@ interface ProductDialogProps {
   editingProduct: Product | null;
   formData: {
     name: string;
-    sku: string;
-    category: Product['category'];
-    price: string;
+    category: string;
+    actualPrice: string;
+    offerPrice: string;
     stock: string;
     description: string;
     images: string[];
   };
   errors: {
     name?: string;
-    sku?: string;
     category?: string;
-    price?: string;
+    actualPrice?: string;
+    offerPrice?: string;
     stock?: string;
     description?: string;
     images?: string;
   };
+  categories: Category[];
   onFormDataChange: (data: Partial<ProductDialogProps['formData']>) => void;
   onSubmit: () => void;
 }
@@ -54,10 +55,11 @@ export function ProductDialog({
   onFormDataChange,
   onSubmit,
   errors,
+  categories,
 }: ProductDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
           <DialogDescription>
@@ -66,7 +68,7 @@ export function ProductDialog({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Product Name</Label>
+            <Label htmlFor="name">Product Name *</Label>
             <Input
               id="name"
               value={formData.name}
@@ -76,61 +78,73 @@ export function ProductDialog({
             />
             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="sku">SKU</Label>
-              <Input
-                id="sku"
-                value={formData.sku}
-                onChange={(e) => onFormDataChange({ sku: e.target.value })}
-                placeholder="SKU-00001"
-                className={errors.sku ? "border-red-500" : ""}
-              />
-              {errors.sku && <p className="text-sm text-red-500">{errors.sku}</p>}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(v: Product['category']) => onFormDataChange({ category: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Digital Meters">Digital Meters</SelectItem>
-                  <SelectItem value="Meter Spares">Meter Spares</SelectItem>
-                  <SelectItem value="Accessories">Accessories</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.category && <p className="text-sm text-red-500">{errors.category}</p>}
-            </div>
+          <div className="grid gap-2">
+            <Label htmlFor="category">Category *</Label>
+            <Select
+              value={formData.category}
+              onValueChange={(v) => onFormDataChange({ category: v })}
+            >
+              <SelectTrigger className={errors.category ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.length > 0 ? (
+                  categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="" disabled>No categories available. Please add categories first.</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+            {errors.category && <p className="text-sm text-red-500">{errors.category}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="price">Price (₹)</Label>
+              <Label htmlFor="actualPrice">Actual Price (₹) *</Label>
               <Input
-                id="price"
+                id="actualPrice"
                 type="number"
-                value={formData.price}
-                onChange={(e) => onFormDataChange({ price: e.target.value })}
+                step="0.01"
+                value={formData.actualPrice}
+                onChange={(e) => onFormDataChange({ actualPrice: e.target.value })}
                 placeholder="2500"
-                className={errors.price ? "border-red-500" : ""}
+                className={errors.actualPrice ? "border-red-500" : ""}
               />
-              {errors.price && <p className="text-sm text-red-500">{errors.price}</p>}
+              {errors.actualPrice && <p className="text-sm text-red-500">{errors.actualPrice}</p>}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="stock">Stock</Label>
+              <Label htmlFor="offerPrice">Offer Price (₹)</Label>
               <Input
-                id="stock"
+                id="offerPrice"
                 type="number"
-                value={formData.stock}
-                onChange={(e) => onFormDataChange({ stock: e.target.value })}
-                placeholder="50"
-                className={errors.stock ? "border-red-500" : ""}
+                step="0.01"
+                value={formData.offerPrice}
+                onChange={(e) => onFormDataChange({ offerPrice: e.target.value })}
+                placeholder="2000 (optional)"
+                className={errors.offerPrice ? "border-red-500" : ""}
               />
-              {errors.stock && <p className="text-sm text-red-500">{errors.stock}</p>}
+              {errors.offerPrice && <p className="text-sm text-red-500">{errors.offerPrice}</p>}
+              {formData.offerPrice && parseFloat(formData.offerPrice) > 0 && formData.actualPrice && (
+                <p className="text-xs text-muted-foreground">
+                  Discount: ₹{(parseFloat(formData.actualPrice) - parseFloat(formData.offerPrice)).toLocaleString()}
+                </p>
+              )}
             </div>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="stock">Stock *</Label>
+            <Input
+              id="stock"
+              type="number"
+              value={formData.stock}
+              onChange={(e) => onFormDataChange({ stock: e.target.value })}
+              placeholder="50"
+              className={errors.stock ? "border-red-500" : ""}
+            />
+            {errors.stock && <p className="text-sm text-red-500">{errors.stock}</p>}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="description">Description</Label>

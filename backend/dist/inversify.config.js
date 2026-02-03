@@ -1,0 +1,17 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.container = void 0;
+const inversify_1 = require("inversify");
+const types_1 = require("./types/types");
+const userServices_1 = require("./services/userServices");
+const userRepository_1 = require("./repositories/userRepository");
+const otpService_1 = require("./services/otpService");
+const otpRepository_1 = require("./repositories/otpRepository");
+const userController_1 = require("./controllers/userController");
+const container = new inversify_1.Container();
+exports.container = container;
+container.bind(types_1.TYPES.UserService).to(userServices_1.UserService);
+container.bind(types_1.TYPES.UserRepository).to(userRepository_1.UserRepository);
+container.bind(types_1.TYPES.UserController).to(userController_1.UserController);
+container.bind(types_1.TYPES.OtpService).to(otpService_1.OtpService);
+container.bind(types_1.TYPES.OtpRepository).to(otpRepository_1.OtpRepository);

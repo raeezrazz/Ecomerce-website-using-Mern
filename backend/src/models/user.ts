@@ -2,6 +2,8 @@
 import mongoose , {Schema} from "mongoose"
 // import {IUser} from "../interfaces/userTypes"
 
+export type UserRole = 'user' | 'staff' | 'admin';
+
 export interface IUser  {
     _id:string,
     name: string;
@@ -9,7 +11,7 @@ export interface IUser  {
     password: string;
     phone: string;
     isVerified: boolean;
-    isAdmin: boolean;
+    role: UserRole;
     createdAt: Date;
   }
   
@@ -34,9 +36,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  isAdmin: {
-    type: Boolean,
-    default: false
+  role: {
+    type: String,
+    enum: ['user', 'staff', 'admin'],
+    default: 'user'
   },
   isVerified: {
     type: Boolean,

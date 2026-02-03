@@ -8,9 +8,9 @@ interface UserLayoutProps {
 
 const UserLayout = ()=> {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col w-full">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 w-full">
         <Outlet/>
       </main>
       <Footer />

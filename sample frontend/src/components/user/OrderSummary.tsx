@@ -15,14 +15,18 @@ export function OrderSummary({ items, total, onPlaceOrder, showPlaceOrder = fals
       <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Order Summary</h2>
       
       <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 max-h-48 sm:max-h-64 overflow-y-auto">
-        {items.map((item) => (
-          <div key={item.id} className="flex justify-between text-xs sm:text-sm">
-            <span className="text-muted-foreground line-clamp-1 flex-1 mr-2">
-              {item.name} × {item.quantity}
-            </span>
-            <span className="flex-shrink-0">₹{(item.price * item.quantity).toLocaleString()}</span>
-          </div>
-        ))}
+        {items.map((item) => {
+          const actualPrice = item.actualPrice || item.price || 0;
+          const itemPrice = item.offerPrice && item.offerPrice > 0 ? item.offerPrice : actualPrice;
+          return (
+            <div key={item.id} className="flex justify-between text-xs sm:text-sm">
+              <span className="text-muted-foreground line-clamp-1 flex-1 mr-2">
+                {item.name} × {item.quantity}
+              </span>
+              <span className="flex-shrink-0">₹{(itemPrice * item.quantity).toLocaleString()}</span>
+            </div>
+          );
+        })}
       </div>
       
       <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">

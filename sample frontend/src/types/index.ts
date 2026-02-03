@@ -6,6 +6,7 @@ export interface User {
   avatar?: string;
   registeredDate: string;
   status: 'active' | 'blocked';
+  role?: 'user' | 'staff' | 'admin';
   address?: string;
   city?: string;
   totalOrders?: number;
@@ -14,9 +15,10 @@ export interface User {
 export interface Product {
   id: string;
   name: string;
-  sku: string;
-  category: 'Digital Meters' | 'Meter Spares' | 'Accessories';
-  price: number;
+  category: string; // Dynamic category from database
+  actualPrice?: number; // Optional for backward compatibility (old products have 'price')
+  offerPrice?: number; // Optional offer price
+  price?: number; // Display price (for backward compatibility with old products)
   stock: number;
   description: string;
   images: string[];
@@ -101,4 +103,19 @@ export interface KPI {
   todaySales: number;
   monthRevenue: number;
   lowStockItems: number;
+}
+
+export interface ReportDailyRow {
+  date: string;
+  orders: number;
+  orderRevenue: number;
+  services: number;
+  serviceRevenue: number;
+  sales: number;
+  salesRevenue: number;
+}
+
+export interface SalesReportData {
+  period: { start: string; end: string; label: string };
+  daily: ReportDailyRow[];
 }

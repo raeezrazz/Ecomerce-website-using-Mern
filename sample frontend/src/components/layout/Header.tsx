@@ -36,13 +36,23 @@ export function Header({ onMenuClick }: HeaderProps) {
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      const { logout } = await import('@/api/adminApi');
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear all admin-related data
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('adminUser');
+      navigate('/admin/login');
+    }
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6 flex-shrink-0">
       {/* Mobile menu button */}
       <Button
         variant="ghost"

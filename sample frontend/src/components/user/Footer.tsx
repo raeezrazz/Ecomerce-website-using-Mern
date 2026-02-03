@@ -3,8 +3,8 @@ import { Mail, Phone, MapPin } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer className="bg-muted border-t mt-8 sm:mt-12 md:mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
+    <footer className="bg-muted border-t mt-8 sm:mt-12 md:mt-16 w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12 w-full">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
           <div className="sm:col-span-2 lg:col-span-1">
             <h3 className="text-lg sm:text-xl font-bold text-primary mb-3 sm:mb-4">RsMeters</h3>

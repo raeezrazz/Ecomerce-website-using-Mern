@@ -16,11 +16,24 @@ export function ProductInfo({ product, quantity, onQuantityChange, onAddToCart }
     <div className="px-0 sm:px-2">
       <Badge variant="secondary" className="mb-3 sm:mb-4 text-xs sm:text-sm">{product.category}</Badge>
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">{product.name}</h1>
-      <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">SKU: {product.sku}</p>
       
-      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-4 sm:mb-6">
-        ₹{product.price.toLocaleString()}
-      </div>
+      {product.offerPrice && product.offerPrice > 0 && product.actualPrice ? (
+        <div className="mb-4 sm:mb-6">
+          <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary">
+            ₹{product.offerPrice.toLocaleString()}
+          </div>
+          <div className="text-lg sm:text-xl text-muted-foreground line-through">
+            ₹{(product.actualPrice || product.price || 0).toLocaleString()}
+          </div>
+          <div className="text-sm sm:text-base text-green-600 mt-1">
+            Save ₹{((product.actualPrice || product.price || 0) - product.offerPrice).toLocaleString()}
+          </div>
+        </div>
+      ) : (
+        <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-4 sm:mb-6">
+          ₹{(product.actualPrice || product.price || 0).toLocaleString()}
+        </div>
+      )}
 
       {product.stock > 0 ? (
         <p className="text-sm sm:text-base text-green-600 mb-4 sm:mb-6">In Stock ({product.stock} available)</p>

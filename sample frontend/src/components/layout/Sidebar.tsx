@@ -13,25 +13,48 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
 }
 
-const navItems = [
-  { to: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/admin/users', icon: Users, label: 'Users' },
-  { to: '/admin/products', icon: Package, label: 'Products' },
-  { to: '/admin/categories', icon: FolderTree, label: 'Categories' },
-  { to: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
-  { to: '/admin/sales', icon: BarChart3, label: 'Sales Report' },
-  { to: '/admin/tally', icon: Calculator, label: 'Daily Tally' },
-  { to: '/admin/warehouse', icon: WarehouseIcon, label: 'Warehouse' },
-  { to: '/admin/settings', icon: Settings, label: 'Settings' },
+const allNavItems = [
+  { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', adminOnly: false },
+  { to: '/admin/users', icon: Users, label: 'Users', adminOnly: true },
+  { to: '/admin/products', icon: Package, label: 'Products', adminOnly: false },
+  { to: '/admin/categories', icon: FolderTree, label: 'Categories', adminOnly: false },
+  { to: '/admin/orders', icon: ShoppingCart, label: 'Orders', adminOnly: false },
+  { to: '/admin/sales', icon: BarChart3, label: 'Sales Report', adminOnly: false },
+  { to: '/admin/tally', icon: Calculator, label: 'Daily Tally', adminOnly: false },
+  { to: '/admin/warehouse', icon: WarehouseIcon, label: 'Warehouse', adminOnly: false },
+  { to: '/admin/settings', icon: Settings, label: 'Settings', adminOnly: false },
 ];
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+  const [userRole, setUserRole] = useState<string>('');
+
+  useEffect(() => {
+    // Get user role from localStorage
+    const adminUser = localStorage.getItem('adminUser');
+    if (adminUser) {
+      try {
+        const user = JSON.parse(adminUser);
+        setUserRole(user.role || '');
+      } catch {
+        setUserRole('');
+      }
+    }
+  }, []);
+
+  // Filter nav items based on role
+  const navItems = allNavItems.filter(item => {
+    if (item.adminOnly) {
+      return userRole === 'admin';
+    }
+    return true;
+  });
   return (
     <>
       {/* Mobile overlay */}
@@ -46,14 +69,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       <aside
         className={cn(
           'fixed left-0 top-0 z-50 h-screen bg-sidebar transition-transform duration-300 ease-in-out',
-          'lg:sticky lg:translate-x-0',
+          'lg:fixed lg:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full',
           'w-64 lg:w-64'
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
+          <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6 flex-shrink-0">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
                 RM
@@ -70,7 +93,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto px-4 py-6">
+          <nav className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 min-h-0">
             <ul className="space-y-2">
               {navItems.map((item) => (
                 <li key={item.to}>
@@ -86,7 +109,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       )
                     }
                   >
-                    <item.icon className="h-5 w-5" />
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
                     <span>{item.label}</span>
                   </NavLink>
                 </li>
@@ -95,7 +118,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </nav>
 
           {/* Footer */}
-          <div className="border-t border-sidebar-border p-4">
+          <div className="border-t border-sidebar-border p-4 flex-shrink-0">
             <p className="text-xs text-sidebar-foreground/60 text-center">
               © 2025 RsMeters Admin
             </p>

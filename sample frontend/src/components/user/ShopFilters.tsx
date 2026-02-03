@@ -2,6 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Search } from 'lucide-react';
+import type { Category } from '@/types';
 
 interface ShopFiltersProps {
   searchQuery: string;
@@ -11,6 +12,7 @@ interface ShopFiltersProps {
   sortBy: string;
   onSortChange: (value: string) => void;
   productCount: number;
+  categories?: Category[];
 }
 
 export function ShopFilters({
@@ -21,6 +23,7 @@ export function ShopFilters({
   sortBy,
   onSortChange,
   productCount,
+  categories = [],
 }: ShopFiltersProps) {
   return (
     <>
@@ -42,9 +45,11 @@ export function ShopFilters({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="Digital Meters">Digital Meters</SelectItem>
-              <SelectItem value="Meter Spares">Meter Spares</SelectItem>
-              <SelectItem value="Accessories">Accessories</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.name}>
+                  {category.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 

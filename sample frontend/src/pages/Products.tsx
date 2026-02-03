@@ -3,9 +3,10 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { fetchProducts, createProduct, updateProduct, deleteProduct } from '@/api/adminApi';
-import type { Product } from '@/types';
+import { fetchProducts, createProduct, updateProduct, deleteProduct, fetchCategories } from '@/api/adminApi';
+import type { Product, Category } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { useFormDialog } from '@/contexts/FormDialogContext';
 import { ProductFilters } from '@/components/admin/ProductFilters';
 import { ProductsTable } from '@/components/admin/ProductsTable';
 import { ProductDialog } from '@/components/admin/ProductDialog';
@@ -13,8 +14,10 @@ import { Pagination } from '@/components/shared/Pagination';
 
 export default function Products() {
   const { toast } = useToast();
+  const { setFormOpen } = useFormDialog();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [page, setPage] = useState(1);
@@ -24,37 +27,41 @@ export default function Products() {
 
   const [formData, setFormData] = useState({
     name: '',
-    sku: '',
-    category: 'Digital Meters' as Product['category'],
-    price: '',
+    category: '',
+    actualPrice: '',
+    offerPrice: '',
     stock: '',
     description: '',
     images: [] as string[],
   });
   const [errors, setErrors] = useState<{
     name?: string;
-    sku?: string;
     category?: string;
-    price?: string;
+    actualPrice?: string;
+    offerPrice?: string;
     stock?: string;
     description?: string;
     images?: string;
   }>({});
 
   useEffect(() => {
-    const loadProducts = async () => {
+    const loadData = async () => {
       try {
-        const data = await fetchProducts();
-        setProducts(data);
+        const [productsData, categoriesData] = await Promise.all([
+          fetchProducts(),
+          fetchCategories()
+        ]);
+        setProducts(productsData);
+        setCategories(categoriesData);
       } catch (error) {
         toast({
           title: 'Error',
-          description: 'Failed to load products. Please try again.',
+          description: 'Failed to load data. Please try again.',
           variant: 'destructive',
         });
       }
     };
-    loadProducts();
+    loadData();
   }, []);
 
   useEffect(() => {
@@ -63,8 +70,7 @@ export default function Products() {
     if (searchTerm) {
       filtered = filtered.filter(
         (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+          product.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
@@ -86,28 +92,30 @@ export default function Products() {
   const handleOpenDialog = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
+      const actualPrice = product.actualPrice || product.price || 0;
       setFormData({
         name: product.name,
-        sku: product.sku,
-        category: product.category,
-        price: product.price.toString(),
+        category: product.category || '',
+        actualPrice: actualPrice.toString(),
+        offerPrice: product.offerPrice?.toString() || '',
         stock: product.stock.toString(),
-        description: product.description,
+        description: product.description || '',
         images: product.images || [],
       });
     } else {
       setEditingProduct(null);
       setFormData({
         name: '',
-        sku: '',
-        category: 'Digital Meters',
-        price: '',
+        category: categories.length > 0 ? categories[0].name : '',
+        actualPrice: '',
+        offerPrice: '',
         stock: '',
         description: '',
         images: [],
       });
     }
     setErrors({});
+    setFormOpen(true);
     setDialogOpen(true);
   };
 
@@ -128,10 +136,17 @@ export default function Products() {
   const validateForm = () => {
     const newErrors: typeof errors = {};
     if (!formData.name.trim()) newErrors.name = 'Product name is required';
-    if (!formData.sku.trim()) newErrors.sku = 'SKU is required';
     if (!formData.category) newErrors.category = 'Category is required';
-    if (!formData.price) newErrors.price = 'Price is required';
-    else if (parseFloat(formData.price) <= 0) newErrors.price = 'Price must be greater than 0';
+    if (!formData.actualPrice) newErrors.actualPrice = 'Actual price is required';
+    else if (parseFloat(formData.actualPrice) <= 0) newErrors.actualPrice = 'Actual price must be greater than 0';
+    if (formData.offerPrice && parseFloat(formData.offerPrice) > 0) {
+      if (parseFloat(formData.offerPrice) >= parseFloat(formData.actualPrice)) {
+        newErrors.offerPrice = 'Offer price must be less than actual price';
+      }
+      if (parseFloat(formData.offerPrice) <= 0) {
+        newErrors.offerPrice = 'Offer price must be greater than 0';
+      }
+    }
     if (!formData.stock) newErrors.stock = 'Stock is required';
     else if (parseInt(formData.stock) < 0) newErrors.stock = 'Stock cannot be negative';
 
@@ -166,15 +181,19 @@ export default function Products() {
     if (!validateForm()) return;
 
     try {
-      const productData = {
-        name: formData.name,
-        sku: formData.sku,
+      const productData: any = {
+        name: formData.name.trim(),
         category: formData.category,
-        price: parseFloat(formData.price),
+        actualPrice: parseFloat(formData.actualPrice),
         stock: parseInt(formData.stock),
-        description: formData.description,
+        description: formData.description.trim(),
         images: formData.images || [],
       };
+
+      // Only include offerPrice if it's provided and valid
+      if (formData.offerPrice && parseFloat(formData.offerPrice) > 0) {
+        productData.offerPrice = parseFloat(formData.offerPrice);
+      }
 
       if (editingProduct) {
         await updateProduct(editingProduct.id, productData);
@@ -193,6 +212,7 @@ export default function Products() {
       // Refresh products list
       const updatedProducts = await fetchProducts();
       setProducts(updatedProducts);
+      setFormOpen(false);
       setDialogOpen(false);
     } catch (error: any) {
       toast({
@@ -227,6 +247,7 @@ export default function Products() {
               onSearchChange={setSearchTerm}
               categoryFilter={categoryFilter}
               onCategoryFilterChange={setCategoryFilter}
+              categories={categories}
             />
             <ProductsTable 
               products={paginatedProducts} 
@@ -245,12 +266,16 @@ export default function Products() {
 
         <ProductDialog
           open={dialogOpen}
-          onOpenChange={setDialogOpen}
+          onOpenChange={(open) => {
+            setFormOpen(open);
+            setDialogOpen(open);
+          }}
           editingProduct={editingProduct}
           formData={formData}
           onFormDataChange={handleFormDataChange}
           onSubmit={handleSubmit}
           errors={errors}
+          categories={categories}
         />
       </div>
     </DashboardLayout>

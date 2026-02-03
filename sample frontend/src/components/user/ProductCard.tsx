@@ -37,8 +37,14 @@ export function ProductCard({ product }: ProductCardProps) {
         <CardContent className="p-3 sm:p-4">
           <Badge variant="secondary" className="mb-2 text-xs sm:text-sm">{product.category}</Badge>
           <h3 className="font-semibold text-base sm:text-lg mb-1 line-clamp-2">{product.name}</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground mb-2">SKU: {product.sku}</p>
-          <p className="text-xl sm:text-2xl font-bold text-primary">₹{product.price.toLocaleString()}</p>
+          {product.offerPrice && product.offerPrice > 0 && product.actualPrice ? (
+            <div className="mb-2">
+              <p className="text-xl sm:text-2xl font-bold text-primary">₹{product.offerPrice.toLocaleString()}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground line-through">₹{(product.actualPrice || product.price || 0).toLocaleString()}</p>
+            </div>
+          ) : (
+            <p className="text-xl sm:text-2xl font-bold text-primary mb-2">₹{(product.actualPrice || product.price || 0).toLocaleString()}</p>
+          )}
           {product.stock < 10 && product.stock > 0 && (
             <p className="text-xs sm:text-sm text-orange-600 mt-1">Only {product.stock} left!</p>
           )}

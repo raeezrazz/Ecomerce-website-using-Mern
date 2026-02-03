@@ -5,13 +5,21 @@ import { productService } from "../services/productService";
 const transformProduct = (product: any) => {
   if (!product) return null;
   
+  // Handle backward compatibility: old products have 'price', new ones have 'actualPrice'
+  const actualPrice = product.actualPrice !== undefined ? product.actualPrice : (product.price || 0);
+  const offerPrice = product.offerPrice !== undefined ? product.offerPrice : undefined;
+  
+  // Calculate display price (use offerPrice if available, otherwise actualPrice)
+  const displayPrice = offerPrice && offerPrice > 0 ? offerPrice : actualPrice;
+  
   return {
     id: product._id?.toString() || product.id,
     name: product.name,
-    sku: product.sku,
-    category: product.category,
-    price: product.price,
-    stock: product.stock,
+    category: product.category || '',
+    actualPrice: actualPrice,
+    offerPrice: offerPrice,
+    price: displayPrice, // Keep price for backward compatibility
+    stock: product.stock || 0,
     description: product.description || '',
     images: product.images || [],
     createdAt: product.createdAt ? new Date(product.createdAt).toISOString() : new Date().toISOString(),

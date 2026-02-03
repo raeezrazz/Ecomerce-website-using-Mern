@@ -1,50 +1,72 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit2, Trash2, FolderTree } from 'lucide-react';
+import { Edit2, Trash2, FolderTree, Package } from 'lucide-react';
 import type { Category } from '@/types';
+import { cn } from '@/lib/utils';
 
 interface CategoryCardProps {
   category: Category;
   onEdit: (category: Category) => void;
-  onDelete: (id: string) => void;
+  onDelete: (category: Category) => void;
 }
 
 export function CategoryCard({ category, onEdit, onDelete }: CategoryCardProps) {
+  const productCount = category.productCount || 0;
+  const hasProducts = productCount > 0;
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <FolderTree className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <CardTitle className="text-lg">{category.name}</CardTitle>
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className={cn(
+              "flex h-12 w-12 items-center justify-center rounded-lg flex-shrink-0",
+              hasProducts ? "bg-primary/10" : "bg-muted"
+            )}>
+              <FolderTree className={cn(
+                "h-6 w-6",
+                hasProducts ? "text-primary" : "text-muted-foreground"
+              )} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-lg font-semibold truncate">{category.name}</CardTitle>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge 
+                  variant={hasProducts ? "default" : "secondary"}
+                  className="text-xs"
+                >
+                  <Package className="h-3 w-3 mr-1" />
+                  {productCount} {productCount === 1 ? 'product' : 'products'}
+                </Badge>
+              </div>
+            </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-4">
-          {category.description}
+      <CardContent className="pt-0">
+        <p className="text-sm text-muted-foreground mb-4 line-clamp-2 min-h-[2.5rem]">
+          {category.description || 'No description provided'}
         </p>
-        <div className="flex items-center justify-between">
-          <Badge variant="secondary">{category.productCount} products</Badge>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onEdit(category)}
-            >
-              <Edit2 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(category.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+        <div className="flex items-center justify-end gap-2 pt-2 border-t">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(category)}
+            className="h-8"
+          >
+            <Edit2 className="h-4 w-4 mr-1" />
+            Edit
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(category)}
+            className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Delete
+          </Button>
         </div>
       </CardContent>
     </Card>

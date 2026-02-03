@@ -59,7 +59,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setCart([]);
 
-  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const cartTotal = cart.reduce((sum, item) => {
+    const actualPrice = item.actualPrice || item.price || 0;
+    const itemPrice = item.offerPrice && item.offerPrice > 0 ? item.offerPrice : actualPrice;
+    return sum + itemPrice * item.quantity;
+  }, 0);
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (

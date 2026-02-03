@@ -1,14 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { ShippingForm } from '@/components/user/ShippingForm';
 import { OrderSummary } from '@/components/user/OrderSummary';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store/store';
 
 export default function Checkout() {
   const navigate = useNavigate();
   const { cart, cartTotal, clearCart } = useCart();
   const { toast } = useToast();
+  const { userInfo } = useSelector((state: RootState) => state.user);
+  
+  // Check if user is authenticated
+  useEffect(() => {
+    const userToken = localStorage.getItem('userToken');
+    const accessToken = localStorage.getItem('accessToken');
+    const userData = localStorage.getItem('userData');
+    const authToken = localStorage.getItem('authToken'); // Admin token
+    
+    // If admin token exists, redirect
+    if (authToken) {
+      navigate('/admin');
+      return;
+    }
+    
+    // If no user token and no userInfo, redirect to auth
+    if (!userToken && !accessToken && !userData && !userInfo) {
+      navigate('/auth');
+    }
+  }, [navigate, userInfo]);
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -45,7 +67,7 @@ export default function Checkout() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 w-full">
       <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">Checkout</h1>
 
       <form onSubmit={handleSubmit}>

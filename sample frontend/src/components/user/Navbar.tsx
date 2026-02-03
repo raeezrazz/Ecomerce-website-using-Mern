@@ -33,20 +33,20 @@ export function Navbar() {
   };
 
   return (
-    <nav className="bg-background border-b sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14 sm:h-16">
-          <Link to="/" className="text-lg sm:text-xl md:text-2xl font-bold text-primary truncate">RsMeters</Link>
+    <nav className="bg-background border-b sticky top-0 z-50 w-full">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 w-full">
+        <div className="flex justify-between items-center h-14 sm:h-16 w-full">
+          <Link to="/" className="text-lg sm:text-xl md:text-2xl font-bold text-primary flex-shrink-0">RsMeters</Link>
           
-          <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
-            <Link to="/" className="text-sm lg:text-base text-foreground hover:text-primary transition">Home</Link>
-            <Link to="/shop" className="text-sm lg:text-base text-foreground hover:text-primary transition">Shop</Link>
-            <Link to="/shop?category=Digital Meters" className="text-sm lg:text-base text-foreground hover:text-primary transition">Digital Meters</Link>
-            <Link to="/shop?category=Meter Spares" className="text-sm lg:text-base text-foreground hover:text-primary transition">Spares</Link>
-            <Link to="/shop?category=Accessories" className="text-sm lg:text-base text-foreground hover:text-primary transition">Accessories</Link>
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-6 flex-shrink-0">
+            <Link to="/" className="text-sm lg:text-base text-foreground hover:text-primary transition whitespace-nowrap">Home</Link>
+            <Link to="/shop" className="text-sm lg:text-base text-foreground hover:text-primary transition whitespace-nowrap">Shop</Link>
+            <Link to="/shop?category=Digital Meters" className="text-sm lg:text-base text-foreground hover:text-primary transition whitespace-nowrap">Digital Meters</Link>
+            <Link to="/shop?category=Meter Spares" className="text-sm lg:text-base text-foreground hover:text-primary transition whitespace-nowrap">Spares</Link>
+            <Link to="/shop?category=Accessories" className="text-sm lg:text-base text-foreground hover:text-primary transition whitespace-nowrap">Accessories</Link>
           </div>
 
-          <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 flex-shrink-0">
             <div className="hidden lg:block">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

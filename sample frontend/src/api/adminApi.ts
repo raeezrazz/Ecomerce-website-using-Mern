@@ -40,7 +40,7 @@
  * - POST   /api/admin/auth/logout        - Logout
  */
 import apiClient from "@/api/apiClient/axios";
-import type { User, Product, Category, Order, TallyEntry, DailySales, KPI } from "@/types";
+import type { User, Product, Category, Order, TallyEntry, DailySales, KPI, SalesReportData } from "@/types";
 
 // -------- AUTH --------
 export const login = async (email: string, password: string) => {
@@ -48,8 +48,24 @@ export const login = async (email: string, password: string) => {
   return res.data;
 };
 
+export const refreshAdminToken = async (refreshToken: string) => {
+  const res = await apiClient.post("/api/admin/auth/refreshToken", { refreshToken });
+  return res.data;
+};
+
 export const logout = async () => {
-  await apiClient.post("/api/admin/auth/logout");
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (refreshToken) {
+    try {
+      await apiClient.post("/api/admin/auth/logout", { refreshToken });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  }
+  // Clear all tokens
+  localStorage.removeItem('authToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('adminUser');
 };
 
 // -------- USERS --------
@@ -162,6 +178,48 @@ export const deleteTallyEntry = async (id: string): Promise<void> => {
   await apiClient.delete(`/api/admin/tally/${id}`);
 };
 
+// -------- ITEM TYPES --------
+export interface ItemType {
+  id: string;
+  name: string;
+}
+
+export const fetchItemTypes = async (): Promise<ItemType[]> => {
+  const res = await apiClient.get("/api/admin/item-types");
+  return res.data;
+};
+
+export const searchItemTypes = async (query: string): Promise<ItemType[]> => {
+  const res = await apiClient.get(`/api/admin/item-types/search?q=${encodeURIComponent(query)}`);
+  return res.data;
+};
+
+export const createItemType = async (name: string): Promise<ItemType> => {
+  const res = await apiClient.post("/api/admin/item-types", { name });
+  return res.data;
+};
+
+export const deleteItemType = async (id: string): Promise<void> => {
+  await apiClient.delete(`/api/admin/item-types/${id}`);
+};
+
+// -------- CUSTOMERS (name + phone for tally) --------
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+}
+
+export const searchCustomers = async (query: string): Promise<Customer[]> => {
+  const res = await apiClient.get(`/api/admin/customers/search?q=${encodeURIComponent(query)}`);
+  return res.data;
+};
+
+export const createCustomer = async (name: string, phone: string): Promise<Customer> => {
+  const res = await apiClient.post("/api/admin/customers", { name, phone });
+  return res.data;
+};
+
 // -------- DASHBOARD --------
 export const fetchKPI = async (): Promise<KPI> => {
   const res = await apiClient.get("/api/admin/dashboard/kpi");
@@ -170,6 +228,17 @@ export const fetchKPI = async (): Promise<KPI> => {
 
 export const fetchDailySales = async (days = 30): Promise<DailySales[]> => {
   const res = await apiClient.get(`/api/admin/dashboard/sales?days=${days}`);
+  return res.data;
+};
+
+export type ReportParams = { days?: number } | { month: number; year: number };
+
+export const fetchSalesReport = async (params: ReportParams): Promise<SalesReportData> => {
+  const search = new URLSearchParams();
+  if ('days' in params && params.days != null) search.set('days', String(params.days));
+  if ('month' in params) search.set('month', String(params.month));
+  if ('year' in params) search.set('year', String(params.year));
+  const res = await apiClient.get(`/api/admin/dashboard/report?${search.toString()}`);
   return res.data;
 };
 

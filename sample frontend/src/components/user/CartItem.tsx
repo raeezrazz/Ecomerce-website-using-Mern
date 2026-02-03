@@ -36,9 +36,15 @@ export function CartItem({ item, onRemove, onUpdateQuantity }: CartItemProps) {
               <Trash2 className="h-4 w-4 text-destructive" />
             </Button>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground mb-2">SKU: {item.sku}</p>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
-            <p className="text-base sm:text-lg font-bold text-primary">₹{item.price.toLocaleString()}</p>
+            {item.offerPrice && item.offerPrice > 0 && item.actualPrice ? (
+              <div>
+                <p className="text-base sm:text-lg font-bold text-primary">₹{item.offerPrice.toLocaleString()}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground line-through">₹{(item.actualPrice || item.price || 0).toLocaleString()}</p>
+              </div>
+            ) : (
+              <p className="text-base sm:text-lg font-bold text-primary">₹{(item.actualPrice || item.price || 0).toLocaleString()}</p>
+            )}
             <div className="flex items-center border rounded-md w-fit">
               <Button
                 variant="ghost"

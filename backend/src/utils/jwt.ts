@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 
-interface TokenPayload {
+export interface TokenPayload {
   userId: string;
+  role?: string; // Include role in token
 }
 
 // Access token expires in 15 minutes
@@ -9,8 +10,8 @@ const ACCESS_TOKEN_EXPIRY = "15m";
 // Refresh token expires in 7 days
 const REFRESH_TOKEN_EXPIRY = "7d";
 
-export const generateAccessToken = (userId: string): string => {
-  const payload: TokenPayload = { userId };
+export const generateAccessToken = (userId: string, role?: string): string => {
+  const payload: TokenPayload = { userId, role };
   const secret = process.env.JWT_ACCESS_SECRET;
   
   if (!secret) {
@@ -20,8 +21,8 @@ export const generateAccessToken = (userId: string): string => {
   return jwt.sign(payload, secret, { expiresIn: ACCESS_TOKEN_EXPIRY });
 };
 
-export const generateRefreshToken = (userId: string): string => {
-  const payload: TokenPayload = { userId };
+export const generateRefreshToken = (userId: string, role?: string): string => {
+  const payload: TokenPayload = { userId, role };
   const secret = process.env.JWT_REFRESH_SECRET;
   
   if (!secret) {

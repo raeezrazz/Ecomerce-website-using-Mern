@@ -306,6 +306,7 @@ export default function Auth() {
         _id: response.data.id,
         name: response.data.name,
         email: response.data.email,
+        role: response.data.role || 'user',
       };
       localStorage.setItem("userInfo", JSON.stringify(userInfo));
       
@@ -449,7 +450,7 @@ export default function Auth() {
 
   if (showOtpPage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 px-3 sm:px-4 py-4 sm:py-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 px-3 sm:px-4 py-4 sm:py-8 w-full">
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center p-4 sm:p-6">
             <div className="flex justify-center mb-3 sm:mb-4">
@@ -531,7 +532,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 px-3 sm:px-4 py-4 sm:py-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 px-3 sm:px-4 py-4 sm:py-8 w-full">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center p-4 sm:p-6">
           <div className="flex justify-center mb-3 sm:mb-4">

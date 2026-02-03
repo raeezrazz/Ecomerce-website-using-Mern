@@ -19,6 +19,21 @@ export const dashboardController = {
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
+  },
+
+  async getReport(req: Request, res: Response) {
+    try {
+      const daysParam = req.query.days as string;
+      const monthParam = req.query.month as string;
+      const yearParam = req.query.year as string;
+      const days = daysParam ? parseInt(daysParam, 10) : undefined;
+      const month = monthParam ? parseInt(monthParam, 10) : undefined;
+      const year = yearParam ? parseInt(yearParam, 10) : undefined;
+      const report = await dashboardService.getReportData({ month, year, days });
+      res.json(report);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
   }
 };
 
