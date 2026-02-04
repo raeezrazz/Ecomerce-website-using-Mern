@@ -60,19 +60,23 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome to RsMeters Admin Panel</p>
+        <div className="animate-fade-in-up">
+          <h1 className="text-3xl font-display font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Welcome to RsMeters Admin Panel</p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-children">
           {kpiCards.map((card) => (
             <KPICard key={card.title} {...card} />
           ))}
         </div>
 
-        <SalesChart data={salesData} />
-        <RecentOrdersTable orders={recentOrders} />
+        <div className="animate-fade-in-up">
+          <SalesChart data={salesData} />
+        </div>
+        <div className="animate-fade-in-up">
+          <RecentOrdersTable orders={recentOrders} />
+        </div>
       </div>
     </DashboardLayout>
   );

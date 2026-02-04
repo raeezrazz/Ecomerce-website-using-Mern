@@ -21,13 +21,21 @@ export function CategoryCard({ category, onEdit, onDelete }: CategoryCardProps) 
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <div className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-lg flex-shrink-0",
-              hasProducts ? "bg-primary/10" : "bg-muted"
+              "flex h-12 w-12 items-center justify-center rounded-xl overflow-hidden flex-shrink-0 bg-muted",
+              hasProducts && !category.thumbnail && "bg-primary/10"
             )}>
-              <FolderTree className={cn(
-                "h-6 w-6",
-                hasProducts ? "text-primary" : "text-muted-foreground"
-              )} />
+              {category.thumbnail ? (
+                <img src={category.thumbnail} alt="" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden'); }} />
+              ) : null}
+              <span className={cn(
+                "flex items-center justify-center h-full w-full",
+                category.thumbnail ? "hidden" : ""
+              )}>
+                <FolderTree className={cn(
+                  "h-6 w-6",
+                  hasProducts ? "text-primary" : "text-muted-foreground"
+                )} />
+              </span>
             </div>
             <div className="flex-1 min-w-0">
               <CardTitle className="text-lg font-semibold truncate">{category.name}</CardTitle>

@@ -61,7 +61,7 @@ export function SalesChart({ data }: SalesChartProps) {
   const formatTooltipPrice = (v: number) => `₹${Number(v).toLocaleString()}`;
 
   return (
-    <Card>
+    <Card className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden">
       <CardHeader>
         <CardTitle>Sales Overview (Last 30 Days)</CardTitle>
         <p className="text-sm text-muted-foreground">Daily revenue (₹)</p>

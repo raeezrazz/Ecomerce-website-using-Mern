@@ -84,38 +84,37 @@ export default function Profile() {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 w-full">
-        <Card>
-          <CardContent className="flex items-center justify-center h-64">
+        <div className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden animate-fade-in-up">
+          <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 w-full">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">My Account</h1>
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-foreground animate-fade-in-up">My Account</h1>
+      <p className="text-muted-foreground mb-6 md:mb-8 animate-fade-in-up animate-delay-100">Manage your profile and orders</p>
 
       <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="profile" className="flex-1 sm:flex-none text-sm sm:text-base">Profile</TabsTrigger>
-          <TabsTrigger value="orders" className="flex-1 sm:flex-none text-sm sm:text-base">My Orders</TabsTrigger>
+        <TabsList className="w-full sm:w-auto h-11 p-1 rounded-xl bg-muted/60 border border-border/80">
+          <TabsTrigger value="profile" className="flex-1 sm:flex-none text-sm sm:text-base rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">Profile</TabsTrigger>
+          <TabsTrigger value="orders" className="flex-1 sm:flex-none text-sm sm:text-base rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">My Orders</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile">
+        <TabsContent value="profile" className="animate-fade-in-up">
           <ProfileForm profile={profile} onProfileChange={setProfile} onSave={handleSave} saving={saving} />
         </TabsContent>
 
-        <TabsContent value="orders">
+        <TabsContent value="orders" className="animate-fade-in-up">
           {userOrders.length > 0 ? (
             <OrderHistory orders={userOrders} />
           ) : (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground text-sm sm:text-base">
-                No orders found
-              </CardContent>
-            </Card>
+            <div className="rounded-2xl border border-border bg-card shadow-soft p-8 text-center">
+              <p className="text-muted-foreground text-sm sm:text-base">No orders found</p>
+            </div>
           )}
         </TabsContent>
       </Tabs>

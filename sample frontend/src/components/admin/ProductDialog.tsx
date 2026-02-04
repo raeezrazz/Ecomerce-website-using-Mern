@@ -45,6 +45,7 @@ interface ProductDialogProps {
   categories: Category[];
   onFormDataChange: (data: Partial<ProductDialogProps['formData']>) => void;
   onSubmit: () => void;
+  onUploadError?: (message: string) => void;
 }
 
 export function ProductDialog({
@@ -56,6 +57,7 @@ export function ProductDialog({
   onSubmit,
   errors,
   categories,
+  onUploadError,
 }: ProductDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -163,6 +165,7 @@ export function ProductDialog({
               photos={formData.images || []}
               maxPhotos={5}
               onPhotosChange={(images) => onFormDataChange({ images })}
+              onUploadError={onUploadError}
             />
             {errors.images && <p className="text-sm text-red-500">{errors.images}</p>}
           </div>

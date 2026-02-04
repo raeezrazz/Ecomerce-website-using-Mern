@@ -52,12 +52,12 @@ export function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6 flex-shrink-0">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/80 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 px-4 lg:px-6 flex-shrink-0 shadow-sm">
       {/* Mobile menu button */}
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden"
+        className="lg:hidden rounded-xl hover:bg-primary/10"
         onClick={onMenuClick}
         aria-label="Toggle menu"
       >
@@ -71,19 +71,20 @@ export function Header({ onMenuClick }: HeaderProps) {
           <Input
             type="search"
             placeholder="Search products, orders, users..."
-            className="pl-10 w-full"
+            className="pl-10 w-full rounded-xl border-border/80 bg-muted/50 focus:bg-background transition-colors"
           />
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         {/* Theme toggle */}
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleTheme}
           aria-label="Toggle theme"
+          className="rounded-xl hover:bg-primary/10"
         >
           {theme === 'light' ? (
             <Moon className="h-5 w-5" />
@@ -93,14 +94,14 @@ export function Header({ onMenuClick }: HeaderProps) {
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" aria-label="Notifications">
+        <Button variant="ghost" size="icon" aria-label="Notifications" className="rounded-xl hover:bg-primary/10">
           <Bell className="h-5 w-5" />
         </Button>
 
         {/* User menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-primary/10 transition-colors">
               <Avatar>
                 <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=admin" />
                 <AvatarFallback>AD</AvatarFallback>

@@ -48,8 +48,9 @@ export default function Categories() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    thumbnail: '',
   });
-  const [errors, setErrors] = useState<{ name?: string; description?: string }>({});
+  const [errors, setErrors] = useState<{ name?: string; description?: string; thumbnail?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   
   // Filter and search states
@@ -81,12 +82,14 @@ export default function Categories() {
       setFormData({
         name: category.name || '',
         description: category.description || '',
+        thumbnail: category.thumbnail || '',
       });
     } else {
       setEditingCategory(null);
       setFormData({
         name: '',
         description: '',
+        thumbnail: '',
       });
     }
 
@@ -104,6 +107,7 @@ export default function Categories() {
       setFormData({
         name: '',
         description: '',
+        thumbnail: '',
       });
       setErrors({});
       setSubmitting(false);
@@ -125,7 +129,7 @@ export default function Categories() {
   };
 
   const validateForm = () => {
-    const newErrors: { name?: string; description?: string } = {};
+    const newErrors: { name?: string; description?: string; thumbnail?: string } = {};
     if (!formData.name.trim()) {
       newErrors.name = 'Category name is required';
     } else if (formData.name.length < 3) {
@@ -136,6 +140,10 @@ export default function Categories() {
       newErrors.description = 'Description is required';
     } else if (formData.description.length < 10) {
       newErrors.description = 'Description must be at least 10 characters';
+    }
+
+    if (formData.thumbnail.trim() && !/^https?:\/\//i.test(formData.thumbnail.trim())) {
+      newErrors.thumbnail = 'Thumbnail must be a valid URL';
     }
 
     setErrors(newErrors);
@@ -158,6 +166,7 @@ export default function Categories() {
       const categoryData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
+        thumbnail: formData.thumbnail.trim() || undefined,
       };
 
       if (editingCategory) {
@@ -194,6 +203,7 @@ export default function Categories() {
       setFormData({
         name: '',
         description: '',
+        thumbnail: '',
       });
       setErrors({});
     } catch (error: any) {

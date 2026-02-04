@@ -10,7 +10,7 @@ export default function Shop() {
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
-  
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,11 +24,11 @@ export default function Shop() {
         setLoading(true);
         const [productsData, categoriesData] = await Promise.all([
           fetchProducts(),
-          fetchCategories()
+          fetchCategories(),
         ]);
         setProducts(productsData);
         setCategories(categoriesData);
-      } catch (error) {
+      } catch {
         toast({
           title: 'Error',
           description: 'Failed to load products. Please try again.',
@@ -39,68 +39,54 @@ export default function Shop() {
       }
     };
     loadData();
-  }, []);
+  }, [toast]);
 
   const filteredProducts = useMemo(() => {
     let filtered = products;
-
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(p => p.category === selectedCategory);
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
+    if (selectedCategory !== 'all') filtered = filtered.filter((p) => p.category === selectedCategory);
+    if (searchQuery) filtered = filtered.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
     const sorted = [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case 'price-low': {
-          const actualPriceA = a.actualPrice || a.price || 0;
-          const actualPriceB = b.actualPrice || b.price || 0;
-          const priceA = a.offerPrice && a.offerPrice > 0 ? a.offerPrice : actualPriceA;
-          const priceB = b.offerPrice && b.offerPrice > 0 ? b.offerPrice : actualPriceB;
-          return priceA - priceB;
-        }
-        case 'price-high': {
-          const actualPriceA = a.actualPrice || a.price || 0;
-          const actualPriceB = b.actualPrice || b.price || 0;
-          const priceA = a.offerPrice && a.offerPrice > 0 ? a.offerPrice : actualPriceA;
-          const priceB = b.offerPrice && b.offerPrice > 0 ? b.offerPrice : actualPriceB;
-          return priceB - priceA;
-        }
-        case 'name':
-        default:
-          return a.name.localeCompare(b.name);
-      }
+      const priceA = a.offerPrice && a.offerPrice > 0 ? a.offerPrice : (a.actualPrice || a.price || 0);
+      const priceB = b.offerPrice && b.offerPrice > 0 ? b.offerPrice : (b.actualPrice || b.price || 0);
+      if (sortBy === 'price-low') return priceA - priceB;
+      if (sortBy === 'price-high') return priceB - priceA;
+      return a.name.localeCompare(b.name);
     });
-
     return sorted;
   }, [selectedCategory, searchQuery, sortBy, products]);
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
-    if (value !== 'all') {
-      setSearchParams({ category: value });
-    } else {
-      setSearchParams({});
-    }
+    setSearchParams(value !== 'all' ? { category: value } : {});
   };
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 w-full">
-        <div className="text-center py-8 sm:py-12">
-          <p className="text-sm sm:text-base text-muted-foreground">Loading products...</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+        <div className="h-10 w-64 rounded-xl bg-muted animate-pulse mb-8" />
+        <div className="rounded-2xl border bg-card p-6 mb-8 h-24 bg-muted/30 animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <div key={i} className="rounded-2xl border bg-card overflow-hidden">
+              <div className="aspect-square bg-muted animate-pulse" />
+              <div className="p-5 space-y-2">
+                <div className="h-4 w-20 bg-muted rounded animate-pulse" />
+                <div className="h-5 w-full bg-muted rounded animate-pulse" />
+                <div className="h-6 w-24 bg-muted rounded animate-pulse" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 w-full">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">Shop Products</h1>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2 animate-fade-in-up">Shop</h1>
+      <p className="text-muted-foreground mb-6 sm:mb-8 animate-fade-in-up animate-delay-100 animate-fill-both opacity-0">
+        Find the right parts for your vehicle
+      </p>
 
       <ShopFilters
         searchQuery={searchQuery}

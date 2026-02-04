@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+
 interface CustomerAutocompleteProps {
   customerName: string;
   phone: string;
@@ -48,6 +49,7 @@ export function CustomerAutocomplete({
   const showAddInDropdown = canAdd && !exactMatch;
 
   // Debounce search (same as ItemTypeAutocomplete)
+
   useEffect(() => {
     if (!customerName || customerName.trim().length === 0) {
       setSuggestions([]);
@@ -69,7 +71,8 @@ export function CustomerAutocomplete({
     return () => clearTimeout(searchTimeout);
   }, [customerName]);
 
-  // Close suggestions when clicking outside (same as ItemTypeAutocomplete)
+// Close suggestions when clicking outside (same as ItemTypeAutocomplete)
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -79,6 +82,7 @@ export function CustomerAutocomplete({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onCustomerNameChange(e.target.value);
@@ -134,19 +138,25 @@ export function CustomerAutocomplete({
     }
   };
 
-  // When user fills both name + phone, show dropdown so "Add to database" is visible (like item type)
+// When user fills both name + phone, show dropdown so "Add to database" is visible (like item type)
+
   useEffect(() => {
     if (showAddInDropdown) {
       setShowSuggestions(true);
     }
   }, [showAddInDropdown]);
 
-  // Same logic as ItemTypeAutocomplete: show dropdown when there are suggestions OR when we can add
+// Same logic as ItemTypeAutocomplete: show dropdown when there are suggestions OR when we can add
+
+
   const showDropdown = showSuggestions && (suggestions.length > 0 || showAddInDropdown);
+
 
   return (
     <div ref={wrapperRef} className="space-y-3">
+
       {/* Row: Customer Name + Phone fields */}
+
       <div className="grid grid-cols-2 gap-4">
         <div className="grid gap-2">
           <Label htmlFor="customerName">Customer Name *</Label>
@@ -186,6 +196,7 @@ export function CustomerAutocomplete({
       </div>
 
       {/* Suggestions + Add to database — below the fields, no overlap */}
+      
       {showDropdown && (
         <div className="rounded-md border bg-popover shadow-sm overflow-hidden">
           {suggestions.length > 0 && (

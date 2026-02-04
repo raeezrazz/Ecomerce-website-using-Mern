@@ -9,7 +9,9 @@ import { warehouseController } from "../controllers/warehouseController";
 import { dashboardController } from "../controllers/dashboardController";
 import { itemTypeController } from "../controllers/itemTypeController";
 import { customerController } from "../controllers/customerController";
+import { uploadController } from "../controllers/uploadController";
 import { authenticateToken, adminOnly } from "../middleware/authMiddleware";
+import { upload } from "../middleware/uploadMiddleware";
 
 const router = Router();
 
@@ -26,6 +28,9 @@ router.get("/categories/:id", categoryController.getById);
 // All other admin routes require authentication and admin role
 router.use(authenticateToken);
 router.use(adminOnly);
+
+// Upload product images to Cloudinary
+router.post("/upload", upload, uploadController.upload);
 
 // Users (admin only)
 router.get("/users", userController.getAll);

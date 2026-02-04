@@ -50,18 +50,28 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 md:py-16 text-center w-full">
-        <p className="text-sm sm:text-base text-muted-foreground">Loading product...</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="animate-pulse space-y-6">
+          <div className="h-5 w-32 bg-muted rounded" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="aspect-square bg-muted rounded-2xl" />
+            <div className="space-y-4">
+              <div className="h-8 w-24 bg-muted rounded" />
+              <div className="h-10 w-full bg-muted rounded" />
+              <div className="h-12 w-40 bg-muted rounded" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 md:py-16 text-center w-full">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-4">Product not found</h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <h1 className="text-2xl font-bold mb-4">Product not found</h1>
         <Link to="/shop">
-          <Button className="text-sm sm:text-base">Back to Shop</Button>
+          <Button size="lg" className="rounded-xl">Back to Shop</Button>
         </Link>
       </div>
     );
@@ -76,13 +86,13 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 w-full">
-      <Link to="/shop" className="inline-flex items-center text-sm sm:text-base text-muted-foreground hover:text-primary mb-4 sm:mb-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
+      <Link to="/shop" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary mb-6 sm:mb-8 transition-colors">
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Shop
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-10 lg:gap-12 mb-8 sm:mb-12 md:mb-16">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 mb-14 md:mb-16">
         <ProductImage src={product.images[0]} alt={product.name} />
         <ProductInfo
           product={product}

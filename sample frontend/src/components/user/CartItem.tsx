@@ -12,9 +12,9 @@ interface CartItemProps {
 
 export function CartItem({ item, onRemove, onUpdateQuantity }: CartItemProps) {
   return (
-    <Card className="p-3 sm:p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 md:gap-6">
-        <div className="w-full sm:w-20 md:w-24 h-48 sm:h-20 md:h-24 bg-muted rounded-md overflow-hidden flex-shrink-0">
+    <Card className="p-4 sm:p-5 rounded-2xl border shadow-sm transition-shadow hover:shadow-md">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+        <div className="w-full sm:w-24 md:w-28 h-40 sm:h-24 md:h-28 bg-muted/50 rounded-xl overflow-hidden flex-shrink-0">
           <img 
             src={item.images[0]} 
             alt={item.name}

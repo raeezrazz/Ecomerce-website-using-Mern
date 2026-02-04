@@ -276,6 +276,13 @@ export default function Products() {
           onSubmit={handleSubmit}
           errors={errors}
           categories={categories}
+          onUploadError={(message) =>
+            toast({
+              title: 'Upload failed',
+              description: message,
+              variant: 'destructive',
+            })
+          }
         />
       </div>
     </DashboardLayout>

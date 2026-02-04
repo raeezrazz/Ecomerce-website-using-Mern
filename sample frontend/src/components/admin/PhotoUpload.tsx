@@ -1,16 +1,19 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Upload } from 'lucide-react';
+import { X, Upload, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { uploadProductImages } from '@/api/adminApi';
 
 interface PhotoUploadProps {
   photos: string[];
   maxPhotos?: number;
   onPhotosChange: (photos: string[]) => void;
+  onUploadError?: (message: string) => void;
 }
 
-export function PhotoUpload({ photos, maxPhotos = 6, onPhotosChange }: PhotoUploadProps) {
+export function PhotoUpload({ photos, maxPhotos = 6, onPhotosChange, onUploadError }: PhotoUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -18,31 +21,26 @@ export function PhotoUpload({ photos, maxPhotos = 6, onPhotosChange }: PhotoUplo
 
     const remainingSlots = maxPhotos - photos.length;
     const filesToAdd = Array.from(files)
-      .filter(file => file.type.startsWith('image/'))
+      .filter((file) => file.type.startsWith('image/'))
       .slice(0, remainingSlots);
 
     if (filesToAdd.length === 0) return;
 
-    const readFiles = filesToAdd.map((file) => {
-      return new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          resolve(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      });
-    });
-
+    setUploading(true);
     try {
-      const newPhotos = await Promise.all(readFiles);
-      onPhotosChange([...photos, ...newPhotos]);
-    } catch (error) {
-      console.error('Error reading files:', error);
-    }
-
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      const { urls } = await uploadProductImages(filesToAdd);
+      onPhotosChange([...photos, ...urls]);
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === 'object' && 'response' in err && err.response && typeof err.response === 'object' && 'data' in err.response && err.response.data && typeof err.response.data === 'object' && 'error' in err.response.data
+          ? String((err.response.data as { error: string }).error)
+          : 'Failed to upload images. Please try again.';
+      onUploadError?.(message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -51,14 +49,14 @@ export function PhotoUpload({ photos, maxPhotos = 6, onPhotosChange }: PhotoUplo
     onPhotosChange(updated);
   };
 
-  const canAddMore = photos.length < maxPhotos;
+  const canAddMore = photos.length < maxPhotos && !uploading;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium">Photos</label>
         <span className="text-xs text-muted-foreground">
-          {photos.length}/{maxPhotos} photos
+          {photos.length}/{maxPhotos} photos • Stored on Cloudinary
         </span>
       </div>
 
@@ -102,18 +100,24 @@ export function PhotoUpload({ photos, maxPhotos = 6, onPhotosChange }: PhotoUplo
             type="button"
             variant="outline"
             className={cn(
-              "w-full h-24 border-2 border-dashed",
-              canAddMore && "hover:border-primary hover:bg-primary/5 cursor-pointer"
+              'w-full h-24 border-2 border-dashed',
+              canAddMore && 'hover:border-primary hover:bg-primary/5 cursor-pointer'
             )}
             onClick={() => fileInputRef.current?.click()}
             disabled={!canAddMore}
           >
             <div className="flex flex-col items-center gap-2">
-              <Upload className="h-5 w-5 text-muted-foreground" />
+              {uploading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              ) : (
+                <Upload className="h-5 w-5 text-muted-foreground" />
+              )}
               <span className="text-sm text-muted-foreground">
-                {photos.length === 0 
-                  ? 'Click to upload photos' 
-                  : `Add more photos (${maxPhotos - photos.length} remaining)`}
+                {uploading
+                  ? 'Uploading…'
+                  : photos.length === 0
+                    ? 'Click to upload photos (saved to Cloudinary)'
+                    : `Add more photos (${maxPhotos - photos.length} remaining)`}
               </span>
             </div>
           </Button>

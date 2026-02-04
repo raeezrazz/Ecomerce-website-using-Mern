@@ -5,6 +5,8 @@ import ProductDetail from "@/pages/user/ProductDetail";
 import Cart from "@/pages/user/Cart";
 import Checkout from "@/pages/user/Checkout";
 import Profile from "@/pages/user/Profile";
+import About from "@/pages/user/About";
+import Contact from "@/pages/user/Contact";
 import UserProtected from "@/components/user/UserProtected";
 import UsersLayout from '../components/layout/UserLayout'
 import Auth from "@/pages/user/Auth";
@@ -24,6 +26,8 @@ function UserRoutes() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
         
         {/* Protected user routes - require user authentication */}
         <Route element={<UserProtected />}>

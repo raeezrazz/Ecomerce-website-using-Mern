@@ -35,6 +35,7 @@ export default function Warehouse() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'out'>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<WarehouseItem | null>(null);
   const [formData, setFormData] = useState({
@@ -91,8 +92,14 @@ export default function Warehouse() {
       filtered = filtered.filter((item) => item.category === categoryFilter);
     }
 
+    if (stockFilter === 'low') {
+      filtered = filtered.filter((item) => item.currentStock > 0 && item.currentStock < 10);
+    } else if (stockFilter === 'out') {
+      filtered = filtered.filter((item) => item.currentStock === 0);
+    }
+
     setFilteredItems(filtered);
-  }, [searchTerm, categoryFilter, items]);
+  }, [searchTerm, categoryFilter, stockFilter, items]);
 
   const handleOpenDialog = (item?: WarehouseItem) => {
     if (item) {
@@ -275,10 +282,17 @@ export default function Warehouse() {
     return <Badge variant="default">In Stock</Badge>;
   };
 
-  const totalItems = filteredItems.length;
-  const lowStockItems = filteredItems.filter(item => item.currentStock < 10).length;
-  const outOfStockItems = filteredItems.filter(item => item.currentStock === 0).length;
-  const totalValue = filteredItems.reduce((sum, item) => sum + (item.currentStock * item.costPrice), 0);
+  const baseFiltered = items.filter(item => {
+    if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !item.sku.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !item.location?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (categoryFilter !== 'all' && item.category !== categoryFilter) return false;
+    return true;
+  });
+  const totalItems = baseFiltered.length;
+  const lowStockItems = baseFiltered.filter(item => item.currentStock > 0 && item.currentStock < 10).length;
+  const outOfStockItems = baseFiltered.filter(item => item.currentStock === 0).length;
+  const totalValue = baseFiltered.reduce((sum, item) => sum + (item.currentStock * item.costPrice), 0);
 
   return (
     <DashboardLayout>
@@ -294,9 +308,12 @@ export default function Warehouse() {
           </Button>
         </div>
 
-        {/* Summary Cards */}
+        {/* Summary Cards - Total Items and Total Value use base counts before stock filter */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+          <Card
+            className={`cursor-pointer transition-all hover:bg-accent ${stockFilter === 'all' ? 'ring-2 ring-primary' : ''}`}
+            onClick={() => setStockFilter('all')}
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total Items
@@ -307,7 +324,10 @@ export default function Warehouse() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card
+            className={`cursor-pointer transition-all hover:bg-accent ${stockFilter === 'low' ? 'ring-2 ring-orange-500' : ''}`}
+            onClick={() => setStockFilter(stockFilter === 'low' ? 'all' : 'low')}
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Low Stock Items
@@ -318,7 +338,10 @@ export default function Warehouse() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card
+            className={`cursor-pointer transition-all hover:bg-accent ${stockFilter === 'out' ? 'ring-2 ring-destructive' : ''}`}
+            onClick={() => setStockFilter(stockFilter === 'out' ? 'all' : 'out')}
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Out of Stock

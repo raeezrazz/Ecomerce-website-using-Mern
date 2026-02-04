@@ -19,10 +19,12 @@ interface CategoryDialogProps {
   formData: {
     name: string;
     description: string;
+    thumbnail: string;
   };
   errors: {
     name?: string;
     description?: string;
+    thumbnail?: string;
   };
   onFormDataChange: (data: Partial<CategoryDialogProps['formData']>) => void;
   onSubmit: () => void;
@@ -55,6 +57,28 @@ export function CategoryDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="category-thumbnail">Thumbnail (image URL)</Label>
+            <div className="flex gap-3 items-start">
+              <div className="flex-shrink-0 w-16 h-16 rounded-xl border bg-muted overflow-hidden">
+                {formData.thumbnail ? (
+                  <img src={formData.thumbnail} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No image</div>
+                )}
+              </div>
+              <Input
+                id="category-thumbnail"
+                type="url"
+                value={formData.thumbnail}
+                onChange={(e) => onFormDataChange({ thumbnail: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                className={errors.thumbnail ? "border-red-500 flex-1" : "flex-1"}
+                disabled={loading}
+              />
+            </div>
+            {errors.thumbnail && <p className="text-sm text-red-500 mt-1">{errors.thumbnail}</p>}
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="category-name">Category Name *</Label>
             <Input

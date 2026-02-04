@@ -38,7 +38,7 @@ All colors MUST be HSL.
     --input: 214.3 31.8% 91.4%;
     --ring: 217 91% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 217 91% 15%;
     --sidebar-foreground: 210 40% 98%;
@@ -111,10 +111,11 @@ All colors MUST be HSL.
   html {
     overflow-x: hidden;
     width: 100%;
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     overflow-x: hidden;
     width: 100%;
     position: relative;
@@ -136,7 +137,7 @@ All colors MUST be HSL.
   }
 }
 
-/* Hide scrollbar but keep scroll behavior (for modal forms) */
+/* User-side: premium animations and utilities */
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;
@@ -145,4 +146,37 @@ All colors MUST be HSL.
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .animate-delay-100 { animation-delay: 100ms; }
+  .animate-delay-200 { animation-delay: 200ms; }
+  .animate-delay-300 { animation-delay: 300ms; }
+  .animate-delay-400 { animation-delay: 400ms; }
+  .animate-delay-500 { animation-delay: 500ms; }
+  .animate-fill-both { animation-fill-mode: both; }
+
+  .transition-smooth {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Stagger children animations (use with animate-fade-in-up on children) */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 400ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 480ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 560ms; }
+.stagger-children > *:nth-child(9) { animation-delay: 640ms; }
+.stagger-children > *:nth-child(10) { animation-delay: 720ms; }
+.stagger-children > *:nth-child(n+11) { animation-delay: 800ms; }
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }

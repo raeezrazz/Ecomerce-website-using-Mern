@@ -27,9 +27,10 @@ export function RecentOrdersTable({ orders }: RecentOrdersTableProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Orders</CardTitle>
+    <Card className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-foreground">Recent Orders</CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">Latest orders across the platform</p>
       </CardHeader>
       <CardContent>
         <Table>

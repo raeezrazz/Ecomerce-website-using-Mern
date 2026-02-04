@@ -9,6 +9,7 @@ const transformCategory = (category: any) => {
     id: category._id?.toString() || category.id,
     name: category.name || '',
     description: category.description || '',
+    thumbnail: category.thumbnail || '',
     productCount: category.productCount || 0,
   };
 };
