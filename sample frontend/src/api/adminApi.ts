@@ -122,9 +122,8 @@ export const deleteProduct = async (id: string): Promise<void> => {
 export const uploadProductImages = async (files: File[]): Promise<{ urls: string[] }> => {
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));
-  const res = await apiClient.post("/api/admin/upload", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  // Do not set Content-Type: let axios set multipart/form-data with boundary so the server can parse files
+  const res = await apiClient.post("/api/admin/upload", formData);
   return res.data;
 };
 

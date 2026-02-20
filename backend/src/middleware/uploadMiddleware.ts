@@ -9,7 +9,7 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
-  if (!file.mimetype.startsWith('image/')) {
+  if (!file.mimetype || !file.mimetype.startsWith('image/')) {
     return cb(new Error('Only image files are allowed'));
   }
   cb(null, true);

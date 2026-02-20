@@ -46,7 +46,7 @@ export default function ProductDetail() {
     if (id) {
       loadProduct();
     }
-  }, [id]);
+  }, [id, toast]);
 
   if (loading) {
     return (
@@ -93,7 +93,7 @@ export default function ProductDetail() {
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 mb-14 md:mb-16">
-        <ProductImage src={product.images[0]} alt={product.name} />
+        <ProductImage images={product.images || []} alt={product.name} />
         <ProductInfo
           product={product}
           quantity={quantity}

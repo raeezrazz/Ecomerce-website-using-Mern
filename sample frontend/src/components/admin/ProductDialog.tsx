@@ -163,7 +163,7 @@ export function ProductDialog({
           <div className="grid gap-2">
             <PhotoUpload
               photos={formData.images || []}
-              maxPhotos={5}
+              maxPhotos={10}
               onPhotosChange={(images) => onFormDataChange({ images })}
               onUploadError={onUploadError}
             />
