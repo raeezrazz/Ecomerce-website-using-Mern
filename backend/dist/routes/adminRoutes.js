@@ -10,11 +10,15 @@ const tallyController_1 = require("../controllers/tallyController");
 const warehouseController_1 = require("../controllers/warehouseController");
 const dashboardController_1 = require("../controllers/dashboardController");
 const itemTypeController_1 = require("../controllers/itemTypeController");
+const customerController_1 = require("../controllers/customerController");
+const uploadController_1 = require("../controllers/uploadController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
+const uploadMiddleware_1 = require("../middleware/uploadMiddleware");
 const router = (0, express_1.Router)();
 // Auth (public)
 router.post("/auth/login", adminController_1.adminController.login);
 router.post("/auth/refreshToken", adminController_1.adminController.refreshToken);
+router.post("/auth/logout", adminController_1.adminController.logout);
 // Public routes - Products and Categories (GET only, no auth required)
 router.get("/products", productController_1.productController.getAll);
 router.get("/products/:id", productController_1.productController.getById);
@@ -23,6 +27,8 @@ router.get("/categories/:id", categoryController_1.categoryController.getById);
 // All other admin routes require authentication and admin role
 router.use(authMiddleware_1.authenticateToken);
 router.use(authMiddleware_1.adminOnly);
+// Upload product images to Cloudinary
+router.post("/upload", uploadMiddleware_1.upload, uploadController_1.uploadController.upload);
 // Users (admin only)
 router.get("/users", userController_1.userController.getAll);
 router.get("/users/:id", userController_1.userController.getById);
@@ -56,9 +62,13 @@ router.delete("/warehouse/:id", warehouseController_1.warehouseController.delete
 // Dashboard
 router.get("/dashboard/kpi", dashboardController_1.dashboardController.getKPI);
 router.get("/dashboard/sales", dashboardController_1.dashboardController.getDailySales);
+router.get("/dashboard/report", dashboardController_1.dashboardController.getReport);
 // Item Types (for autocomplete suggestions)
 router.get("/item-types", itemTypeController_1.itemTypeController.getAll);
 router.get("/item-types/search", itemTypeController_1.itemTypeController.search);
 router.post("/item-types", itemTypeController_1.itemTypeController.create);
 router.delete("/item-types/:id", itemTypeController_1.itemTypeController.delete);
+// Customers (name + phone for tally autocomplete)
+router.get("/customers/search", customerController_1.customerController.search);
+router.post("/customers", customerController_1.customerController.create);
 exports.default = router;

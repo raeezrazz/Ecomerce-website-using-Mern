@@ -121,7 +121,7 @@ export const deleteProduct = async (id: string): Promise<void> => {
 /** Upload product images to Cloudinary via backend. Returns array of image URLs. */
 export const uploadProductImages = async (files: File[]): Promise<{ urls: string[] }> => {
   const formData = new FormData();
-  files.forEach((file) => formData.append("images", file));
+  files.forEach((file) => formData.append("files", file));
   const res = await apiClient.post("/api/admin/upload", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });

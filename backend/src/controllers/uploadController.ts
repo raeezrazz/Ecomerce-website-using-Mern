@@ -1,11 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { cloudinary } from '../config/cloudinary';
 
+interface CloudinaryUploadResult {
+  secure_url?: string;
+}
+
 export const uploadController = {
   async upload(req: Request, res: Response, next: NextFunction) {
     try {
-      const files = req.files as Express.Multer.File[] | undefined;
-      if (!files || files.length === 0) {
+      const files = (req as Request & { files?: Express.Multer.File[] })?.files;
+      if (!files || !Array.isArray(files) || files.length === 0) {
         return res.status(400).json({ error: 'No files uploaded' });
       }
 
@@ -20,18 +24,18 @@ export const uploadController = {
 
       const urls: string[] = [];
       for (const file of files) {
-        if (!file.mimetype.startsWith('image/')) {
+        if (!file.mimetype?.startsWith('image/') || !file.buffer) {
           continue;
         }
         const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-        const result = await new Promise<any>((resolve, reject) => {
+        const result = await new Promise<CloudinaryUploadResult | undefined>((resolve, reject) => {
           cloudinary.uploader.upload(
             dataUri,
             {
               folder: 'rsmeters/products',
               resource_type: 'image',
             },
-            (err, result) => {
+            (err: Error | undefined, result: CloudinaryUploadResult | undefined) => {
               if (err) reject(err);
               else resolve(result);
             }

@@ -1,21 +1,22 @@
 import multer from 'multer';
+import { Request } from 'express';
 
+// Use memory storage so we can send buffer to Cloudinary
 const storage = multer.memoryStorage();
 
 const fileFilter = (
-  _req: Express.Request,
+  _req: Request,
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed'));
+  if (!file.mimetype.startsWith('image/')) {
+    return cb(new Error('Only image files are allowed'));
   }
+  cb(null, true);
 };
 
 export const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB per file
-}).array('images', 10);
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max per file
+}).array('files', 10); // field name 'files', max 10 files

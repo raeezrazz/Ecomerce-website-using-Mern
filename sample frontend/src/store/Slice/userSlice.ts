@@ -5,6 +5,7 @@ export interface userInfo {
   _id: string;
   name: string;
   email: string;
+  role?: string;
 }
 
 export interface userState {
@@ -28,6 +29,9 @@ export const userTypeSlce = createSlice({
       state.userInfo = null;
       localStorage.removeItem("userInfo");
       localStorage.removeItem("accessToken");
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("userData");
+      localStorage.removeItem("refreshToken");
     },
   },
 });

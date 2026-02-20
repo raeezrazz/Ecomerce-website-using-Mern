@@ -4,7 +4,7 @@
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc && npm run copy-templates",
-    "copy-templates": "mkdir -p dist/templates && cp -r src/templates/* dist/templates/ 2>/dev/null || xcopy /E /I /Y src\\templates dist\\templates 2>nul || echo Templates copy skipped",
+    "copy-templates": "node -e \"const fs=require('fs');if(fs.existsSync('src/templates')){fs.cpSync('src/templates','dist/templates',{recursive:true});console.log('Templates copied');}else{console.log('Templates skip');}\"",
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts"
   },
@@ -19,8 +19,7 @@
     "@types/react-redux": "^7.1.34",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",
-    "cloudinary": "^2.5.1",
-    "multer": "^1.4.5-lts.1",
+    "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -29,6 +28,7 @@
     "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.0",
+    "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.15",
     "prisma": "^6.9.0",
     "react-redux": "^9.1.2",
@@ -48,8 +48,8 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^22.19.1",
     "@types/nodemailer": "^6.4.16",
+    "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3",
-    "nodemon": "^3.1.0"
+    "typescript": "^5.9.3"
   }
 }

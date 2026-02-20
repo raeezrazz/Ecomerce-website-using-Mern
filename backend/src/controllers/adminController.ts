@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 import { adminService } from "../services/adminService";
 import { userService } from "../services/userServices";
-import { AuthRequest } from "../middleware/authMiddleware";
+import { verifyRefreshToken } from "../utils/jwt";
 
 export const adminController = {
 
@@ -55,5 +55,18 @@ export const adminController = {
         });
       }
     },
-    
+
+    async logout(req: Request, res: Response) {
+      try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+          return res.status(400).json({ success: false, error: "Refresh token is required" });
+        }
+        const decoded = verifyRefreshToken(refreshToken);
+        await userService.logout(decoded.userId, refreshToken);
+        return res.status(200).json({ success: true, message: "Logged out successfully" });
+      } catch (err: any) {
+        return res.status(401).json({ success: false, error: err.message || "Invalid refresh token" });
+      }
+    },
 };

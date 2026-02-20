@@ -18,6 +18,7 @@ const router = Router();
 // Auth (public)
 router.post("/auth/login", adminController.login);
 router.post("/auth/refreshToken", adminController.refreshToken);
+router.post("/auth/logout", adminController.logout);
 
 // Public routes - Products and Categories (GET only, no auth required)
 router.get("/products", productController.getAll);

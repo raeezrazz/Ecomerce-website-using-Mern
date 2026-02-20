@@ -38,6 +38,7 @@ const mongoose_1 = __importStar(require("mongoose"));
 const CategorySchema = new mongoose_1.Schema({
     name: { type: String, required: true, unique: true },
     description: { type: String, default: '' },
+    thumbnail: { type: String, default: '' },
     productCount: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }

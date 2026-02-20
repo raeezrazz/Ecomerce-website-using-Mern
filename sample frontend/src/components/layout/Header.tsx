@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { logout as adminLogout } from '@/api/adminApi';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -38,8 +39,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   const handleLogout = async () => {
     try {
-      const { logout } = await import('@/api/adminApi');
-      await logout();
+      await adminLogout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {

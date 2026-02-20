@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.adminController = void 0;
 const adminService_1 = require("../services/adminService");
 const userServices_1 = require("../services/userServices");
+const jwt_1 = require("../utils/jwt");
 exports.adminController = {
     async login(req, res) {
         try {
@@ -46,6 +47,20 @@ exports.adminController = {
                 success: false,
                 error: error.message || "Failed to refresh token",
             });
+        }
+    },
+    async logout(req, res) {
+        try {
+            const { refreshToken } = req.body;
+            if (!refreshToken) {
+                return res.status(400).json({ success: false, error: "Refresh token is required" });
+            }
+            const decoded = (0, jwt_1.verifyRefreshToken)(refreshToken);
+            await userServices_1.userService.logout(decoded.userId, refreshToken);
+            return res.status(200).json({ success: true, message: "Logged out successfully" });
+        }
+        catch (err) {
+            return res.status(401).json({ success: false, error: err.message || "Invalid refresh token" });
         }
     },
 };

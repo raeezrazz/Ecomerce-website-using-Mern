@@ -1,11 +1,11 @@
 import axios from "axios";
 
-const apiClient = axios.create({
-    // baseURL: 'https://rsmeter.onrender.com',
-    baseURL: 'http://localhost:4000',
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-    withCredentials: true
-})
+const apiClient = axios.create({
+  baseURL,
+  withCredentials: true,
+});
 
 // Add request interceptor to include auth token
 apiClient.interceptors.request.use(
@@ -58,7 +58,7 @@ apiClient.interceptors.response.use(
                     let response;
                     if (isAdminRoute) {
                         // Admin token refresh
-                        response = await axios.post('http://localhost:4000/api/admin/auth/refreshToken', {
+                        response = await axios.post(`${baseURL}/api/admin/auth/refreshToken`, {
                             refreshToken,
                         });
                         const { accessToken } = response.data;
@@ -69,7 +69,7 @@ apiClient.interceptors.response.use(
                         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                     } else {
                         // User token refresh
-                        response = await axios.post('http://localhost:4000/api/user/refreshToken', {
+                        response = await axios.post(`${baseURL}/api/user/refreshToken`, {
                             refreshToken,
                         });
                         const { accessToken } = response.data;
