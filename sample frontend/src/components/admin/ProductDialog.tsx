@@ -32,6 +32,7 @@ interface ProductDialogProps {
     stock: string;
     description: string;
     images: string[];
+    pendingImageFiles: File[];
   };
   errors: {
     name?: string;
@@ -45,7 +46,7 @@ interface ProductDialogProps {
   categories: Category[];
   onFormDataChange: (data: Partial<ProductDialogProps['formData']>) => void;
   onSubmit: () => void;
-  onUploadError?: (message: string) => void;
+  loading?: boolean;
 }
 
 export function ProductDialog({
@@ -57,10 +58,10 @@ export function ProductDialog({
   onSubmit,
   errors,
   categories,
-  onUploadError,
+  loading = false,
 }: ProductDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(open) => !loading && onOpenChange(open)}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
@@ -77,6 +78,7 @@ export function ProductDialog({
               onChange={(e) => onFormDataChange({ name: e.target.value })}
               placeholder="LCD Digital Speedometer"
               className={errors.name ? "border-red-500" : ""}
+              disabled={loading}
             />
             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
@@ -86,7 +88,7 @@ export function ProductDialog({
               value={formData.category}
               onValueChange={(v) => onFormDataChange({ category: v })}
             >
-              <SelectTrigger className={errors.category ? "border-red-500" : ""}>
+              <SelectTrigger className={errors.category ? "border-red-500" : ""} disabled={loading}>
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
@@ -114,6 +116,7 @@ export function ProductDialog({
                 onChange={(e) => onFormDataChange({ actualPrice: e.target.value })}
                 placeholder="2500"
                 className={errors.actualPrice ? "border-red-500" : ""}
+              disabled={loading}
               />
               {errors.actualPrice && <p className="text-sm text-red-500">{errors.actualPrice}</p>}
             </div>
@@ -127,6 +130,7 @@ export function ProductDialog({
                 onChange={(e) => onFormDataChange({ offerPrice: e.target.value })}
                 placeholder="2000 (optional)"
                 className={errors.offerPrice ? "border-red-500" : ""}
+                disabled={loading}
               />
               {errors.offerPrice && <p className="text-sm text-red-500">{errors.offerPrice}</p>}
               {formData.offerPrice && parseFloat(formData.offerPrice) > 0 && formData.actualPrice && (
@@ -145,6 +149,7 @@ export function ProductDialog({
               onChange={(e) => onFormDataChange({ stock: e.target.value })}
               placeholder="50"
               className={errors.stock ? "border-red-500" : ""}
+              disabled={loading}
             />
             {errors.stock && <p className="text-sm text-red-500">{errors.stock}</p>}
           </div>
@@ -157,25 +162,38 @@ export function ProductDialog({
               placeholder="High-quality digital speedometer with excellent durability..."
               rows={3}
               className={errors.description ? "border-red-500" : ""}
+              disabled={loading}
             />
             {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
           </div>
           <div className="grid gap-2">
             <PhotoUpload
               photos={formData.images || []}
+              pendingFiles={formData.pendingImageFiles || []}
               maxPhotos={10}
               onPhotosChange={(images) => onFormDataChange({ images })}
-              onUploadError={onUploadError}
+              onPendingFilesChange={(files) => onFormDataChange({ pendingImageFiles: files })}
+              disabled={loading}
             />
             {errors.images && <p className="text-sm text-red-500">{errors.images}</p>}
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>
-          <Button onClick={onSubmit}>
-            {editingProduct ? 'Update Product' : 'Add Product'}
+          <Button onClick={onSubmit} disabled={loading}>
+            {loading ? (
+              <>
+                <span className="mr-2">Saving...</span>
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+              </>
+            ) : (
+              editingProduct ? 'Update Product' : 'Add Product'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

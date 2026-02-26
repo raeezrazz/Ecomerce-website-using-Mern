@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { Category } from '@/types';
+import { CategoryImageUpload } from '@/components/admin/CategoryImageUpload';
 
 interface CategoryDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ interface CategoryDialogProps {
     name: string;
     description: string;
     thumbnail: string;
+    pendingImageFile: File | null;
   };
   errors: {
     name?: string;
@@ -58,25 +60,12 @@ export function CategoryDialog({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="category-thumbnail">Thumbnail (image URL)</Label>
-            <div className="flex gap-3 items-start">
-              <div className="flex-shrink-0 w-16 h-16 rounded-xl border bg-muted overflow-hidden">
-                {formData.thumbnail ? (
-                  <img src={formData.thumbnail} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No image</div>
-                )}
-              </div>
-              <Input
-                id="category-thumbnail"
-                type="url"
-                value={formData.thumbnail}
-                onChange={(e) => onFormDataChange({ thumbnail: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-                className={errors.thumbnail ? "border-red-500 flex-1" : "flex-1"}
-                disabled={loading}
-              />
-            </div>
+            <CategoryImageUpload
+              thumbnail={formData.thumbnail}
+              pendingFile={formData.pendingImageFile}
+              onFileSelect={(file) => onFormDataChange({ pendingImageFile: file })}
+              disabled={loading}
+            />
             {errors.thumbnail && <p className="text-sm text-red-500 mt-1">{errors.thumbnail}</p>}
           </div>
           <div className="grid gap-2">

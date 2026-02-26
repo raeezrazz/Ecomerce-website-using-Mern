@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { fetchProducts, createProduct, updateProduct, deleteProduct, fetchCategories } from '@/api/adminApi';
+import { fetchProducts, createProduct, updateProduct, deleteProduct, fetchCategories, uploadProductImages } from '@/api/adminApi';
 import type { Product, Category } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useFormDialog } from '@/contexts/FormDialogContext';
@@ -33,6 +33,7 @@ export default function Products() {
     stock: '',
     description: '',
     images: [] as string[],
+    pendingImageFiles: [] as File[],
   });
   const [errors, setErrors] = useState<{
     name?: string;
@@ -43,6 +44,7 @@ export default function Products() {
     description?: string;
     images?: string;
   }>({});
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -101,6 +103,7 @@ export default function Products() {
         stock: product.stock.toString(),
         description: product.description || '',
         images: product.images || [],
+        pendingImageFiles: [],
       });
     } else {
       setEditingProduct(null);
@@ -112,6 +115,7 @@ export default function Products() {
         stock: '',
         description: '',
         images: [],
+        pendingImageFiles: [],
       });
     }
     setErrors({});
@@ -120,15 +124,14 @@ export default function Products() {
   };
 
   const handleFormDataChange = (updates: Partial<typeof formData>) => {
-    setFormData({ ...formData, ...updates });
-    // Clear errors for fields being updated
+    setFormData((prev) => ({ ...prev, ...updates }));
     if (Object.keys(updates).length > 0) {
       setErrors((prev) => {
-        const newErrors = { ...prev };
+        const next = { ...prev };
         Object.keys(updates).forEach((key) => {
-          delete newErrors[key as keyof typeof newErrors];
+          delete next[key as keyof typeof next];
         });
-        return newErrors;
+        return next;
       });
     }
   };
@@ -179,18 +182,36 @@ export default function Products() {
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
+    if (submitting) return;
+
+    setSubmitting(true);
+    setErrors({});
 
     try {
-      const productData: any = {
+      let imageUrls: string[] = [...(formData.images || [])];
+      const pendingFiles = formData.pendingImageFiles ?? [];
+      if (pendingFiles.length > 0) {
+        try {
+          const res = await uploadProductImages(pendingFiles);
+          const urls = res?.urls ?? [];
+          if (urls.length) imageUrls = [...imageUrls, ...urls];
+        } catch (uploadErr) {
+          const msg = (uploadErr as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Image upload failed.';
+          toast({ title: 'Upload failed', description: msg, variant: 'destructive' });
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      const productData: Record<string, unknown> = {
         name: formData.name.trim(),
         category: formData.category,
         actualPrice: parseFloat(formData.actualPrice),
         stock: parseInt(formData.stock),
         description: formData.description.trim(),
-        images: formData.images || [],
+        images: imageUrls,
       };
 
-      // Only include offerPrice if it's provided and valid
       if (formData.offerPrice && parseFloat(formData.offerPrice) > 0) {
         productData.offerPrice = parseFloat(formData.offerPrice);
       }
@@ -214,12 +235,25 @@ export default function Products() {
       setProducts(updatedProducts);
       setFormOpen(false);
       setDialogOpen(false);
-    } catch (error: any) {
+      setFormData({
+        name: '',
+        category: categories.length > 0 ? categories[0].name : '',
+        actualPrice: '',
+        offerPrice: '',
+        stock: '',
+        description: '',
+        images: [],
+        pendingImageFiles: [],
+      });
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to save product. Please try again.',
+        description: err.response?.data?.error || 'Failed to save product. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -276,13 +310,7 @@ export default function Products() {
           onSubmit={handleSubmit}
           errors={errors}
           categories={categories}
-          onUploadError={(message) =>
-            toast({
-              title: 'Upload failed',
-              description: message,
-              variant: 'destructive',
-            })
-          }
+          loading={submitting}
         />
       </div>
     </DashboardLayout>

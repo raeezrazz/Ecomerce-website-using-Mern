@@ -1,141 +1,122 @@
 import { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Upload, Loader2 } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { uploadProductImages } from '@/api/adminApi';
 
 interface PhotoUploadProps {
+  /** Existing saved image URLs (from backend/Cloudinary) */
   photos: string[];
+  /** Newly selected files, not yet uploaded – preview only */
+  pendingFiles: File[];
   maxPhotos?: number;
   onPhotosChange: (photos: string[]) => void;
-  onUploadError?: (message: string) => void;
+  onPendingFilesChange: (files: File[]) => void;
+  disabled?: boolean;
 }
 
-export function PhotoUpload({ photos, maxPhotos = 10, onPhotosChange, onUploadError }: PhotoUploadProps) {
+export function PhotoUpload({
+  photos,
+  pendingFiles,
+  maxPhotos = 10,
+  onPhotosChange,
+  onPendingFilesChange,
+  disabled = false,
+}: PhotoUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  // Local preview URLs for files selected but not yet uploaded (object URLs)
-  const [pendingPreviews, setPendingPreviews] = useState<{ url: string; file: File }[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
-  // Revoke object URLs on unmount
+  // Object URLs for pending files; revoke on cleanup
   useEffect(() => {
-    const current = pendingPreviews;
-    return () => {
-      current.forEach(({ url }) => URL.revokeObjectURL(url));
-    };
-  }, [pendingPreviews]);
+    if (pendingFiles.length === 0) {
+      setPreviewUrls([]);
+      return;
+    }
+    const urls = pendingFiles.map((f) => URL.createObjectURL(f));
+    setPreviewUrls(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [pendingFiles]);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    const remainingSlots = maxPhotos - photos.length - pendingPreviews.length;
-    const filesToAdd = Array.from(files)
-      .filter((file) => file.type.startsWith('image/'))
-      .slice(0, Math.max(0, remainingSlots));
+    const remaining = maxPhotos - photos.length - pendingFiles.length;
+    const toAdd = Array.from(files)
+      .filter((f) => f.type.startsWith('image/'))
+      .slice(0, Math.max(0, remaining));
 
-    if (filesToAdd.length === 0) {
+    if (toAdd.length === 0) {
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
-
-    // Create local previews immediately so user sees images right away
-    const newPreviews = filesToAdd.map((file) => ({
-      url: URL.createObjectURL(file),
-      file,
-    }));
-    setPendingPreviews((prev) => [...prev, ...newPreviews]);
-    setUploading(true);
-
-    try {
-      const { urls } = await uploadProductImages(filesToAdd);
-      // Store Cloudinary URLs in form; append to existing photos
-      onPhotosChange([...photos, ...urls]);
-      // Clear pending previews and revoke their object URLs
-      newPreviews.forEach(({ url }) => URL.revokeObjectURL(url));
-      setPendingPreviews((prev) => prev.filter((p) => !newPreviews.includes(p)));
-    } catch (err: unknown) {
-      const message =
-        err && typeof err === 'object' && 'response' in err && err.response && typeof err.response === 'object' && 'data' in err.response && err.response.data && typeof err.response.data === 'object' && 'error' in err.response.data
-          ? String((err.response.data as { error: string }).error)
-          : 'Failed to upload images. Please try again.';
-      onUploadError?.(message);
-      // Remove failed previews and revoke URLs
-      newPreviews.forEach(({ url }) => URL.revokeObjectURL(url));
-      setPendingPreviews((prev) => prev.filter((p) => !newPreviews.includes(p)));
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
+    onPendingFilesChange([...pendingFiles, ...toAdd]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleRemovePhoto = (index: number) => {
-    const updated = photos.filter((_, i) => i !== index);
-    onPhotosChange(updated);
+    onPhotosChange(photos.filter((_, i) => i !== index));
   };
 
   const handleRemovePending = (index: number) => {
-    const item = pendingPreviews[index];
-    if (item) URL.revokeObjectURL(item.url);
-    setPendingPreviews((prev) => prev.filter((_, i) => i !== index));
+    onPendingFilesChange(pendingFiles.filter((_, i) => i !== index));
   };
 
-  const canAddMore = photos.length + pendingPreviews.length < maxPhotos && !uploading;
-  const allItems: { type: 'saved'; url: string; index: number }[] = photos.map((url, index) => ({ type: 'saved', url, index }));
-  const pendingItems: { type: 'pending'; url: string; index: number }[] = pendingPreviews.map((p, index) => ({ type: 'pending', url: p.url, index }));
+  const canAddMore = !disabled && photos.length + pendingFiles.length < maxPhotos;
+  const totalCount = photos.length + pendingFiles.length;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium">Product images</label>
         <span className="text-xs text-muted-foreground">
-          {photos.length + pendingPreviews.length}/{maxPhotos} • Saved as Cloudinary links
+          {totalCount}/{maxPhotos} • Uploaded to Cloudinary when you click Submit
         </span>
       </div>
 
-      {(photos.length > 0 || pendingPreviews.length > 0) && (
+      {(photos.length > 0 || pendingFiles.length > 0) && (
         <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-          {allItems.map(({ url, index }) => (
+          {photos.map((url, index) => (
             <div key={`saved-${index}`} className="relative group">
               <div className="aspect-square rounded-lg overflow-hidden border bg-muted">
-                <img
-                  src={url}
-                  alt={`Product ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+                <img src={url} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
               </div>
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => handleRemovePhoto(index)}
-              >
-                <X className="h-3 w-3" />
-              </Button>
+              {!disabled && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handleRemovePhoto(index)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           ))}
-          {pendingItems.map(({ url, index }) => (
+          {pendingFiles.map((_, index) => (
             <div key={`pending-${index}`} className="relative group">
               <div className="aspect-square rounded-lg overflow-hidden border bg-muted">
-                <img
-                  src={url}
-                  alt={`Uploading ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-white" />
-                </div>
+                {previewUrls[index] ? (
+                  <img
+                    src={previewUrls[index]}
+                    alt={`New ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">Preview</div>
+                )}
               </div>
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => handleRemovePending(index)}
-              >
-                <X className="h-3 w-3" />
-              </Button>
+              {!disabled && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => handleRemovePending(index)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           ))}
         </div>
@@ -150,7 +131,7 @@ export function PhotoUpload({ photos, maxPhotos = 10, onPhotosChange, onUploadEr
             multiple
             onChange={handleFileSelect}
             className="hidden"
-            disabled={!canAddMore}
+            disabled={disabled}
           />
           <Button
             type="button"
@@ -160,30 +141,22 @@ export function PhotoUpload({ photos, maxPhotos = 10, onPhotosChange, onUploadEr
               canAddMore && 'hover:border-primary hover:bg-primary/5 cursor-pointer'
             )}
             onClick={() => fileInputRef.current?.click()}
-            disabled={!canAddMore}
+            disabled={disabled}
           >
             <div className="flex flex-col items-center gap-2">
-              {uploading ? (
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              ) : (
-                <Upload className="h-5 w-5 text-muted-foreground" />
-              )}
+              <Upload className="h-5 w-5 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                {uploading
-                  ? 'Uploading…'
-                  : photos.length === 0 && pendingPreviews.length === 0
-                    ? 'Click to add images (multiple allowed, stored on Cloudinary)'
-                    : `Add more (${maxPhotos - photos.length - pendingPreviews.length} left)`}
+                {totalCount === 0
+                  ? 'Choose images (upload to Cloudinary on Submit)'
+                  : `Add more (${maxPhotos - totalCount} left)`}
               </span>
             </div>
           </Button>
         </div>
       )}
 
-      {photos.length + pendingPreviews.length >= maxPhotos && (
-        <p className="text-xs text-muted-foreground text-center">
-          Maximum {maxPhotos} images
-        </p>
+      {totalCount >= maxPhotos && (
+        <p className="text-xs text-muted-foreground text-center">Maximum {maxPhotos} images</p>
       )}
     </div>
   );

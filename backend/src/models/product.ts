@@ -3,9 +3,10 @@ import mongoose, { Schema } from "mongoose";
 export interface IProduct {
   _id: string;
   name: string;
-  category: string; // Changed to string to support dynamic categories
+  sku?: string;
+  category: string;
   actualPrice: number;
-  offerPrice?: number; // Optional offer price
+  offerPrice?: number;
   stock: number;
   description: string;
   images: string[];
@@ -15,9 +16,10 @@ export interface IProduct {
 
 const ProductSchema = new Schema<IProduct>({
   name: { type: String, required: true },
-  category: { 
-    type: String, 
-    required: true 
+  sku: { type: String, default: undefined },
+  category: {
+    type: String,
+    required: true,
   },
   actualPrice: { type: Number, required: true, min: 0 },
   offerPrice: { type: Number, min: 0 },
@@ -25,7 +27,7 @@ const ProductSchema = new Schema<IProduct>({
   description: { type: String, default: '' },
   images: { type: [String], default: [] },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 ProductSchema.pre('save', function(next) {

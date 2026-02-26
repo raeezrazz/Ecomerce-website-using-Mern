@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Plus, Search, Filter, X, Loader2, FolderTree, Edit2, Trash2, Package } from 'lucide-react';
-import { fetchCategories, createCategory, updateCategory, deleteCategory } from '@/api/adminApi';
+import { fetchCategories, createCategory, updateCategory, deleteCategory, uploadProductImages } from '@/api/adminApi';
 import type { Category } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useFormDialog } from '@/contexts/FormDialogContext';
@@ -49,6 +49,7 @@ export default function Categories() {
     name: '',
     description: '',
     thumbnail: '',
+    pendingImageFile: null as File | null,
   });
   const [errors, setErrors] = useState<{ name?: string; description?: string; thumbnail?: string }>({});
   const [submitting, setSubmitting] = useState(false);
@@ -83,6 +84,7 @@ export default function Categories() {
         name: category.name || '',
         description: category.description || '',
         thumbnail: category.thumbnail || '',
+        pendingImageFile: null,
       });
     } else {
       setEditingCategory(null);
@@ -90,6 +92,7 @@ export default function Categories() {
         name: '',
         description: '',
         thumbnail: '',
+        pendingImageFile: null,
       });
     }
 
@@ -108,6 +111,7 @@ export default function Categories() {
         name: '',
         description: '',
         thumbnail: '',
+        pendingImageFile: null,
       });
       setErrors({});
       setSubmitting(false);
@@ -142,10 +146,6 @@ export default function Categories() {
       newErrors.description = 'Description must be at least 10 characters';
     }
 
-    if (formData.thumbnail.trim() && !/^https?:\/\//i.test(formData.thumbnail.trim())) {
-      newErrors.thumbnail = 'Thumbnail must be a valid URL';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -163,10 +163,16 @@ export default function Categories() {
     setErrors({});
 
     try {
+      let thumbnailUrl = formData.thumbnail.trim() || undefined;
+      if (formData.pendingImageFile) {
+        const { urls } = await uploadProductImages([formData.pendingImageFile]);
+        if (urls?.[0]) thumbnailUrl = urls[0];
+      }
+
       const categoryData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        thumbnail: formData.thumbnail.trim() || undefined,
+        thumbnail: thumbnailUrl,
       };
 
       if (editingCategory) {
@@ -204,6 +210,7 @@ export default function Categories() {
         name: '',
         description: '',
         thumbnail: '',
+        pendingImageFile: null,
       });
       setErrors({});
     } catch (error: any) {

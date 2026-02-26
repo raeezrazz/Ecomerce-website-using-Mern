@@ -1,5 +1,10 @@
 import { Product, IProduct } from "../models/product";
 
+/** Generate a unique SKU so we never save sku: null (avoids E11000 duplicate key on unique index). */
+function generateSku(): string {
+  return `PRD-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+}
+
 class ProductService {
   async getAllProducts(): Promise<IProduct[]> {
     return await Product.find().sort({ createdAt: -1 });
@@ -10,7 +15,8 @@ class ProductService {
   }
 
   async createProduct(data: Partial<IProduct>): Promise<IProduct> {
-    const product = new Product(data);
+    const sku = (data.sku && String(data.sku).trim()) || generateSku();
+    const product = new Product({ ...data, sku });
     return await product.save();
   }
 
