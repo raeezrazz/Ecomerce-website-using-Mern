@@ -1,18 +1,20 @@
 import axios from "axios";
+import { safeGetItem, safeRemoveItem, safeSetItem } from "@/lib/safeStorage";
 
-const baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const baseURL = import.meta.env.VITE_API_URL || "http://13.239.33.61:4000";
 
 const apiClient = axios.create({
   baseURL,
   withCredentials: true,
+  timeout: 20000,
 });
 
 // Add request interceptor to include auth token
 apiClient.interceptors.request.use(
     (config) => {
         // Check for admin token first, then user token
-        const adminToken = localStorage.getItem('authToken');
-        const userToken = localStorage.getItem('userToken') || localStorage.getItem('accessToken');
+        const adminToken = safeGetItem('authToken');
+        const userToken = safeGetItem('userToken') || safeGetItem('accessToken');
         
         // Use admin token for admin routes, user token for user routes
         const isAdminRoute = config.url?.includes('/api/admin');
@@ -41,7 +43,7 @@ apiClient.interceptors.response.use(
             originalRequest._retry = true;
             
             const isAdminRoute = originalRequest.url?.includes('/api/admin');
-            const refreshToken = localStorage.getItem('refreshToken');
+            const refreshToken = safeGetItem('refreshToken');
             
             // For public routes (like products, categories), don't redirect on 401
             // Just let the error pass through so the page can still load
@@ -62,9 +64,9 @@ apiClient.interceptors.response.use(
                             refreshToken,
                         });
                         const { accessToken } = response.data;
-                        localStorage.setItem('authToken', accessToken);
+                        safeSetItem('authToken', accessToken);
                         if (response.data.refreshToken) {
-                            localStorage.setItem('refreshToken', response.data.refreshToken);
+                            safeSetItem('refreshToken', response.data.refreshToken);
                         }
                         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                     } else {
@@ -73,10 +75,10 @@ apiClient.interceptors.response.use(
                             refreshToken,
                         });
                         const { accessToken } = response.data;
-                        localStorage.setItem('userToken', accessToken);
-                        localStorage.setItem('accessToken', accessToken);
+                        safeSetItem('userToken', accessToken);
+                        safeSetItem('accessToken', accessToken);
                         if (response.data.refreshToken) {
-                            localStorage.setItem('refreshToken', response.data.refreshToken);
+                            safeSetItem('refreshToken', response.data.refreshToken);
                         }
                         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                     }
@@ -92,18 +94,18 @@ apiClient.interceptors.response.use(
                     // For protected routes, logout and redirect
                     if (isAdminRoute) {
                         // Only clear admin tokens
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('adminUser');
-                        localStorage.removeItem('refreshToken');
+                        safeRemoveItem('authToken');
+                        safeRemoveItem('adminUser');
+                        safeRemoveItem('refreshToken');
                         // Don't redirect here - let the component handle it
                         return Promise.reject(refreshError);
                     } else {
                         // Only clear user tokens
-                        localStorage.removeItem('userToken');
-                        localStorage.removeItem('refreshToken');
-                        localStorage.removeItem('accessToken');
-                        localStorage.removeItem('userData');
-                        localStorage.removeItem('userInfo');
+                        safeRemoveItem('userToken');
+                        safeRemoveItem('refreshToken');
+                        safeRemoveItem('accessToken');
+                        safeRemoveItem('userData');
+                        safeRemoveItem('userInfo');
                         // Don't redirect here - let the component handle it
                         return Promise.reject(refreshError);
                     }

@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { logout as adminLogout } from '@/api/adminApi';
+import { safeGetItem, safeRemoveItem, safeSetItem } from '@/lib/safeStorage';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -23,7 +24,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    const stored = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    const stored = safeGetItem('theme') as 'light' | 'dark' | null;
     if (stored) {
       setTheme(stored);
       document.documentElement.classList.toggle('dark', stored === 'dark');
@@ -33,7 +34,7 @@ export function Header({ onMenuClick }: HeaderProps) {
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
+    safeSetItem('theme', newTheme);
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
@@ -44,9 +45,9 @@ export function Header({ onMenuClick }: HeaderProps) {
       console.error('Logout error:', error);
     } finally {
       // Clear all admin-related data
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('adminUser');
+      safeRemoveItem('authToken');
+      safeRemoveItem('refreshToken');
+      safeRemoveItem('adminUser');
       navigate('/admin/login');
     }
   };

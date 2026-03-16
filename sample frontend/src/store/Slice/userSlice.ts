@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
+import { safeGetJson, safeRemoveItem } from "@/lib/safeStorage";
 
 export interface userInfo {
   _id: string;
@@ -13,9 +14,7 @@ export interface userState {
 }
 
 const initialState: userState = {
-  userInfo: localStorage.getItem("userInfo")
-    ? JSON.parse(localStorage.getItem("userInfo") as string)
-    : null,
+  userInfo: safeGetJson<userInfo>("userInfo"),
 };
 
 export const userTypeSlce = createSlice({
@@ -27,11 +26,11 @@ export const userTypeSlce = createSlice({
     },
     logout: (state) => {
       state.userInfo = null;
-      localStorage.removeItem("userInfo");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("userToken");
-      localStorage.removeItem("userData");
-      localStorage.removeItem("refreshToken");
+      safeRemoveItem("userInfo");
+      safeRemoveItem("accessToken");
+      safeRemoveItem("userToken");
+      safeRemoveItem("userData");
+      safeRemoveItem("refreshToken");
     },
   },
 });

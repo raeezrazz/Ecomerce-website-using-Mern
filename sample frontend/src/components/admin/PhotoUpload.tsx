@@ -5,23 +5,27 @@ import { cn } from '@/lib/utils';
 
 interface PhotoUploadProps {
   /** Existing saved image URLs (from backend/Cloudinary) */
-  photos: string[];
+  photos?: string[];
   /** Newly selected files, not yet uploaded – preview only */
-  pendingFiles: File[];
+  pendingFiles?: File[];
   maxPhotos?: number;
   onPhotosChange: (photos: string[]) => void;
-  onPendingFilesChange: (files: File[]) => void;
+  /** If not provided, no "add file" UI (photos only, e.g. Tally) */
+  onPendingFilesChange?: (files: File[]) => void;
   disabled?: boolean;
 }
 
 export function PhotoUpload({
-  photos,
-  pendingFiles,
+  photos: photosProp,
+  pendingFiles: pendingFilesProp,
   maxPhotos = 10,
   onPhotosChange,
   onPendingFilesChange,
   disabled = false,
 }: PhotoUploadProps) {
+  const photos = photosProp ?? [];
+  const pendingFiles = pendingFilesProp ?? [];
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
@@ -49,7 +53,7 @@ export function PhotoUpload({
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
-    onPendingFilesChange([...pendingFiles, ...toAdd]);
+    onPendingFilesChange?.([...pendingFiles, ...toAdd]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -58,10 +62,10 @@ export function PhotoUpload({
   };
 
   const handleRemovePending = (index: number) => {
-    onPendingFilesChange(pendingFiles.filter((_, i) => i !== index));
+    onPendingFilesChange?.(pendingFiles.filter((_, i) => i !== index));
   };
 
-  const canAddMore = !disabled && photos.length + pendingFiles.length < maxPhotos;
+  const canAddMore = Boolean(onPendingFilesChange && !disabled && photos.length + pendingFiles.length < maxPhotos);
   const totalCount = photos.length + pendingFiles.length;
 
   return (
