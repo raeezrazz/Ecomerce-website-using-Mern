@@ -27,7 +27,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
     message = err.errors.map((e: any) => e.message).join(", ");
   } else if (err.code === 'LIMIT_FILE_SIZE') {
     statusCode = 400;
-    message = 'File too large. Maximum size is 5MB per image.';
+    message = 'File too large. Maximum size is 25MB per image.';
   } else if (err.code === 'LIMIT_FILE_COUNT') {
     statusCode = 400;
     message = 'Too many files. Maximum 10 images per upload.';

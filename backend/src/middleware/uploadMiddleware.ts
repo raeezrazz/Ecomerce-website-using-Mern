@@ -18,5 +18,7 @@ const fileFilter = (
 export const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max per file
+  // Mobile camera photos can be large (often 5-15MB+).
+  // Increase limit to prevent silent failures on mobile.
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB max per file
 }).array('files', 10); // field name 'files', max 10 files

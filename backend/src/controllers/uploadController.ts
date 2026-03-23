@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { cloudinary, ensureCloudinaryConfig } from '../config/cloudinary';
+import { Readable } from 'stream';
 
 /** Get uploaded files from request (multer attaches to req.files for .array()). */
 function getFiles(req: Request): Express.Multer.File[] {
@@ -24,7 +25,7 @@ function toUserMessage(err: unknown): string {
       return 'Unable to reach Cloudinary. Check your internet connection and try again.';
     }
     if (msg.includes('file size') || msg.includes('too large')) {
-      return 'Image is too large. Maximum size is 5MB per image.';
+      return 'Image is too large. Maximum size is 25MB per image.';
     }
     if (msg.includes('invalid') && msg.includes('image')) {
       return 'Invalid image file. Please use JPEG, PNG, GIF, or WebP.';
@@ -68,18 +69,25 @@ export const uploadController = {
           continue;
         }
 
-        const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-
         try {
-          const result = await cloudinary.uploader.upload(dataUri, {
-            folder: 'rsmeters/products',
-            resource_type: 'image',
+          // Stream upload avoids base64 conversion (much faster + more reliable on mobile).
+          const result: any = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+              {
+                folder: 'rsmeters/products',
+                resource_type: 'image',
+              },
+              (err: any, uploaded: any) => {
+                if (err) return reject(err);
+                resolve(uploaded);
+              }
+            );
+
+            Readable.from(file.buffer).pipe(uploadStream);
           });
-          if (result?.secure_url) {
-            urls.push(result.secure_url);
-          } else {
-            skipped.push(file.originalname || 'Unknown file');
-          }
+
+          if (result?.secure_url) urls.push(result.secure_url);
+          else skipped.push(file.originalname || 'Unknown file');
         } catch (err: unknown) {
           const userMessage = toUserMessage(err);
           console.error('[Upload] Cloudinary error:', err instanceof Error ? err.message : err);
@@ -92,7 +100,7 @@ export const uploadController = {
           return sendError(
             res,
             400,
-            'No valid images could be uploaded. Please use only image files (JPEG, PNG, GIF, or WebP) under 5MB each.'
+            'No valid images could be uploaded. Please use only image files (JPEG, PNG, GIF, or WebP) under 25MB each.'
           );
         }
         return sendError(

@@ -37,9 +37,10 @@ exports.Product = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const ProductSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
+    sku: { type: String, default: undefined },
     category: {
         type: String,
-        required: true
+        required: true,
     },
     actualPrice: { type: Number, required: true, min: 0 },
     offerPrice: { type: Number, min: 0 },
@@ -47,7 +48,7 @@ const ProductSchema = new mongoose_1.Schema({
     description: { type: String, default: '' },
     images: { type: [String], default: [] },
     createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now }
+    updatedAt: { type: Date, default: Date.now },
 });
 ProductSchema.pre('save', function (next) {
     this.updatedAt = new Date();

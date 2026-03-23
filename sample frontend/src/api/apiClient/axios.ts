@@ -6,7 +6,8 @@ const baseURL = import.meta.env.VITE_API_URL || "http://13.239.33.61:4000";
 const apiClient = axios.create({
   baseURL,
   withCredentials: true,
-  timeout: 20000,
+  // Mobile networks + image upload can take longer; prevent premature timeouts.
+  timeout: 120000,
 });
 
 // Add request interceptor to include auth token

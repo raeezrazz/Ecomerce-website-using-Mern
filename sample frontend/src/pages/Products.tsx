@@ -195,8 +195,11 @@ export default function Products() {
           const res = await uploadProductImages(pendingFiles);
           const urls = res?.urls ?? [];
           if (urls.length) imageUrls = [...imageUrls, ...urls];
-        } catch (uploadErr) {
-          const msg = (uploadErr as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Image upload failed.';
+        } catch (uploadErr: unknown) {
+          const msg =
+            (uploadErr as any)?.response?.data?.error ||
+            (uploadErr as any)?.message ||
+            'Image upload failed. Please try again.';
           toast({ title: 'Upload failed', description: msg, variant: 'destructive' });
           setSubmitting(false);
           return;

@@ -31,6 +31,22 @@ const errorHandler = (err, req, res, next) => {
         statusCode = 400;
         message = err.errors.map((e) => e.message).join(", ");
     }
+    else if (err.code === 'LIMIT_FILE_SIZE') {
+        statusCode = 400;
+        message = 'File too large. Maximum size is 25MB per image.';
+    }
+    else if (err.code === 'LIMIT_FILE_COUNT') {
+        statusCode = 400;
+        message = 'Too many files. Maximum 10 images per upload.';
+    }
+    else if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+        statusCode = 400;
+        message = 'Unexpected file field. Use field name "files" for images.';
+    }
+    else if (err.message && err.message.includes('image')) {
+        statusCode = 400;
+        message = err.message;
+    }
     else if (err.name === 'MongoServerError' && err.code === 11000) {
         statusCode = 409;
         message = 'Duplicate entry. This record already exists.';

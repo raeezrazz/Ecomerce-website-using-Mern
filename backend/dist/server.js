@@ -21,6 +21,8 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:8080',
+    "https://rsmeter.shop",
+    "https://www.rsmeter.shop",
 ];
 // Add FRONTEND_URL from environment if it exists
 if (process.env.FRONTEND_URL) {
@@ -65,7 +67,7 @@ app.use("*", (req, res, next) => {
 // Global Error Handler
 app.use(errorHandler_1.errorHandler);
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
+app.listen(4000, "0.0.0.0", () => {
     console.log(`🚀 Server is running at: http://localhost:${PORT}`);
     console.log(`📌 User API Base:   http://localhost:${PORT}/api/user`);
     console.log(`📌 Admin API Base:  http://localhost:${PORT}/api/admin`);
