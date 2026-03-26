@@ -42,11 +42,22 @@ const UsedPartSchema = new mongoose_1.Schema({
     rate: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true, min: 0 }
 });
+const SaleItemSchema = new mongoose_1.Schema({
+    id: { type: String, required: true },
+    warehouseItemId: { type: String, required: true },
+    itemName: { type: String, required: true },
+    quantity: { type: Number, required: true, min: 1 },
+    actualPrice: { type: Number, required: true, min: 0 },
+    sellingPrice: { type: Number, required: true, min: 0 },
+    total: { type: Number, required: true, min: 0 }
+});
 const TallyEntrySchema = new mongoose_1.Schema({
     date: { type: Date, required: true, default: Date.now },
     customerName: { type: String, required: true },
     phone: { type: String, required: true },
+    item: { type: String, default: '' },
     itemType: { type: String, required: true },
+    type: { type: String, enum: ['repair', 'sale'] },
     serviceType: {
         type: String,
         enum: ['repair', 'sale'],
@@ -57,9 +68,13 @@ const TallyEntrySchema = new mongoose_1.Schema({
         enum: ['pending', 'in-progress', 'completed', 'delivered'],
         default: 'pending'
     },
+    laborCost: { type: Number, default: 0, min: 0 },
     serviceCharge: { type: Number, required: true, min: 0 },
     partsCost: { type: Number, default: 0, min: 0 },
     usedParts: { type: [UsedPartSchema], default: [] },
+    saleItems: { type: [SaleItemSchema], default: [] },
+    itemPrice: { type: Number, default: 0, min: 0 },
+    total: { type: Number, default: 0, min: 0 },
     totalAmount: { type: Number, required: true, min: 0 },
     paymentStatus: {
         type: String,

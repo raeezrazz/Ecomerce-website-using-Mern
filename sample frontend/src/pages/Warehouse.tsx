@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFormDialog } from '@/contexts/FormDialogContext';
 
 export default function Warehouse() {
+  type ApiError = { message?: string; response?: { data?: { error?: string; message?: string } } };
   const { toast } = useToast();
   const { setFormOpen } = useFormDialog();
   const [items, setItems] = useState<WarehouseItem[]>([]);
@@ -212,7 +213,7 @@ export default function Warehouse() {
       };
 
       if (editingItem) {
-        const itemId = editingItem.id || (editingItem as any)._id;
+        const itemId = editingItem.id;
         if (!itemId) {
           toast({
             title: 'Error',
@@ -247,9 +248,10 @@ export default function Warehouse() {
         sellingPrice: '',
       });
       setErrors({});
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
       console.error('Warehouse item save error:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to save item';
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to save item';
       toast({
         title: 'Error',
         description: errorMessage,
@@ -267,10 +269,11 @@ export default function Warehouse() {
       toast({ title: 'Success', description: 'Item deleted successfully' });
       const updatedItems = await fetchWarehouseItems();
       setItems(updatedItems);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to delete item',
+        description: err.response?.data?.error || err.response?.data?.message || 'Failed to delete item',
         variant: 'destructive',
       });
     }

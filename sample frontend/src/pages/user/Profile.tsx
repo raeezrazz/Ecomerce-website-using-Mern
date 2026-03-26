@@ -4,10 +4,11 @@ import { useToast } from '@/hooks/use-toast';
 import { getUserProfile, updateUserProfile } from '@/api/userApi';
 import { ProfileForm } from '@/components/user/ProfileForm';
 import { OrderHistory } from '@/components/user/OrderHistory';
-import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import type { Order } from '@/types';
 
 export default function Profile() {
+  type ApiError = { response?: { data?: { error?: string } } };
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -20,7 +21,7 @@ export default function Profile() {
     state: '',
     pincode: '',
   });
-  const [userOrders, setUserOrders] = useState([]);
+  const [userOrders] = useState<Order[]>([]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -38,10 +39,11 @@ export default function Profile() {
             pincode: response.data.pincode || '',
           });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const err = error as ApiError;
         toast({
           title: "Error",
-          description: error?.response?.data?.error || "Failed to load profile",
+          description: err?.response?.data?.error || "Failed to load profile",
           variant: "destructive",
         });
       } finally {
@@ -70,10 +72,11 @@ export default function Profile() {
           description: "Your profile information has been saved successfully.",
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
       toast({
         title: "Error",
-        description: error?.response?.data?.error || "Failed to update profile",
+        description: err?.response?.data?.error || "Failed to update profile",
         variant: "destructive",
       });
     } finally {

@@ -14,6 +14,7 @@ import { userLogin, userRegister, verifyOtp, resendOtp, googleLogin } from '@/ap
 import { setCredentials } from '@/store/Slice/userSlice';
 
 export default function Auth() {
+  type ApiError = { response?: { data?: { error?: string; success?: boolean } } };
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { toast } = useToast();
@@ -179,7 +180,7 @@ export default function Auth() {
     }
   };
 
-  const handleGoogleLoginSuccess = async (tokenResponse: any) => {
+  const handleGoogleLoginSuccess = async (_tokenResponse: { access_token: string }) => {
     // Dummy implementation - Google OAuth not configured
     toast({
       title: "Google Login Not Available",
@@ -278,8 +279,14 @@ export default function Auth() {
     setLoginErrors({});
   
     // Validate form
-    if (!validateLogin()) {
-      const firstError = Object.values(loginErrors)[0];
+    const isValid = validateLogin();
+    if (!isValid) {
+      const nextErrors: { email?: string; password?: string } = {};
+      if (!loginEmail.trim()) nextErrors.email = "Email is required";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginEmail)) nextErrors.email = "Please enter a valid email address";
+      if (!loginPassword) nextErrors.password = "Password is required";
+      else if (loginPassword.length < 6) nextErrors.password = "Password must be at least 6 characters";
+      const firstError = Object.values(nextErrors)[0];
       if (firstError) {
         toast({
           title: "Validation Error",
@@ -324,8 +331,8 @@ export default function Auth() {
       setLoginErrors({});
       
       navigate("/");
-    } catch (err: any) {
-      const error = err as { response?: { data?: { error?: string; success?: boolean } } };
+    } catch (err: unknown) {
+      const error = err as ApiError;
       const errorMessage = error?.response?.data?.error || "An unexpected error occurred. Please try again.";
       
       // Set field-specific errors
@@ -393,8 +400,20 @@ export default function Auth() {
     setSignupErrors({});
   
     // Validate form
-    if (!validateSignup()) {
-      const firstError = Object.values(signupErrors)[0];
+    const isValid = validateSignup();
+    if (!isValid) {
+      const nextErrors: { name?: string; email?: string; phone?: string; password?: string } = {};
+      if (!signupName.trim()) nextErrors.name = "Name is required";
+      else if (signupName.trim().length < 2) nextErrors.name = "Name must be at least 2 characters";
+      else if (!/^[a-zA-Z\s]+$/.test(signupName.trim())) nextErrors.name = "Name can only contain letters and spaces";
+      if (!signupEmail.trim()) nextErrors.email = "Email is required";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupEmail)) nextErrors.email = "Please enter a valid email address";
+      if (!signupPhone.trim()) nextErrors.phone = "Phone number is required";
+      else if (!/^\d{10}$/.test(signupPhone.trim())) nextErrors.phone = "Phone number must be exactly 10 digits";
+      if (!signupPassword) nextErrors.password = "Password is required";
+      else if (signupPassword.length < 6) nextErrors.password = "Password must be at least 6 characters";
+      else if (signupPassword.length > 50) nextErrors.password = "Password must be less than 50 characters";
+      const firstError = Object.values(nextErrors)[0];
       if (firstError) {
         toast({
           title: "Validation Error",
@@ -423,8 +442,8 @@ export default function Auth() {
       setShowOtpPage(true);
       setTimer(30);
       setCanResend(false);
-    } catch (err: any) {
-      const error = err as { response?: { data?: { error?: string; success?: boolean } } };
+    } catch (err: unknown) {
+      const error = err as ApiError;
       const errorMessage = error?.response?.data?.error || "Registration failed. Please try again.";
       
       // Set field-specific errors

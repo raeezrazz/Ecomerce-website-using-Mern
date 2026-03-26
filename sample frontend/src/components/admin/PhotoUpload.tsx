@@ -3,6 +3,9 @@ import { Button } from '@/components/ui/button';
 import { X, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const EMPTY_STRING_ARRAY: string[] = [];
+const EMPTY_FILE_ARRAY: File[] = [];
+
 interface PhotoUploadProps {
   /** Existing saved image URLs (from backend/Cloudinary) */
   photos?: string[];
@@ -23,8 +26,8 @@ export function PhotoUpload({
   onPendingFilesChange,
   disabled = false,
 }: PhotoUploadProps) {
-  const photos = photosProp ?? [];
-  const pendingFiles = pendingFilesProp ?? [];
+  const photos = photosProp ?? EMPTY_STRING_ARRAY;
+  const pendingFiles = pendingFilesProp ?? EMPTY_FILE_ARRAY;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
@@ -32,7 +35,8 @@ export function PhotoUpload({
   // Object URLs for pending files; revoke on cleanup
   useEffect(() => {
     if (pendingFiles.length === 0) {
-      setPreviewUrls([]);
+      // Avoid re-render loops when there are no pending files.
+      setPreviewUrls((prev) => (prev.length === 0 ? prev : EMPTY_STRING_ARRAY));
       return;
     }
     const urls = pendingFiles.map((f) => URL.createObjectURL(f));

@@ -13,6 +13,7 @@ import { ProductDialog } from '@/components/admin/ProductDialog';
 import { Pagination } from '@/components/shared/Pagination';
 
 export default function Products() {
+  type ApiError = { message?: string; response?: { data?: { error?: string; message?: string } } };
   const { toast } = useToast();
   const { setFormOpen } = useFormDialog();
   const [products, setProducts] = useState<Product[]>([]);
@@ -171,10 +172,11 @@ export default function Products() {
       // Refresh products list
       const updatedProducts = await fetchProducts();
       setProducts(updatedProducts);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to delete product. Please try again.',
+        description: err.response?.data?.error || err.response?.data?.message || 'Failed to delete product. Please try again.',
         variant: 'destructive',
       });
     }
@@ -196,9 +198,11 @@ export default function Products() {
           const urls = res?.urls ?? [];
           if (urls.length) imageUrls = [...imageUrls, ...urls];
         } catch (uploadErr: unknown) {
+          const uploadError = uploadErr as ApiError;
           const msg =
-            (uploadErr as any)?.response?.data?.error ||
-            (uploadErr as any)?.message ||
+            uploadError.response?.data?.error ||
+            uploadError.response?.data?.message ||
+            uploadError.message ||
             'Image upload failed. Please try again.';
           toast({ title: 'Upload failed', description: msg, variant: 'destructive' });
           setSubmitting(false);

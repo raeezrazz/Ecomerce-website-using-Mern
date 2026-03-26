@@ -37,6 +37,16 @@ import {
 } from '@/components/ui/table';
 
 export default function Categories() {
+  type ApiError = {
+    message?: string;
+    response?: {
+      data?: {
+        error?: string;
+        message?: string;
+        errors?: { name?: string; description?: string; thumbnail?: string };
+      };
+    };
+  };
   const { toast } = useToast();
   const { setFormOpen } = useFormDialog();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -75,7 +85,7 @@ export default function Categories() {
       }
     };
     loadCategories();
-  }, []);
+  }, [toast]);
 
   const handleOpenDialog = (category?: Category) => {
     if (category) {
@@ -176,7 +186,7 @@ export default function Categories() {
       };
 
       if (editingCategory) {
-        const categoryId = editingCategory.id || (editingCategory as any)._id;
+        const categoryId = editingCategory.id;
         if (!categoryId) {
           toast({
             title: 'Error',
@@ -213,23 +223,24 @@ export default function Categories() {
         pendingImageFile: null,
       });
       setErrors({});
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
       console.error('Category save error:', error);
       
       // Extract error message
       let errorMessage = 'Failed to save category. Please try again.';
       
-      if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
       }
 
       // Set field-specific errors if available
-      if (error.response?.data?.errors) {
-        setErrors(error.response.data.errors);
+      if (err.response?.data?.errors) {
+        setErrors(err.response.data.errors);
       }
 
       toast({
@@ -296,10 +307,11 @@ export default function Categories() {
       setCategories(updatedCategories);
       setDeleteDialogOpen(false);
       setCategoryToDelete(null);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError;
       toast({
         title: 'Error',
-        description: error.response?.data?.error || 'Failed to delete category. Please try again.',
+        description: err.response?.data?.error || err.response?.data?.message || 'Failed to delete category. Please try again.',
         variant: 'destructive',
       });
     }

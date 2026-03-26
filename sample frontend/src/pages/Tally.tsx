@@ -29,7 +29,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Download, Phone, Calendar, X, Filter } from 'lucide-react';
+import { Plus, Download, Phone, Calendar, X, Filter, ImageIcon } from 'lucide-react';
 import { fetchTallyEntries, fetchWarehouseItems, createTallyEntry, updateTallyEntry } from '@/api/adminApi';
 import type { TallyEntry } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -37,7 +37,6 @@ import { useFormDialog } from '@/contexts/FormDialogContext';
 import { PhotoUpload } from '@/components/admin/PhotoUpload';
 import { PhotoGallery } from '@/components/admin/PhotoGallery';
 import { UsedParts } from '@/components/admin/UsedParts';
-import { SaleItems, type SaleItem } from '@/components/admin/SaleItems';
 import { ItemTypeAutocomplete } from '@/components/admin/ItemTypeAutocomplete';
 import { CustomerAutocomplete } from '@/components/admin/CustomerAutocomplete';
 import { mockWarehouseItems } from '@/data/warehouseData';
@@ -66,10 +65,8 @@ export default function Tally() {
     serviceType: 'repair' as 'repair' | 'sale',
     status: 'pending' as TallyEntry['status'],
     serviceCharge: '',
-    actualPrice: '',
-    sellingPrice: '',
+    itemPrice: '',
     usedParts: [] as UsedPart[],
-    saleItems: [] as SaleItem[],
     paymentStatus: 'unpaid' as TallyEntry['paymentStatus'],
     notes: '',
     photos: [] as string[],
@@ -112,11 +109,9 @@ export default function Tally() {
         itemType: entry.itemType,
         serviceType: entry.serviceType,
         status: entry.status,
-        serviceCharge: entry.serviceCharge.toString(),
-        actualPrice: '',
-        sellingPrice: '',
+        serviceCharge: (entry.laborCost ?? entry.serviceCharge ?? 0).toString(),
+        itemPrice: (entry.itemPrice ?? entry.total ?? entry.totalAmount ?? 0).toString(),
         usedParts: entry.usedParts || [],
-        saleItems: (entry as any).saleItems || [],
         paymentStatus: entry.paymentStatus,
         notes: entry.notes,
         photos: entry.photos || [],
@@ -131,10 +126,8 @@ export default function Tally() {
         serviceType: 'repair',
         status: 'pending',
         serviceCharge: '',
-        actualPrice: '',
-        sellingPrice: '',
+        itemPrice: '',
         usedParts: [],
-        saleItems: [],
         paymentStatus: 'unpaid',
         notes: '',
         photos: [],
@@ -145,30 +138,6 @@ export default function Tally() {
     setDialogOpen(true);
   };
 
-  const reduceStockFromWarehouse = (usedParts: UsedPart[], oldUsedParts: UsedPart[] = []) => {
-    const updatedWarehouse = [...warehouseItems];
-    
-    // First, restore stock from old parts if editing
-    oldUsedParts.forEach(oldPart => {
-      const warehouseItem = updatedWarehouse.find(item => item.name === oldPart.partName);
-      if (warehouseItem) {
-        warehouseItem.currentStock += oldPart.quantity;
-      }
-    });
-    
-    // Then, reduce stock for new parts
-    usedParts.forEach(usedPart => {
-      const warehouseItem = updatedWarehouse.find(item => item.name === usedPart.partName);
-      if (warehouseItem) {
-        warehouseItem.currentStock = Math.max(0, warehouseItem.currentStock - usedPart.quantity);
-        warehouseItem.lastUpdated = new Date().toISOString();
-      }
-    });
-    
-    setWarehouseItems(updatedWarehouse);
-    localStorage.setItem('warehouseItems', JSON.stringify(updatedWarehouse));
-  };
-
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.customerName) newErrors.customerName = 'Customer Name is required';
@@ -177,42 +146,31 @@ export default function Tally() {
     
     if (formData.serviceType === 'repair') {
       if (!formData.itemType) newErrors.itemType = 'Item/Meter Type is required';
-      if (!formData.serviceCharge) newErrors.serviceCharge = 'Service Charge is required';
+      const laborCost = parseFloat(formData.serviceCharge) || 0;
+      const partsCost = formData.usedParts.reduce((sum, part) => sum + part.total, 0);
+      if (laborCost <= 0 && partsCost <= 0) {
+        newErrors.serviceCharge = 'Labor cost or parts cost is required';
+      }
     } else if (formData.serviceType === 'sale') {
-      if (formData.saleItems.length === 0) {
-        newErrors.saleItems = 'At least one sale item is required';
-      }
-      // Validate each sale item
-      for (const item of formData.saleItems) {
-        if (!item.itemName || !item.warehouseItemId) {
-          newErrors.saleItems = 'All sale items must have a selected item';
-          break;
-        }
-        if (item.quantity <= 0) {
-          newErrors.saleItems = 'All sale items must have quantity greater than 0';
-          break;
-        }
-        if (item.sellingPrice <= 0) {
-          newErrors.saleItems = 'All sale items must have selling price greater than 0';
-          break;
-        }
-        const warehouseItem = warehouseItems.find(w => w.id === item.warehouseItemId);
-        if (warehouseItem && item.quantity > warehouseItem.currentStock) {
-          newErrors.saleItems = `${item.itemName} has only ${warehouseItem.currentStock} available`;
-          break;
-        }
-      }
+      if (!formData.itemType) newErrors.itemType = 'Item is required';
+      const itemPrice = parseFloat(formData.itemPrice) || 0;
+      if (itemPrice <= 0) newErrors.itemPrice = 'Item price is required';
     }
     
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const firstError = Object.values(newErrors)[0];
+    return {
+      isValid: Object.keys(newErrors).length === 0,
+      firstError,
+    };
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
+    const validation = validateForm();
+    if (!validation.isValid) {
       toast({
         title: 'Validation Error',
-        description: 'Please fix the errors in the form.',
+        description: validation.firstError || 'Please fix the errors in the form.',
         variant: 'destructive',
       });
       return;
@@ -244,41 +202,46 @@ export default function Tally() {
     }
 
     let serviceCharge = 0;
+    let laborCost = 0;
     let partsCost = 0;
+    let itemPrice = 0;
     let totalAmount = 0;
-    let itemType = formData.itemType;
+    const itemType = formData.itemType;
 
     if (formData.serviceType === 'repair') {
       serviceCharge = parseFloat(formData.serviceCharge) || 0;
+      laborCost = serviceCharge;
       partsCost = formData.usedParts.reduce((sum, part) => sum + part.total, 0);
       totalAmount = serviceCharge + partsCost;
     } else if (formData.serviceType === 'sale') {
-      // For sale, calculate from sale items
-      const saleTotal = formData.saleItems.reduce((sum, item) => sum + item.total, 0);
-      totalAmount = saleTotal;
-      serviceCharge = 0; // No service charge for sales
-      partsCost = 0; // No parts cost for sales
-      // Set itemType from sale items
-      itemType = formData.saleItems.map(item => item.itemName).join(', ') || '';
+      itemPrice = parseFloat(formData.itemPrice) || 0;
+      totalAmount = itemPrice;
+      serviceCharge = 0;
+      laborCost = 0;
+      partsCost = 0;
     }
     
-    const newEntry: TallyEntry & { saleItems?: SaleItem[] } = {
+    const newEntry: TallyEntry & { item?: string; type?: 'repair' | 'sale'; laborCost?: number; itemPrice?: number; total?: number } = {
       id: editingEntry?.id || `tally-${Date.now()}`,
       date: formData.date,
       customerName: formData.customerName,
       phone: formData.phone,
+      item: itemType,
       itemType: itemType,
+      type: formData.serviceType,
       serviceType: formData.serviceType,
       status: formData.status,
+      laborCost,
       serviceCharge,
       usedParts: formData.serviceType === 'repair' ? formData.usedParts : [],
       partsCost,
+      itemPrice,
+      total: totalAmount,
       totalAmount,
       paymentStatus: formData.paymentStatus,
       dateCompleted: formData.status === 'completed' || formData.status === 'delivered' ? new Date().toISOString().split('T')[0] : undefined,
       notes: formData.notes,
       photos: formData.photos,
-      saleItems: formData.serviceType === 'sale' ? formData.saleItems : undefined,
     };
 
     try {
@@ -296,34 +259,24 @@ export default function Tally() {
       // Refresh warehouse items to reflect stock changes
       const warehouseData = await fetchWarehouseItems();
       setWarehouseItems(warehouseData);
-    } catch (error) {
-      // Fallback to localStorage if API fails
-      if (formData.serviceType === 'repair') {
-        const oldUsedParts = editingEntry?.usedParts || [];
-        reduceStockFromWarehouse(formData.usedParts, oldUsedParts);
-      } else if (formData.serviceType === 'sale') {
-        // Reduce stock for sale items
-        const updatedWarehouse = [...warehouseItems];
-        formData.saleItems.forEach(saleItem => {
-          const warehouseItem = updatedWarehouse.find(item => item.id === saleItem.warehouseItemId);
-          if (warehouseItem) {
-            warehouseItem.currentStock = Math.max(0, warehouseItem.currentStock - saleItem.quantity);
-            warehouseItem.lastUpdated = new Date().toISOString();
-          }
-        });
-        setWarehouseItems(updatedWarehouse);
-        localStorage.setItem('warehouseItems', JSON.stringify(updatedWarehouse));
-      }
-      
-      if (editingEntry) {
-        const updated = entries.map(e => e.id === editingEntry.id ? newEntry : e);
-        setEntries(updated);
-        localStorage.setItem('tallyEntries', JSON.stringify(updated));
-      } else {
-        const updated = [...entries, newEntry];
-        setEntries(updated);
-        localStorage.setItem('tallyEntries', JSON.stringify(updated));
-      }
+    } catch (error: unknown) {
+      const err = error as {
+        response?: { data?: { error?: string; message?: string } };
+        message?: string;
+      };
+      const errorMessage =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to save entry. Please try again.';
+
+      toast({
+        title: 'Save Failed (Server)',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+
+      return;
     }
 
     toast({
@@ -335,7 +288,7 @@ export default function Tally() {
   };
 
   const handleExport = () => {
-    const headers = ['Date', 'Customer', 'Phone', 'Item', 'Type', 'Status', 'Service Charge', 'Parts Cost', 'Total', 'Payment', 'Notes'];
+    const headers = ['Date', 'Customer', 'Phone', 'Item', 'Type', 'Status', 'Labor Cost', 'Parts Cost', 'Item Price', 'Total', 'Payment', 'Notes'];
     const rows = filteredEntries.map(e => [
       new Date(e.date).toLocaleDateString(),
       e.customerName,
@@ -343,9 +296,10 @@ export default function Tally() {
       e.itemType,
       e.serviceType,
       e.status,
-      e.serviceCharge,
-      e.partsCost,
-      e.totalAmount,
+      e.laborCost ?? e.serviceCharge ?? 0,
+      e.partsCost ?? 0,
+      e.itemPrice ?? (e.serviceType === 'sale' ? (e.total ?? e.totalAmount ?? 0) : 0),
+      e.total ?? e.totalAmount ?? 0,
       e.paymentStatus,
       e.notes
     ]);
@@ -581,6 +535,17 @@ export default function Tally() {
     } as const;
     return <Badge variant={variants[status]}>{status}</Badge>;
   };
+
+  const getLaborCost = (entry: TallyEntry) => entry.laborCost ?? entry.serviceCharge ?? 0;
+  const getPartsCost = (entry: TallyEntry) =>
+    entry.usedParts?.reduce((sum, part) => sum + part.total, 0) || entry.partsCost || 0;
+  const getItemPrice = (entry: TallyEntry) =>
+    entry.itemPrice ?? (entry.serviceType === 'sale' ? (entry.total ?? entry.totalAmount ?? 0) : 0);
+  const getTotalAmount = (entry: TallyEntry) => entry.total ?? entry.totalAmount ?? 0;
+  const showSaleColumns = selectedServiceType === 'sale';
+  const showRepairColumns = selectedServiceType !== 'sale';
+  const isUnpaidDelivered = (entry: TallyEntry) =>
+    entry.status === 'delivered' && entry.paymentStatus !== 'paid';
 
   return (
     <DashboardLayout>
@@ -1136,8 +1101,8 @@ export default function Tally() {
                   }
                 </div>
               ) : (
-                filteredEntries.map((entry) => (
-                  <Card key={entry.id} className="p-4">
+                filteredEntries.map((entry, index) => (
+                  <Card key={`${entry.id}-${entry.date}-${index}`} className="p-4">
                     <div className="space-y-3">
                       {/* Header Row */}
                       <div className="flex items-start justify-between gap-2">
@@ -1168,23 +1133,22 @@ export default function Tally() {
                       {/* Financial Info */}
                       <div className="grid grid-cols-2 gap-2 pt-2 border-t">
                         <div>
-                          <div className="text-xs text-muted-foreground">Service Charge</div>
-                          <div className="text-sm font-medium">₹{entry.serviceCharge.toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Parts Cost</div>
-                          <div className="text-sm font-medium">
-                            ₹{(entry.usedParts?.reduce((sum, part) => sum + part.total, 0) || entry.partsCost || 0).toLocaleString()}
-                            {entry.usedParts && entry.usedParts.length > 0 && (
-                              <span className="text-xs text-muted-foreground block">
-                                ({entry.usedParts.length} part{entry.usedParts.length !== 1 ? 's' : ''})
-                              </span>
-                            )}
+                          <div className="text-xs text-muted-foreground">
+                            {entry.serviceType === 'sale' ? 'Item Price' : 'Labor Cost'}
                           </div>
+                          <div className="text-sm font-medium text-right">₹{(entry.serviceType === 'sale' ? getItemPrice(entry) : getLaborCost(entry)).toLocaleString()}</div>
                         </div>
+                        {entry.serviceType === 'repair' ? (
+                          <div>
+                            <div className="text-xs text-muted-foreground">Parts Cost</div>
+                            <div className="text-sm font-medium text-right">
+                              ₹{getPartsCost(entry).toLocaleString()}
+                            </div>
+                          </div>
+                        ) : <div />}
                         <div className="col-span-2">
                           <div className="text-xs text-muted-foreground">Total Amount</div>
-                          <div className="text-base font-bold">₹{entry.totalAmount.toLocaleString()}</div>
+                          <div className="text-base font-bold text-right">₹{getTotalAmount(entry).toLocaleString()}</div>
                         </div>
                       </div>
 
@@ -1223,9 +1187,10 @@ export default function Tally() {
                     <TableHead>Item/Meter</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Parts Cost</TableHead>
-                    <TableHead>Total</TableHead>
+                    {showRepairColumns && <TableHead className="text-right">Labor Cost</TableHead>}
+                    {showRepairColumns && <TableHead className="text-right">Parts Cost</TableHead>}
+                    {showSaleColumns && <TableHead className="text-right">Item Price</TableHead>}
+                    <TableHead className="text-right">Total</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead>Photos</TableHead>
                     <TableHead>Actions</TableHead>
@@ -1234,7 +1199,7 @@ export default function Tally() {
                 <TableBody>
                   {filteredEntries.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center text-muted-foreground">
+                      <TableCell colSpan={showSaleColumns ? 10 : 11} className="text-center text-muted-foreground">
                         {selectedMonth === 'all' 
                           ? 'No entries yet. Click "Add Entry" to get started.'
                           : `No entries found for ${monthOptions.find(opt => opt.value === selectedMonth)?.label || 'selected month'}.`
@@ -1242,8 +1207,11 @@ export default function Tally() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredEntries.map((entry) => (
-                      <TableRow key={entry.id}>
+                    filteredEntries.map((entry, index) => (
+                      <TableRow
+                        key={`${entry.id}-${entry.date}-${index}`}
+                        className={isUnpaidDelivered(entry) ? 'bg-destructive/5' : ''}
+                      >
                         <TableCell>
                           {new Date(entry.date).toLocaleDateString()}
                         </TableCell>
@@ -1263,22 +1231,25 @@ export default function Tally() {
                           </Badge>
                         </TableCell>
                         <TableCell>{getStatusBadge(entry.status)}</TableCell>
-                        <TableCell>₹{entry.serviceCharge.toLocaleString()}</TableCell>
-                        <TableCell>
-                          ₹{(entry.usedParts?.reduce((sum, part) => sum + part.total, 0) || entry.partsCost || 0).toLocaleString()}
-                          {entry.usedParts && entry.usedParts.length > 0 && (
-                            <span className="text-xs text-muted-foreground block">
-                              ({entry.usedParts.length} part{entry.usedParts.length !== 1 ? 's' : ''})
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="font-semibold">
-                          ₹{entry.totalAmount.toLocaleString()}
+                        {showRepairColumns && (
+                          <TableCell className="text-right">₹{getLaborCost(entry).toLocaleString()}</TableCell>
+                        )}
+                        {showRepairColumns && (
+                          <TableCell className="text-right">₹{getPartsCost(entry).toLocaleString()}</TableCell>
+                        )}
+                        {showSaleColumns && (
+                          <TableCell className="text-right">₹{getItemPrice(entry).toLocaleString()}</TableCell>
+                        )}
+                        <TableCell className="font-bold text-right">
+                          ₹{getTotalAmount(entry).toLocaleString()}
                         </TableCell>
                         <TableCell>{getPaymentBadge(entry.paymentStatus)}</TableCell>
                         <TableCell>
                           {entry.photos && entry.photos.length > 0 ? (
-                            <PhotoGallery photos={entry.photos} />
+                            <div className="inline-flex items-center gap-1 text-primary">
+                              <ImageIcon className="h-4 w-4" />
+                              <span className="text-xs">{entry.photos.length}</span>
+                            </div>
                           ) : (
                             <span className="text-muted-foreground text-sm">No photos</span>
                           )}
@@ -1333,9 +1304,7 @@ export default function Tally() {
                         setFormData({ 
                           ...formData, 
                           serviceType: value,
-                          saleItems: [],
-                          actualPrice: '',
-                          sellingPrice: '',
+                          itemPrice: '',
                         });
                       } else {
                         setFormData({ 
@@ -1343,7 +1312,6 @@ export default function Tally() {
                           serviceType: value,
                           usedParts: [],
                           serviceCharge: '',
-                          itemType: '',
                         });
                       }
                     }}
@@ -1388,15 +1356,21 @@ export default function Tally() {
                 </div>
               )}
 
-              {/* Sale Items - Only for Sale */}
+              {/* Item Price - Only for Sale */}
               {formData.serviceType === 'sale' && (
                 <div className="grid gap-2">
-                  <SaleItems
-                    saleItems={formData.saleItems}
-                    warehouseItems={warehouseItems}
-                    onItemsChange={(saleItems) => setFormData({ ...formData, saleItems })}
+                  <Label htmlFor="itemPrice">Item Price (₹) *</Label>
+                  <Input
+                    id="itemPrice"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.itemPrice}
+                    onChange={(e) => setFormData({ ...formData, itemPrice: e.target.value })}
+                    placeholder="0.00"
+                    className={errors.itemPrice ? "border-red-500" : ""}
                   />
-                  {errors.saleItems && <p className="text-sm text-red-500">{errors.saleItems}</p>}
+                  {errors.itemPrice && <p className="text-sm text-red-500">{errors.itemPrice}</p>}
                 </div>
               )}
 
@@ -1440,12 +1414,12 @@ export default function Tally() {
                 </div>
               </div>
 
-              {/* Service Charge and Used Parts - Only for Repair */}
+              {/* Labor Cost and Used Parts - Only for Repair */}
               {formData.serviceType === 'repair' && (
                 <>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="serviceCharge">Service Charge (₹) *</Label>
+                      <Label htmlFor="serviceCharge">Labor Cost (₹)</Label>
                       <Input
                         id="serviceCharge"
                         type="number"
@@ -1484,7 +1458,7 @@ export default function Tally() {
                 <div className="grid gap-2">
                   <Label>Total Sale Amount</Label>
                   <div className="flex items-center h-10 px-3 rounded-md border bg-muted font-semibold text-lg">
-                    ₹{formData.saleItems.reduce((sum, item) => sum + item.total, 0).toLocaleString()}
+                    ₹{(parseFloat(formData.itemPrice) || 0).toLocaleString()}
                   </div>
                 </div>
               )}

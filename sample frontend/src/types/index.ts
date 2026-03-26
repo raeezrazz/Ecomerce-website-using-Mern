@@ -67,12 +67,17 @@ export interface TallyEntry {
   date: string;
   customerName: string;
   phone: string;
+  item?: string; // alias for itemType
   itemType: string;
+  type?: 'repair' | 'sale'; // alias for serviceType
   serviceType: 'repair' | 'sale';
   status: 'pending' | 'in-progress' | 'completed' | 'delivered';
+  laborCost?: number; // alias for serviceCharge
   serviceCharge: number;
   usedParts: UsedPart[];
   partsCost: number; // Keep for backward compatibility, calculated from usedParts
+  itemPrice?: number; // sale-specific price field
+  total?: number; // alias for totalAmount
   totalAmount: number;
   paymentStatus: 'paid' | 'unpaid' | 'partial';
   dateCompleted?: string;
