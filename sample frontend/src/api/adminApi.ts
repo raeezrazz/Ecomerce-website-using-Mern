@@ -40,6 +40,7 @@
  * - POST   /api/admin/auth/logout        - Logout
  */
 import apiClient from "@/api/apiClient/axios";
+import { safeGetItem, safeRemoveItem } from "@/lib/safeStorage";
 import type { User, Product, Category, Order, TallyEntry, DailySales, KPI, SalesReportData } from "@/types";
 
 // -------- AUTH --------
@@ -54,7 +55,7 @@ export const refreshAdminToken = async (refreshToken: string) => {
 };
 
 export const logout = async () => {
-  const refreshToken = localStorage.getItem('refreshToken');
+  const refreshToken = safeGetItem('refreshToken');
   if (refreshToken) {
     try {
       await apiClient.post("/api/admin/auth/logout", { refreshToken });
@@ -62,10 +63,9 @@ export const logout = async () => {
       console.error('Logout error:', error);
     }
   }
-  // Clear all tokens
-  localStorage.removeItem('authToken');
-  localStorage.removeItem('refreshToken');
-  localStorage.removeItem('adminUser');
+  safeRemoveItem('authToken');
+  safeRemoveItem('refreshToken');
+  safeRemoveItem('adminUser');
 };
 
 // -------- USERS --------

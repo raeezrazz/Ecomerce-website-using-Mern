@@ -9,7 +9,7 @@ class AdminService {
     async loginAdmin(email: string, password: string) {
         const user = await User.findOne({ email });
     
-        if (!user) throw new Error("Admin not found");
+        if (!user) throw new Error("Email or Password is wrong");
         if (user.role !== 'admin') throw new Error("Unauthorized: Admin access required");
     
         const isMatch = await bcrypt.compare(password, user.password);

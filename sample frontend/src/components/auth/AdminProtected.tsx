@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { safeGetItem } from "@/lib/safeStorage";
 
 /**
  * AdminProtected - Protects admin routes
@@ -13,8 +14,8 @@ export function AdminProtected() {
     const checkAuth = async () => {
       try {
         // Only check for admin-specific tokens
-        const authToken = localStorage.getItem('authToken');
-        const adminUser = localStorage.getItem('adminUser');
+        const authToken = safeGetItem('authToken');
+        const adminUser = safeGetItem('adminUser');
         
         // Must have both admin token and admin user data
         if (!authToken || !adminUser) {

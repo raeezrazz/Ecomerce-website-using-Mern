@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { safeGetItem } from "@/lib/safeStorage";
 
 /**
  * AuthGuard - Redirects authenticated users away from auth pages (login/register)
@@ -17,15 +18,13 @@ export function AuthGuard() {
     setIsAdminRoute(isAdminLogin);
 
     if (isAdminLogin) {
-      // For admin login, only check admin token
-      const authToken = localStorage.getItem('authToken');
-      const adminUser = localStorage.getItem('adminUser');
+      const authToken = safeGetItem('authToken');
+      const adminUser = safeGetItem('adminUser');
       setIsAuthenticated(!!(authToken && adminUser));
     } else {
-      // For user login, only check user token
-      const userToken = localStorage.getItem('userToken');
-      const accessToken = localStorage.getItem('accessToken');
-      const userData = localStorage.getItem('userData');
+      const userToken = safeGetItem('userToken');
+      const accessToken = safeGetItem('accessToken');
+      const userData = safeGetItem('userData');
       setIsAuthenticated(!!(userToken || accessToken || userData));
     }
   }, [location.pathname]);

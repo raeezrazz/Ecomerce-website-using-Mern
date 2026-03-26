@@ -24,7 +24,21 @@ export const adminController = {
           });
     
         } catch (err: any) {
-          return res.status(401).json({ success: false, error: err.message });
+          console.log(err,"catch error")
+          const msg = (err?.message || "Login failed").toString();
+
+          // Provide consistent status codes + clear messages
+          if (msg === "Email or Password is wrong") {
+            return res.status(404).json({ success: false, error: msg });
+          }
+          if (msg.toLowerCase().includes("unauthorized")) {
+            return res.status(403).json({ success: false, error: msg });
+          }
+          if (msg === "Incorrect password") {
+            return res.status(401).json({ success: false, error: msg });
+          }
+
+          return res.status(401).json({ success: false, error: msg });
         }
       },
 

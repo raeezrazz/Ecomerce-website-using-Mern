@@ -1,7 +1,9 @@
 import axios from "axios";
 import { safeGetItem, safeRemoveItem, safeSetItem } from "@/lib/safeStorage";
 
-const baseURL = import.meta.env.VITE_API_URL || "http://13.239.33.61:4000";
+// const baseURL = import.meta.env.VITE_API_URL || "http://13.239.33.61:4000";
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 
 const apiClient = axios.create({
   baseURL,
@@ -48,8 +50,24 @@ apiClient.interceptors.response.use(
             
             // For public routes (like products, categories), don't redirect on 401
             // Just let the error pass through so the page can still load
-            const isPublicRoute = originalRequest.url?.includes('/api/admin/products') || 
-                                  originalRequest.url?.includes('/api/admin/categories');
+            const isPublicRoute =
+              originalRequest.url?.includes('/api/admin/products') ||
+              originalRequest.url?.includes('/api/admin/categories') ||
+              originalRequest.url?.includes('/api/admin/auth/login') ||
+              originalRequest.url?.includes('/api/user/login') ||
+              originalRequest.url?.includes('/api/user/register') ||
+              originalRequest.url?.includes('/api/user/verifyOtp') ||
+              originalRequest.url?.includes('/api/admin/auth/refreshToken');
+
+            // Never attempt refresh-token retry for auth/login endpoints.
+            // Otherwise the original 401 reason (wrong password) can be replaced by a refresh error,
+            // and the UI may not show the correct backend message.
+            const isAuthLoginRequest =
+              originalRequest.url?.includes('/api/admin/auth/login') ||
+              originalRequest.url?.includes('/api/user/login');
+            if (isAuthLoginRequest) {
+              return Promise.reject(error);
+            }
             
             if (isPublicRoute && !refreshToken) {
                 // Public route without token - just return the error, don't redirect
