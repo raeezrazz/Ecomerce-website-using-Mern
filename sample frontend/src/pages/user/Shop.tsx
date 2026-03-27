@@ -62,31 +62,38 @@ export default function Shop() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-        <div className="h-10 w-64 rounded-xl bg-muted animate-pulse mb-8" />
-        <div className="rounded-2xl border bg-card p-6 mb-8 h-24 bg-muted/30 animate-pulse" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <div key={i} className="rounded-2xl border bg-card overflow-hidden">
-              <div className="aspect-square bg-muted animate-pulse" />
-              <div className="p-5 space-y-2">
-                <div className="h-4 w-20 bg-muted rounded animate-pulse" />
-                <div className="h-5 w-full bg-muted rounded animate-pulse" />
-                <div className="h-6 w-24 bg-muted rounded animate-pulse" />
+      <div className="user-page-dots min-h-[50vh]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="h-7 w-48 rounded-lg bg-muted animate-pulse mb-5" />
+          <div className="rounded-xl border bg-card/80 p-4 mb-5 h-20 bg-muted/30 animate-pulse backdrop-blur-sm" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+              <div key={i} className="rounded-xl border bg-card overflow-hidden shadow-sm">
+                <div className="aspect-square bg-muted animate-pulse" />
+                <div className="p-3 space-y-2">
+                  <div className="h-3 w-16 bg-muted rounded animate-pulse" />
+                  <div className="h-4 w-full bg-muted rounded animate-pulse" />
+                  <div className="h-5 w-20 bg-muted rounded animate-pulse" />
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2 animate-fade-in-up">Shop</h1>
-      <p className="text-muted-foreground mb-6 sm:mb-8 animate-fade-in-up animate-delay-100 animate-fill-both opacity-0">
-        Find the right parts for your vehicle
-      </p>
+    <div className="user-page-dots min-h-[50vh]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <header className="mb-5 sm:mb-6">
+          <h1 className="font-display text-xl sm:text-2xl font-semibold tracking-tight animate-fade-in-up">
+            Shop
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 animate-fade-in-up animate-delay-100 animate-fill-both">
+            Find the right parts for your vehicle
+          </p>
+        </header>
 
       <ShopFilters
         searchQuery={searchQuery}
@@ -100,6 +107,7 @@ export default function Shop() {
       />
 
       <ProductGrid products={filteredProducts} />
+      </div>
     </div>
   );
 }

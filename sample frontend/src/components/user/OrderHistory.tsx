@@ -19,44 +19,55 @@ export function OrderHistory({ orders }: OrderHistoryProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden">
-      <div className="p-6 border-b border-border/80">
-        <h2 className="text-2xl font-bold text-foreground">Order History</h2>
-        <p className="text-sm text-muted-foreground mt-1">View and track your orders</p>
+    <div className="rounded-xl border border-border/80 bg-card/95 shadow-soft overflow-hidden">
+      <div className="px-4 py-3 border-b border-border/70 bg-muted/20">
+        <h2 className="text-sm font-semibold text-foreground tracking-tight">Orders</h2>
+        <p className="text-[11px] text-muted-foreground mt-0.5">Track shipments</p>
       </div>
-      <div className="p-4 sm:p-6 space-y-4">
+      <div className="p-3 sm:p-4 space-y-2.5">
         {orders.map((order, index) => (
           <div
             key={order.id}
-            className="rounded-xl border border-border bg-background/50 p-4 sm:p-5 hover:shadow-soft transition-shadow"
-            style={{ animationDelay: `${index * 60}ms` }}
+            className="rounded-lg border border-border/70 bg-background/60 p-3 sm:p-4 hover:border-primary/15 hover:shadow-sm transition-all duration-200 opacity-0 motion-safe:animate-fade-in-up animate-fill-both"
+            style={{ animationDelay: `${index * 50}ms` }}
           >
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-3">
               <div>
-                <h3 className="font-semibold text-lg text-foreground">{order.id}</h3>
-                <p className="text-sm text-muted-foreground">{order.orderDate}</p>
+                <h3 className="font-medium text-sm text-foreground font-mono">{order.id}</h3>
+                <p className="text-[11px] text-muted-foreground">{order.orderDate}</p>
               </div>
-              <div className="flex flex-wrap items-center gap-2 sm:text-right">
-                <p className="font-bold text-lg text-primary">₹{order.totalAmount.toLocaleString()}</p>
-                <Badge variant={getStatusColor(order.deliveryStatus)} className="rounded-lg">{order.deliveryStatus}</Badge>
+              <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                <p className="font-bold text-sm text-primary tabular-nums">₹{order.totalAmount.toLocaleString()}</p>
+                <Badge variant={getStatusColor(order.deliveryStatus)} className="rounded-md text-[10px] px-2 py-0">
+                  {order.deliveryStatus}
+                </Badge>
               </div>
             </div>
-            
-            <div className="space-y-1 mb-4">
+
+            <div className="space-y-0.5 mb-3">
               {order.items.map((item, idx) => (
-                <p key={idx} className="text-sm text-muted-foreground">
+                <p key={idx} className="text-xs text-muted-foreground leading-snug">
                   {item.productName} × {item.quantity}
                 </p>
               ))}
             </div>
-            
-            <div className="pt-4 border-t border-border/80 flex flex-wrap justify-between items-center gap-2">
-              <p className="text-sm text-muted-foreground">
-                Payment: <span className={order.paymentStatus === 'Paid' ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}>
+
+            <div className="pt-3 border-t border-border/60 flex flex-wrap justify-between items-center gap-2">
+              <p className="text-[11px] text-muted-foreground">
+                Payment:{' '}
+                <span
+                  className={
+                    order.paymentStatus === 'Paid'
+                      ? 'text-green-600 dark:text-green-400 font-medium'
+                      : 'text-orange-600 dark:text-orange-400 font-medium'
+                  }
+                >
                   {order.paymentStatus}
                 </span>
               </p>
-              <Button variant="outline" size="sm" className="rounded-xl">Track Order</Button>
+              <Button variant="outline" size="sm" className="rounded-lg h-8 text-xs px-3">
+                Track
+              </Button>
             </div>
           </div>
         ))}

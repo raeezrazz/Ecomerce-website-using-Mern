@@ -4,15 +4,17 @@ import { ShoppingBag } from 'lucide-react';
 
 export function EmptyCart() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-24 text-center">
-      <div className="inline-flex h-24 w-24 items-center justify-center rounded-2xl bg-muted mb-6 animate-fade-in-up">
-        <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+    <div className="user-page-dots min-h-[55vh] flex flex-col items-center justify-center px-4 py-12 text-center">
+      <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/60 border border-border/60 mb-4 motion-safe:animate-gentle-pulse motion-reduce:animate-none">
+        <ShoppingBag className="h-7 w-7 text-muted-foreground" />
       </div>
-      <h1 className="text-2xl sm:text-3xl font-bold mb-2 animate-fade-in-up animate-delay-100 animate-fill-both opacity-0">Your cart is empty</h1>
-      <p className="text-muted-foreground mb-8 animate-fade-in-up animate-delay-200 animate-fill-both opacity-0">Add some products to get started.</p>
-      <Link to="/shop" className="animate-fade-in-up animate-delay-300 animate-fill-both opacity-0 inline-block">
-        <Button size="lg" className="rounded-xl font-semibold shadow-sm hover:shadow transition-all">
-          Continue Shopping
+      <h1 className="font-display text-lg sm:text-xl font-semibold mb-1 motion-safe:animate-fade-in-up">Your cart is empty</h1>
+      <p className="text-xs sm:text-sm text-muted-foreground mb-6 max-w-xs motion-safe:animate-fade-in-up motion-safe:animate-delay-100 motion-safe:animate-fill-both">
+        Add something from the shop to get started.
+      </p>
+      <Link to="/shop" className="inline-block motion-safe:animate-fade-in-up motion-safe:animate-delay-200 motion-safe:animate-fill-both">
+        <Button size="sm" className="rounded-lg h-9 px-5 text-sm font-medium shadow-sm hover:shadow-md transition-all">
+          Browse shop
         </Button>
       </Link>
     </div>

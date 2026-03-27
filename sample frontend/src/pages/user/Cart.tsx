@@ -11,24 +11,31 @@ export default function Cart() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Shopping Cart</h1>
-      <p className="text-muted-foreground mb-6 sm:mb-8">{cartCount} item{cartCount !== 1 ? 's' : ''} in your cart</p>
+    <div className="user-page-dots min-h-[50vh]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <header className="mb-5 motion-safe:animate-fade-in-up">
+          <h1 className="font-display text-xl sm:text-2xl font-semibold tracking-tight">Cart</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            {cartCount} item{cartCount !== 1 ? 's' : ''}
+          </p>
+        </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        <div className="lg:col-span-2 space-y-3 sm:space-y-4">
-          {cart.map((item) => (
-            <CartItem
-              key={item.id}
-              item={item}
-              onRemove={removeFromCart}
-              onUpdateQuantity={updateQuantity}
-            />
-          ))}
-        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+          <div className="lg:col-span-2 space-y-2.5">
+            {cart.map((item, i) => (
+              <div
+                key={item.id}
+                className="opacity-0 motion-safe:animate-fade-in-up animate-fill-both"
+                style={{ animationDelay: `${i * 45}ms` }}
+              >
+                <CartItem item={item} onRemove={removeFromCart} onUpdateQuantity={updateQuantity} />
+              </div>
+            ))}
+          </div>
 
-        <div className="lg:sticky lg:top-20 lg:self-start">
-          <CartSummary itemCount={cartCount} total={cartTotal} />
+          <div className="lg:sticky lg:top-20 lg:self-start motion-safe:animate-fade-in-up motion-safe:animate-delay-200 motion-safe:animate-fill-both">
+            <CartSummary itemCount={cartCount} total={cartTotal} />
+          </div>
         </div>
       </div>
     </div>

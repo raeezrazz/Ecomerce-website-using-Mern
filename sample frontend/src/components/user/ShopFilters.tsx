@@ -27,19 +27,19 @@ export function ShopFilters({
 }: ShopFiltersProps) {
   return (
     <>
-      <div className="bg-card border rounded-2xl p-4 sm:p-5 md:p-6 mb-6 sm:mb-8 shadow-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+      <div className="bg-card/90 backdrop-blur-sm border rounded-xl p-3 sm:p-4 mb-4 shadow-soft transition-shadow hover:shadow-soft-lg motion-safe:animate-fade-in-up motion-safe:animate-delay-100 motion-safe:animate-fill-both">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
           <div className="relative sm:col-span-2 md:col-span-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10 h-11 rounded-xl border-border/80"
+              className="pl-9 h-9 rounded-lg border-border/80 text-sm"
             />
           </div>
           <Select value={selectedCategory} onValueChange={onCategoryChange}>
-            <SelectTrigger className="h-11 rounded-xl text-sm sm:text-base">
+            <SelectTrigger className="h-9 rounded-lg text-xs sm:text-sm">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -52,7 +52,7 @@ export function ShopFilters({
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={onSortChange}>
-            <SelectTrigger className="h-11 rounded-xl text-sm sm:text-base">
+            <SelectTrigger className="h-9 rounded-lg text-xs sm:text-sm">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -64,14 +64,14 @@ export function ShopFilters({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-5 sm:mb-6">
-        <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4 motion-safe:animate-fade-in motion-safe:animate-delay-200 motion-safe:animate-fill-both">
+        <p className="text-xs text-muted-foreground">
           Showing <span className="font-medium text-foreground">{productCount}</span> product{productCount !== 1 ? 's' : ''}
         </p>
         {selectedCategory !== 'all' && (
           <Badge
             variant="secondary"
-            className="rounded-lg cursor-pointer hover:bg-secondary/80 transition-colors"
+            className="rounded-md text-xs cursor-pointer hover:bg-secondary/80 transition-all active:scale-95"
             onClick={() => onCategoryChange('all')}
           >
             {selectedCategory} ×

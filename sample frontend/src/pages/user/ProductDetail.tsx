@@ -50,15 +50,17 @@ export default function ProductDetail() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="animate-pulse space-y-6">
-          <div className="h-5 w-32 bg-muted rounded" />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="aspect-square bg-muted rounded-2xl" />
-            <div className="space-y-4">
-              <div className="h-8 w-24 bg-muted rounded" />
-              <div className="h-10 w-full bg-muted rounded" />
-              <div className="h-12 w-40 bg-muted rounded" />
+      <div className="user-page-dots min-h-[50vh]">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="animate-pulse space-y-5">
+            <div className="h-4 w-28 bg-muted rounded-lg" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+              <div className="aspect-square bg-muted rounded-xl max-w-md mx-auto lg:mx-0" />
+              <div className="space-y-3">
+                <div className="h-6 w-20 bg-muted rounded-lg" />
+                <div className="h-8 w-full bg-muted rounded-lg" />
+                <div className="h-10 w-36 bg-muted rounded-lg" />
+              </div>
             </div>
           </div>
         </div>
@@ -68,11 +70,13 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Product not found</h1>
-        <Link to="/shop">
-          <Button size="lg" className="rounded-xl">Back to Shop</Button>
-        </Link>
+      <div className="user-page-dots min-h-[50vh] flex items-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 text-center w-full motion-safe:animate-fade-in-up">
+          <h1 className="text-lg sm:text-xl font-semibold mb-3">Product not found</h1>
+          <Link to="/shop">
+            <Button size="sm" className="rounded-lg">Back to Shop</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -86,23 +90,35 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-12">
-      <Link to="/shop" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary mb-6 sm:mb-8 transition-colors">
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to Shop
-      </Link>
+    <div className="user-page-dots min-h-[50vh]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <Link
+          to="/shop"
+          className="group inline-flex items-center text-xs font-medium text-muted-foreground hover:text-primary mb-5 transition-colors motion-safe:animate-slide-in-left"
+        >
+          <ArrowLeft className="h-3.5 w-3.5 mr-1.5 transition-transform group-hover:-translate-x-0.5" />
+          Back to Shop
+        </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 mb-14 md:mb-16">
-        <ProductImage images={product.images || []} alt={product.name} />
-        <ProductInfo
-          product={product}
-          quantity={quantity}
-          onQuantityChange={setQuantity}
-          onAddToCart={handleAddToCart}
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-10 lg:mb-12 items-start">
+          <div className="motion-safe:animate-fade-in-up lg:sticky lg:top-24">
+            <ProductImage images={product.images || []} alt={product.name} />
+          </div>
+          <div
+            className="min-w-0 opacity-0 motion-safe:animate-fade-in-up animate-fill-both"
+            style={{ animationDelay: '80ms' }}
+          >
+            <ProductInfo
+              product={product}
+              quantity={quantity}
+              onQuantityChange={setQuantity}
+              onAddToCart={handleAddToCart}
+            />
+          </div>
+        </div>
+
+        <RelatedProducts products={relatedProducts} />
       </div>
-
-      <RelatedProducts products={relatedProducts} />
     </div>
   );
 }

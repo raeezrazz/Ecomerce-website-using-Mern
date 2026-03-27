@@ -30,27 +30,33 @@ export function CartSummary({ itemCount, total }: CartSummaryProps) {
   };
 
   return (
-    <Card className="p-5 sm:p-6 rounded-2xl border shadow-sm">
-      <h2 className="text-xl font-bold mb-5">Order Summary</h2>
-      <div className="space-y-3 mb-6">
-        <div className="flex justify-between text-sm">
+    <Card className="relative p-4 sm:p-5 rounded-xl border border-border/80 bg-card/95 shadow-soft overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/40 via-primary to-primary/40 opacity-80 pointer-events-none" />
+      <h2 className="text-sm font-semibold mb-4 tracking-tight">Summary</h2>
+      <div className="space-y-2.5 mb-4 text-xs sm:text-sm">
+        <div className="flex justify-between">
           <span className="text-muted-foreground">Items ({itemCount})</span>
-          <span className="font-medium">₹{total.toLocaleString()}</span>
+          <span className="font-medium tabular-nums">₹{total.toLocaleString()}</span>
         </div>
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between">
           <span className="text-muted-foreground">Shipping</span>
           <span className="text-green-600 font-medium">Free</span>
         </div>
-        <div className="border-t pt-4 flex justify-between font-bold text-base">
+        <div className="border-t border-border/70 pt-3 flex justify-between font-bold text-sm">
           <span>Total</span>
-          <span className="text-primary">₹{total.toLocaleString()}</span>
+          <span className="text-primary tabular-nums">₹{total.toLocaleString()}</span>
         </div>
       </div>
-      <Button size="lg" className="w-full rounded-xl font-semibold mb-3 shadow-sm hover:shadow transition-all" onClick={handleCheckout}>
-        {isLoggedIn() ? 'Proceed to Checkout' : 'Login to Checkout'}
+      <Button
+        className="w-full rounded-lg h-10 text-sm font-semibold mb-2 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+        onClick={handleCheckout}
+      >
+        {isLoggedIn() ? 'Checkout' : 'Login to checkout'}
       </Button>
       <Link to="/shop" className="block">
-        <Button variant="outline" className="w-full rounded-xl">Continue Shopping</Button>
+        <Button variant="outline" className="w-full rounded-lg h-9 text-xs">
+          Continue shopping
+        </Button>
       </Link>
     </Card>
   );

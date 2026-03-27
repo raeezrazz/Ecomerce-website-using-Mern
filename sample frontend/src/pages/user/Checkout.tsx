@@ -67,24 +67,25 @@ export default function Checkout() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 w-full">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 md:mb-8">Checkout</h1>
+    <div className="user-page-dots min-h-[50vh]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full">
+        <header className="mb-5 motion-safe:animate-fade-in-up">
+          <h1 className="font-display text-xl sm:text-2xl font-semibold tracking-tight">Checkout</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Shipping details and review</p>
+        </header>
 
-      <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-          <div className="lg:col-span-2">
-            <ShippingForm formData={formData} onChange={handleChange} />
-          </div>
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div className="lg:col-span-2 motion-safe:animate-fade-in-up motion-safe:animate-delay-100 motion-safe:animate-fill-both">
+              <ShippingForm formData={formData} onChange={handleChange} />
+            </div>
 
-          <div className="lg:sticky lg:top-20 lg:self-start">
-            <OrderSummary 
-              items={cart} 
-              total={cartTotal} 
-              showPlaceOrder={true}
-            />
+            <div className="lg:sticky lg:top-20 lg:self-start motion-safe:animate-fade-in-up motion-safe:animate-delay-150 motion-safe:animate-fill-both">
+              <OrderSummary items={cart} total={cartTotal} showPlaceOrder={true} />
+            </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

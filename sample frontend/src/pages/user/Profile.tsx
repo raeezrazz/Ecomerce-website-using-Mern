@@ -86,10 +86,12 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 w-full">
-        <div className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden animate-fade-in-up">
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="user-page-dots min-h-[40vh]">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 w-full">
+          <div className="rounded-xl border border-border/80 bg-card/90 shadow-soft overflow-hidden motion-safe:animate-fade-in-up">
+            <div className="flex items-center justify-center h-48">
+              <Loader2 className="h-7 w-7 animate-spin text-primary" />
+            </div>
           </div>
         </div>
       </div>
@@ -97,30 +99,44 @@ export default function Profile() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 w-full">
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-foreground animate-fade-in-up">My Account</h1>
-      <p className="text-muted-foreground mb-6 md:mb-8 animate-fade-in-up animate-delay-100">Manage your profile and orders</p>
+    <div className="user-page-dots min-h-[50vh]">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full">
+        <header className="mb-5 motion-safe:animate-fade-in-up">
+          <h1 className="font-display text-xl sm:text-2xl font-semibold text-foreground tracking-tight">Account</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Profile and orders</p>
+        </header>
 
-      <Tabs defaultValue="profile" className="space-y-4 sm:space-y-6">
-        <TabsList className="w-full sm:w-auto h-11 p-1 rounded-xl bg-muted/60 border border-border/80">
-          <TabsTrigger value="profile" className="flex-1 sm:flex-none text-sm sm:text-base rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">Profile</TabsTrigger>
-          <TabsTrigger value="orders" className="flex-1 sm:flex-none text-sm sm:text-base rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all">My Orders</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="profile" className="space-y-4">
+          <TabsList className="w-full sm:w-auto h-9 p-0.5 rounded-lg bg-muted/70 border border-border/80">
+            <TabsTrigger
+              value="profile"
+              className="flex-1 sm:flex-none text-xs sm:text-sm rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+            >
+              Profile
+            </TabsTrigger>
+            <TabsTrigger
+              value="orders"
+              className="flex-1 sm:flex-none text-xs sm:text-sm rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+            >
+              Orders
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="profile" className="animate-fade-in-up">
-          <ProfileForm profile={profile} onProfileChange={setProfile} onSave={handleSave} saving={saving} />
-        </TabsContent>
+          <TabsContent value="profile" className="motion-safe:animate-fade-in focus-visible:outline-none">
+            <ProfileForm profile={profile} onProfileChange={setProfile} onSave={handleSave} saving={saving} />
+          </TabsContent>
 
-        <TabsContent value="orders" className="animate-fade-in-up">
-          {userOrders.length > 0 ? (
-            <OrderHistory orders={userOrders} />
-          ) : (
-            <div className="rounded-2xl border border-border bg-card shadow-soft p-8 text-center">
-              <p className="text-muted-foreground text-sm sm:text-base">No orders found</p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="orders" className="motion-safe:animate-fade-in focus-visible:outline-none">
+            {userOrders.length > 0 ? (
+              <OrderHistory orders={userOrders} />
+            ) : (
+              <div className="rounded-xl border border-dashed border-border/80 bg-muted/20 p-8 text-center motion-safe:animate-scale-in">
+                <p className="text-muted-foreground text-xs sm:text-sm">No orders yet</p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

@@ -11,59 +11,60 @@ interface CartItemProps {
 }
 
 export function CartItem({ item, onRemove, onUpdateQuantity }: CartItemProps) {
+  const thumb = item.images?.[0] ?? '';
   return (
-    <Card className="p-4 sm:p-5 rounded-2xl border shadow-sm transition-shadow hover:shadow-md">
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
-        <div className="w-full sm:w-24 md:w-28 h-40 sm:h-24 md:h-28 bg-muted/50 rounded-xl overflow-hidden flex-shrink-0">
-          <img 
-            src={item.images[0]} 
-            alt={item.name}
-            className="w-full h-full object-cover"
-          />
+    <Card className="p-3 sm:p-4 rounded-xl border border-border/80 bg-card/95 shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/10">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <div className="w-full sm:w-20 h-36 sm:h-20 bg-muted/40 rounded-lg overflow-hidden flex-shrink-0 ring-1 ring-black/[0.04] dark:ring-white/[0.06]">
+          <img src={thumb} alt={item.name} className="w-full h-full object-cover" />
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex justify-between items-start gap-2 mb-2">
-            <Link to={`/product/${item.id}`} className="flex-1 min-w-0">
-              <h3 className="font-semibold text-base sm:text-lg hover:text-primary transition line-clamp-2">{item.name}</h3>
+          <div className="flex justify-between items-start gap-2 mb-1.5">
+            <Link to={`/product/${item.id}`} className="flex-1 min-w-0 group/title">
+              <h3 className="font-medium text-sm sm:text-base hover:text-primary transition-colors line-clamp-2 leading-snug">
+                {item.name}
+              </h3>
             </Link>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
+              className="h-8 w-8 flex-shrink-0 rounded-md text-muted-foreground hover:text-destructive transition-colors"
               onClick={() => onRemove(item.id)}
             >
-              <Trash2 className="h-4 w-4 text-destructive" />
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
             {item.offerPrice && item.offerPrice > 0 && item.actualPrice ? (
               <div>
-                <p className="text-base sm:text-lg font-bold text-primary">₹{item.offerPrice.toLocaleString()}</p>
-                <p className="text-xs sm:text-sm text-muted-foreground line-through">₹{(item.actualPrice || item.price || 0).toLocaleString()}</p>
+                <p className="text-sm font-bold text-primary">₹{item.offerPrice.toLocaleString()}</p>
+                <p className="text-[11px] text-muted-foreground line-through">
+                  ₹{(item.actualPrice || item.price || 0).toLocaleString()}
+                </p>
               </div>
             ) : (
-              <p className="text-base sm:text-lg font-bold text-primary">₹{(item.actualPrice || item.price || 0).toLocaleString()}</p>
+              <p className="text-sm font-bold text-primary">₹{(item.actualPrice || item.price || 0).toLocaleString()}</p>
             )}
-            <div className="flex items-center border rounded-md w-fit">
+            <div className="flex items-center border rounded-lg bg-background/80 h-8 w-fit shadow-sm">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 sm:h-9 sm:w-9"
+                className="h-8 w-8 rounded-none rounded-l-lg"
                 onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
                 disabled={item.quantity <= 1}
               >
-                <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Minus className="h-3 w-3" />
               </Button>
-              <span className="px-3 sm:px-4 py-1 sm:py-2 font-semibold text-sm sm:text-base min-w-[2.5rem] sm:min-w-[3rem] text-center">{item.quantity}</span>
+              <span className="px-2.5 min-w-[2rem] text-center text-xs font-semibold tabular-nums">{item.quantity}</span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 sm:h-9 sm:w-9"
+                className="h-8 w-8 rounded-none rounded-r-lg"
                 onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                 disabled={item.quantity >= item.stock}
               >
-                <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                <Plus className="h-3 w-3" />
               </Button>
             </div>
           </div>

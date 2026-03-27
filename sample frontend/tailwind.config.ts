@@ -110,6 +110,14 @@ export default {
           "0%, 100%": { transform: "rotate(55deg)" },
           "50%": { transform: "rotate(65deg)" },
         },
+        "gentle-pulse": {
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.9", transform: "scale(1.02)" },
+        },
+        "slide-in-left": {
+          from: { opacity: "0", transform: "translateX(-8px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -120,6 +128,8 @@ export default {
         "scale-in": "scale-in 0.35s ease-out forwards",
         "slide-up": "slide-up 0.3s ease-out",
         "speedometer-needle": "speedometer-needle 3s ease-in-out infinite",
+        "gentle-pulse": "gentle-pulse 4s ease-in-out infinite",
+        "slide-in-left": "slide-in-left 0.45s ease-out forwards",
       },
     },
   },

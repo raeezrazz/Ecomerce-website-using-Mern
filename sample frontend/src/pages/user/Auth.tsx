@@ -469,24 +469,24 @@ export default function Auth() {
 
   if (showOtpPage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 px-3 sm:px-4 py-4 sm:py-8 w-full">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-1 text-center p-4 sm:p-6">
-            <div className="flex justify-center mb-3 sm:mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+      <div className="user-auth-mesh min-h-screen flex items-center justify-center px-3 sm:px-4 py-6 w-full">
+        <Card className="w-full max-w-sm border-border/80 shadow-soft-lg bg-card/95 backdrop-blur-md motion-safe:animate-scale-in">
+          <CardHeader className="space-y-1 text-center p-4">
+            <div className="flex justify-center mb-2">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/10">
+                <Mail className="w-4 h-4 text-primary" />
               </div>
             </div>
-            <CardTitle className="text-xl sm:text-2xl font-bold">Verify Your Email</CardTitle>
-            <CardDescription className="text-sm sm:text-base">
-              We've sent a 6-digit code to <strong className="break-all">{signupEmail}</strong>
+            <CardTitle className="text-lg font-semibold font-display">Verify email</CardTitle>
+            <CardDescription className="text-xs">
+              Code sent to <strong className="break-all">{signupEmail}</strong>
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6 pt-0">
-            <form onSubmit={handleVerifyOtp} className="space-y-4 sm:space-y-6">
+          <CardContent className="p-4 pt-0">
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-center block text-sm sm:text-base">Enter Verification Code</Label>
-                <div className="flex justify-center gap-2 sm:gap-2">
+                <Label className="text-center block text-xs text-muted-foreground">6-digit code</Label>
+                <div className="flex justify-center gap-1.5">
                   {otp.map((digit, index) => (
                     <Input
                       key={index}
@@ -498,32 +498,32 @@ export default function Auth() {
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
                       onPaste={handleOtpPaste}
-                      className="w-10 h-10 sm:w-12 sm:h-12 text-center text-base sm:text-lg font-semibold"
+                      className="w-9 h-9 sm:w-10 sm:h-10 text-center text-sm font-semibold rounded-lg"
                       required
                     />
                   ))}
                 </div>
               </div>
 
-              <div className="space-y-3 sm:space-y-4">
-                <Button type="submit" className="w-full text-sm sm:text-base" disabled={loading}>
-                  {loading ? 'Verifying...' : 'Verify OTP'}
+              <div className="space-y-2.5">
+                <Button type="submit" className="w-full h-9 rounded-lg text-sm font-medium transition-transform hover:scale-[1.01] active:scale-[0.99]" disabled={loading}>
+                  {loading ? 'Verifying...' : 'Verify'}
                 </Button>
 
                 <div className="text-center space-y-2">
                   {timer > 0 ? (
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Resend OTP in <span className="font-semibold text-primary">{timer}s</span>
+                    <p className="text-[11px] text-muted-foreground">
+                      Resend in <span className="font-semibold text-primary tabular-nums">{timer}s</span>
                     </p>
                   ) : (
                     <Button
                       type="button"
                       variant="outline"
-                      className="w-full text-sm sm:text-base"
+                      className="w-full h-9 rounded-lg text-xs"
                       onClick={handleResendOtp}
                       disabled={loading || !canResend}
                     >
-                      Resend OTP
+                      Resend code
                     </Button>
                   )}
                 </div>
@@ -531,7 +531,7 @@ export default function Auth() {
                 <Button
                   type="button"
                   variant="ghost"
-                  className="w-full text-sm sm:text-base"
+                  className="w-full h-8 text-xs"
                   onClick={() => {
                     setShowOtpPage(false);
                     setOtp(['', '', '', '', '', '']);
@@ -539,8 +539,8 @@ export default function Auth() {
                     setCanResend(false);
                   }}
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Sign Up
+                  <ArrowLeft className="w-3.5 h-3.5 mr-1.5" />
+                  Back
                 </Button>
               </div>
             </form>
@@ -551,28 +551,34 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 px-3 sm:px-4 py-4 sm:py-8 w-full">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center p-4 sm:p-6">
-          <div className="flex justify-center mb-3 sm:mb-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <UserCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+    <div className="user-auth-mesh min-h-screen flex items-center justify-center px-3 sm:px-4 py-6 w-full">
+      <Card className="w-full max-w-sm border-border/80 shadow-soft-lg bg-card/95 backdrop-blur-md motion-safe:animate-scale-in">
+        <CardHeader className="space-y-1 text-center p-4">
+          <div className="flex justify-center mb-2">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center ring-2 ring-primary/10">
+              <UserCircle className="w-4 h-4 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-xl sm:text-2xl font-bold">Welcome</CardTitle>
-          <CardDescription className="text-sm sm:text-base">Sign in to your account or create a new one</CardDescription>
+          <CardTitle className="text-lg font-semibold font-display">Welcome</CardTitle>
+          <CardDescription className="text-xs">Sign in or create an account</CardDescription>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6 pt-0">
+        <CardContent className="p-4 pt-0">
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 h-9 sm:h-10">
-              <TabsTrigger value="login" className="text-xs sm:text-sm">Login</TabsTrigger>
-              <TabsTrigger value="signup" className="text-xs sm:text-sm">Sign Up</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-8 p-0.5 rounded-lg">
+              <TabsTrigger value="login" className="text-xs rounded-md data-[state=active]:shadow-sm">
+                Login
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="text-xs rounded-md data-[state=active]:shadow-sm">
+                Sign up
+              </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="login">
-              <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="login-email" className="text-sm sm:text-base">Email</Label>
+            <TabsContent value="login" className="mt-3">
+              <form onSubmit={handleLogin} className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="login-email" className="text-xs">
+                    Email
+                  </Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -584,15 +590,15 @@ export default function Auth() {
                         setLoginErrors({ ...loginErrors, email: undefined });
                       }
                     }}
-                    className={`text-sm sm:text-base ${loginErrors.email ? "border-red-500" : ""}`}
+                    className={`h-9 rounded-lg text-sm ${loginErrors.email ? 'border-red-500' : ''}`}
                     required
                   />
-                  {loginErrors.email && (
-                    <p className="text-xs sm:text-sm text-red-500 mt-1">{loginErrors.email}</p>
-                  )}
+                  {loginErrors.email && <p className="text-[11px] text-red-500">{loginErrors.email}</p>}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="login-password" className="text-sm sm:text-base">Password</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="login-password" className="text-xs">
+                    Password
+                  </Label>
                   <Input
                     id="login-password"
                     type="password"
@@ -604,34 +610,36 @@ export default function Auth() {
                         setLoginErrors({ ...loginErrors, password: undefined });
                       }
                     }}
-                    className={`text-sm sm:text-base ${loginErrors.password ? "border-red-500" : ""}`}
+                    className={`h-9 rounded-lg text-sm ${loginErrors.password ? 'border-red-500' : ''}`}
                     required
                   />
-                  {loginErrors.password && (
-                    <p className="text-xs sm:text-sm text-red-500 mt-1">{loginErrors.password}</p>
-                  )}
+                  {loginErrors.password && <p className="text-[11px] text-red-500">{loginErrors.password}</p>}
                 </div>
-                <Button type="submit" className="w-full text-sm sm:text-base" disabled={loading}>
-                  {loading ? 'Signing in...' : 'Sign In'}
+                <Button
+                  type="submit"
+                  className="w-full h-9 rounded-lg text-sm font-medium transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                  disabled={loading}
+                >
+                  {loading ? 'Signing in...' : 'Sign in'}
                 </Button>
                 
-                <div className="relative">
+                <div className="relative py-0.5">
                   <div className="absolute inset-0 flex items-center">
                     <Separator />
                   </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                  <div className="relative flex justify-center text-[10px] uppercase tracking-wider">
+                    <span className="bg-card px-2 text-muted-foreground">Or</span>
                   </div>
                 </div>
 
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full h-9 rounded-lg text-xs"
                   onClick={() => googleLoginHook()}
                   disabled={loading}
                 >
-                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                  <svg className="mr-2 h-3.5 w-3.5" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -649,15 +657,17 @@ export default function Auth() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  Continue with Google
+                  Google
                 </Button>
               </form>
             </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-3 sm:space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name" className="text-sm sm:text-base">Full Name</Label>
+
+            <TabsContent value="signup" className="mt-3">
+              <form onSubmit={handleSignup} className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-name" className="text-xs">
+                    Full name
+                  </Label>
                   <Input
                     id="signup-name"
                     type="text"
@@ -669,15 +679,15 @@ export default function Auth() {
                         setSignupErrors({ ...signupErrors, name: undefined });
                       }
                     }}
-                    className={`text-sm sm:text-base ${signupErrors.name ? "border-red-500" : ""}`}
+                    className={`h-9 rounded-lg text-sm ${signupErrors.name ? 'border-red-500' : ''}`}
                     required
                   />
-                  {signupErrors.name && (
-                    <p className="text-xs sm:text-sm text-red-500 mt-1">{signupErrors.name}</p>
-                  )}
+                  {signupErrors.name && <p className="text-[11px] text-red-500">{signupErrors.name}</p>}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="text-sm sm:text-base">Email</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-email" className="text-xs">
+                    Email
+                  </Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -689,15 +699,15 @@ export default function Auth() {
                         setSignupErrors({ ...signupErrors, email: undefined });
                       }
                     }}
-                    className={`text-sm sm:text-base ${signupErrors.email ? "border-red-500" : ""}`}
+                    className={`h-9 rounded-lg text-sm ${signupErrors.email ? 'border-red-500' : ''}`}
                     required
                   />
-                  {signupErrors.email && (
-                    <p className="text-xs sm:text-sm text-red-500 mt-1">{signupErrors.email}</p>
-                  )}
+                  {signupErrors.email && <p className="text-[11px] text-red-500">{signupErrors.email}</p>}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-phone" className="text-sm sm:text-base">Phone Number</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-phone" className="text-xs">
+                    Phone
+                  </Label>
                   <Input
                     id="signup-phone"
                     type="tel"
@@ -705,22 +715,22 @@ export default function Auth() {
                     maxLength={10}
                     value={signupPhone}
                     onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+                      const value = e.target.value.replace(/\D/g, '');
                       setSignupPhone(value);
                       if (signupErrors.phone) {
                         setSignupErrors({ ...signupErrors, phone: undefined });
                       }
                     }}
-                    className={`text-sm sm:text-base ${signupErrors.phone ? "border-red-500" : ""}`}
+                    className={`h-9 rounded-lg text-sm ${signupErrors.phone ? 'border-red-500' : ''}`}
                     required
                   />
-                  {signupErrors.phone && (
-                    <p className="text-xs sm:text-sm text-red-500 mt-1">{signupErrors.phone}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">Enter 10-digit phone number</p>
+                  {signupErrors.phone && <p className="text-[11px] text-red-500">{signupErrors.phone}</p>}
+                  <p className="text-[10px] text-muted-foreground">10 digits</p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="text-sm sm:text-base">Password</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="signup-password" className="text-xs">
+                    Password
+                  </Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -732,16 +742,18 @@ export default function Auth() {
                         setSignupErrors({ ...signupErrors, password: undefined });
                       }
                     }}
-                    className={`text-sm sm:text-base ${signupErrors.password ? "border-red-500" : ""}`}
+                    className={`h-9 rounded-lg text-sm ${signupErrors.password ? 'border-red-500' : ''}`}
                     required
                   />
-                  {signupErrors.password && (
-                    <p className="text-xs sm:text-sm text-red-500 mt-1">{signupErrors.password}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
+                  {signupErrors.password && <p className="text-[11px] text-red-500">{signupErrors.password}</p>}
+                  <p className="text-[10px] text-muted-foreground">Min. 6 characters</p>
                 </div>
-                <Button type="submit" className="w-full text-sm sm:text-base" disabled={loading}>
-                  {loading ? 'Creating account...' : 'Create Account'}
+                <Button
+                  type="submit"
+                  className="w-full h-9 rounded-lg text-sm font-medium transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                  disabled={loading}
+                >
+                  {loading ? 'Creating...' : 'Create account'}
                 </Button>
               </form>
             </TabsContent>
