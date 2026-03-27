@@ -29,7 +29,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Download, Phone, Calendar, X, Filter, ImageIcon } from 'lucide-react';
+import { Plus, Download, Phone, Calendar, X, Filter, ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { fetchTallyEntries, fetchWarehouseItems, createTallyEntry, updateTallyEntry } from '@/api/adminApi';
 import type { TallyEntry } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -57,6 +57,8 @@ export default function Tally() {
   const [isCurrentMonthFilter, setIsCurrentMonthFilter] = useState<boolean>(false);
   const [customFromDate, setCustomFromDate] = useState<string>('');
   const [customToDate, setCustomToDate] = useState<string>('');
+  /** On small screens, filters start collapsed; use toggle to expand. */
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     customerName: '',
@@ -579,10 +581,10 @@ export default function Tally() {
         {/* Professional Filter Section */}
         <Card className="p-3 sm:p-4">
           <div className="space-y-3">
-            {/* Filter Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-muted-foreground" />
+            {/* Filter Header — mobile: toggle to show/hide filter controls */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
                 <h3 className="text-sm font-semibold">Filters</h3>
                 {activeFiltersCount > 0 && (
                   <Badge variant="secondary" className="text-xs">
@@ -590,19 +592,55 @@ export default function Tally() {
                   </Badge>
                 )}
               </div>
-              {activeFiltersCount > 0 && (
+              <div className="flex items-center gap-2 shrink-0">
+                {activeFiltersCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="h-7 text-xs hidden sm:inline-flex"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear All
+                  </Button>
+                )}
                 <Button
-                  variant="ghost"
+                  type="button"
+                  variant="outline"
                   size="sm"
-                  onClick={clearAllFilters}
-                  className="h-7 text-xs"
+                  className="h-8 text-xs sm:hidden"
+                  onClick={() => setMobileFiltersOpen((open) => !open)}
+                  aria-expanded={mobileFiltersOpen}
                 >
-                  <X className="h-3 w-3 mr-1" />
-                  Clear All
+                  {mobileFiltersOpen ? (
+                    <>
+                      Hide
+                      <ChevronUp className="h-3 w-3 ml-1" />
+                    </>
+                  ) : (
+                    <>
+                      Show filters
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </>
+                  )}
                 </Button>
-              )}
+              </div>
             </div>
+            {activeFiltersCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="h-7 text-xs w-full sm:hidden -mt-1"
+              >
+                <X className="h-3 w-3 mr-1" />
+                Clear All
+              </Button>
+            )}
 
+            <div
+              className={`space-y-3 ${mobileFiltersOpen ? 'block' : 'hidden'} sm:block`}
+            >
             {/* Filter Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {/* Date/Month Filter */}
@@ -727,18 +765,14 @@ export default function Tally() {
               )}
             </div>
 
-            {/* Results Summary */}
-            <div className="flex items-center justify-between pt-2 border-t">
-              <div className="text-xs text-muted-foreground">
-                Showing <span className="font-semibold text-foreground">{filteredEntries.length}</span> of{' '}
-                <span className="font-semibold text-foreground">{entries.length}</span> entries
-              </div>
-              {activeFiltersCount > 0 && (
-                <div className="flex flex-wrap gap-1">
+            {/* Active filter chips (inside mobile collapsible) */}
+            {activeFiltersCount > 0 && (
+              <div className="flex flex-wrap gap-1 sm:hidden pt-1">
                   {selectedMonth !== 'all' && (
                     <Badge variant="outline" className="text-xs h-5">
                       {monthOptions.find(opt => opt.value === selectedMonth)?.label || 'Month'}
                       <button
+                        type="button"
                         onClick={() => handleMonthChange('all')}
                         className="ml-1 hover:text-destructive"
                       >
@@ -750,6 +784,7 @@ export default function Tally() {
                     <Badge variant="outline" className="text-xs h-5">
                       {selectedPaymentStatus}
                       <button
+                        type="button"
                         onClick={() => handlePaymentStatusChange('all')}
                         className="ml-1 hover:text-destructive"
                       >
@@ -761,6 +796,7 @@ export default function Tally() {
                     <Badge variant="outline" className="text-xs h-5">
                       {selectedServiceType}
                       <button
+                        type="button"
                         onClick={() => handleServiceTypeChange('all')}
                         className="ml-1 hover:text-destructive"
                       >
@@ -772,6 +808,7 @@ export default function Tally() {
                     <Badge variant="outline" className="text-xs h-5">
                       {selectedStatus}
                       <button
+                        type="button"
                         onClick={() => handleStatusChange('all')}
                         className="ml-1 hover:text-destructive"
                       >
@@ -783,6 +820,80 @@ export default function Tally() {
                     <Badge variant="outline" className="text-xs h-5">
                       {customFromDate && customToDate ? `${customFromDate} → ${customToDate}` : customFromDate ? `${customFromDate} → …` : `… → ${customToDate}`}
                       <button
+                        type="button"
+                        onClick={() => { setCustomFromDate(''); setCustomToDate(''); }}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+              </div>
+            )}
+
+            </div>
+
+            {/* Results Summary — always visible */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-2 border-t">
+              <div className="text-xs text-muted-foreground">
+                Showing <span className="font-semibold text-foreground">{filteredEntries.length}</span> of{' '}
+                <span className="font-semibold text-foreground">{entries.length}</span> entries
+              </div>
+              {activeFiltersCount > 0 && (
+                <div className="hidden sm:flex flex-wrap gap-1">
+                  {selectedMonth !== 'all' && (
+                    <Badge variant="outline" className="text-xs h-5">
+                      {monthOptions.find(opt => opt.value === selectedMonth)?.label || 'Month'}
+                      <button
+                        type="button"
+                        onClick={() => handleMonthChange('all')}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {selectedPaymentStatus !== 'all' && (
+                    <Badge variant="outline" className="text-xs h-5">
+                      {selectedPaymentStatus}
+                      <button
+                        type="button"
+                        onClick={() => handlePaymentStatusChange('all')}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {selectedServiceType !== 'all' && (
+                    <Badge variant="outline" className="text-xs h-5">
+                      {selectedServiceType}
+                      <button
+                        type="button"
+                        onClick={() => handleServiceTypeChange('all')}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {selectedStatus !== 'all' && (
+                    <Badge variant="outline" className="text-xs h-5">
+                      {selectedStatus}
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange('all')}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {(customFromDate || customToDate) && (
+                    <Badge variant="outline" className="text-xs h-5">
+                      {customFromDate && customToDate ? `${customFromDate} → ${customToDate}` : customFromDate ? `${customFromDate} → …` : `… → ${customToDate}`}
+                      <button
+                        type="button"
                         onClick={() => { setCustomFromDate(''); setCustomToDate(''); }}
                         className="ml-1 hover:text-destructive"
                       >
