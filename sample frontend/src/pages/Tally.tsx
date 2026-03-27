@@ -42,6 +42,36 @@ import { CustomerAutocomplete } from '@/components/admin/CustomerAutocomplete';
 import { mockWarehouseItems } from '@/data/warehouseData';
 import type { WarehouseItem, UsedPart } from '@/types';
 
+function getSubmitErrorMessage(error: unknown): string {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const ax = error as {
+      response?: { status?: number; data?: unknown };
+      message?: string;
+    };
+    const data = ax.response?.data;
+    if (typeof data === 'string' && data.trim()) return data.trim();
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+      const d = data as Record<string, unknown>;
+      const msg = d.error ?? d.message;
+      if (typeof msg === 'string' && msg.trim()) return msg.trim();
+    }
+    const status = ax.response?.status;
+    if (status === 401) {
+      return 'Session expired or not authorized. Sign in again and retry.';
+    }
+    if (status === 403) {
+      return 'You do not have permission to save this entry.';
+    }
+    if (status !== undefined && status >= 500) {
+      return 'Server error while saving. Please try again later.';
+    }
+    if (ax.message?.trim()) return ax.message.trim();
+    return 'Could not save the entry. Check your connection and try again.';
+  }
+  if (error instanceof Error && error.message) return error.message;
+  return 'Failed to save entry. Please try again.';
+}
+
 export default function Tally() {
   const { toast } = useToast();
   const { setFormOpen } = useFormDialog();
@@ -151,14 +181,18 @@ export default function Tally() {
     else if (!/^\d{10}$/.test(formData.phone)) newErrors.phone = 'Phone must be 10 digits';
     
     if (formData.serviceType === 'repair') {
-      if (!formData.itemType) newErrors.itemType = 'Item/Meter Type is required';
+      if (!formData.itemType?.trim()) {
+        newErrors.itemType = 'Item/Meter Type is required';
+      }
       const laborCost = parseFloat(formData.serviceCharge) || 0;
       const partsCost = formData.usedParts.reduce((sum, part) => sum + part.total, 0);
       if (laborCost <= 0 && partsCost <= 0) {
         newErrors.serviceCharge = 'Labor cost or parts cost is required';
       }
     } else if (formData.serviceType === 'sale') {
-      if (!formData.itemType) newErrors.itemType = 'Item is required';
+      if (!formData.itemType?.trim()) {
+        newErrors.itemType = 'Item sold is required';
+      }
       const itemPrice = parseFloat(formData.itemPrice) || 0;
       if (itemPrice <= 0) newErrors.itemPrice = 'Item price is required';
     }
@@ -250,38 +284,26 @@ export default function Tally() {
       photos: formData.photos,
     };
 
+    const { id: _clientId, ...entryPayload } = newEntry;
+
     try {
-      // Save to backend (backend handles stock reduction)
       if (editingEntry) {
-        const updatedEntry = await updateTallyEntry(editingEntry.id, newEntry);
-        const updated = entries.map(e => e.id === editingEntry.id ? updatedEntry : e);
+        const updatedEntry = await updateTallyEntry(editingEntry.id, entryPayload);
+        const updated = entries.map((e) => (e.id === editingEntry.id ? updatedEntry : e));
         setEntries(updated);
       } else {
-        const createdEntry = await createTallyEntry(newEntry);
-        const updated = [...entries, createdEntry];
-        setEntries(updated);
+        const createdEntry = await createTallyEntry(entryPayload);
+        setEntries((prev) => [...prev, createdEntry]);
       }
-      
-      // Refresh warehouse items to reflect stock changes
+
       const warehouseData = await fetchWarehouseItems();
       setWarehouseItems(warehouseData);
     } catch (error: unknown) {
-      const err = error as {
-        response?: { data?: { error?: string; message?: string } };
-        message?: string;
-      };
-      const errorMessage =
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        err.message ||
-        'Failed to save entry. Please try again.';
-
       toast({
-        title: 'Save Failed (Server)',
-        description: errorMessage,
+        title: 'Could not save entry',
+        description: getSubmitErrorMessage(error),
         variant: 'destructive',
       });
-
       return;
     }
 
@@ -1597,21 +1619,23 @@ export default function Tally() {
                 phoneError={errors.phone}
               />
 
-              {/* Item/Meter Type - Only for Repair */}
-              {formData.serviceType === 'repair' && (
-                <div className="grid gap-2">
-                  <Label htmlFor="itemType">Item/Meter Type *</Label>
-                  <ItemTypeAutocomplete
-                    value={formData.itemType}
-                    onChange={(value) =>
-                      setFormData({ ...formData, itemType: value })
-                    }
-                    placeholder="LCD Digital Speedometer"
-                    className={errors.itemType ? "border-red-500" : ""}
-                    error={errors.itemType}
-                  />
-                </div>
-              )}
+              {/* Item — required for repair and sale */}
+              <div className="grid gap-2">
+                <Label htmlFor="itemType">
+                  {formData.serviceType === 'repair' ? 'Item/Meter Type *' : 'Item sold *'}
+                </Label>
+                <ItemTypeAutocomplete
+                  value={formData.itemType}
+                  onChange={(value) => setFormData({ ...formData, itemType: value })}
+                  placeholder={
+                    formData.serviceType === 'repair'
+                      ? 'LCD Digital Speedometer'
+                      : 'Product or meter sold'
+                  }
+                  className={errors.itemType ? 'border-red-500' : ''}
+                  error={errors.itemType}
+                />
+              </div>
 
               {/* Item Price - Only for Sale */}
               {formData.serviceType === 'sale' && (
@@ -1742,10 +1766,17 @@ export default function Tally() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => { setFormOpen(false); setDialogOpen(false); }}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setFormOpen(false);
+                  setDialogOpen(false);
+                }}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleSubmit}>
+              <Button type="button" onClick={() => void handleSubmit()}>
                 {editingEntry ? 'Update Entry' : 'Add Entry'}
               </Button>
             </DialogFooter>

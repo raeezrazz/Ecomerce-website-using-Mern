@@ -1,6 +1,12 @@
 import { TallyEntry, ITallyEntry } from "../models/tally";
 import { WarehouseItem } from "../models/warehouse";
 
+function toNum(v: unknown, fallback = 0): number {
+  if (v === null || v === undefined || v === "") return fallback;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 class TallyService {
   async getAllEntries(): Promise<ITallyEntry[]> {
     return await TallyEntry.find().sort({ date: -1 });
@@ -66,9 +72,10 @@ class TallyService {
   private prepareTallyAmounts(data: Partial<ITallyEntry>) {
     data.serviceType = data.serviceType ?? data.type ?? "repair";
     data.type = data.serviceType;
-    data.itemType = data.itemType ?? data.item ?? "";
-    data.item = data.itemType;
-    data.serviceCharge = data.serviceCharge ?? data.laborCost ?? 0;
+    const itemLabel = String(data.itemType ?? data.item ?? "").trim();
+    data.itemType = itemLabel;
+    data.item = itemLabel;
+    data.serviceCharge = toNum(data.serviceCharge ?? data.laborCost, 0);
     data.laborCost = data.serviceCharge;
 
     if (data.serviceType === "sale") {
@@ -77,8 +84,11 @@ class TallyService {
       data.partsCost = 0;
       data.serviceCharge = 0;
       data.laborCost = 0;
-      const saleItemsTotal = saleItems.reduce((sum, item) => sum + (item.total || 0), 0);
-      const directItemPrice = data.itemPrice ?? 0;
+      const saleItemsTotal = saleItems.reduce(
+        (sum, item) => sum + toNum(item.total, 0),
+        0
+      );
+      const directItemPrice = toNum(data.itemPrice, 0);
       const effectiveItemPrice = saleItemsTotal > 0 ? saleItemsTotal : directItemPrice;
       data.itemPrice = effectiveItemPrice;
       data.totalAmount = effectiveItemPrice;
@@ -88,22 +98,32 @@ class TallyService {
 
     const usedParts = data.usedParts ?? [];
     data.saleItems = [];
-    data.partsCost = usedParts.reduce((sum, part) => sum + (part.total || 0), 0);
-    data.totalAmount = (data.serviceCharge || 0) + (data.partsCost || 0);
+    data.partsCost = usedParts.reduce((sum, part) => sum + toNum(part.total, 0), 0);
+    data.serviceCharge = toNum(data.serviceCharge, 0);
+    data.laborCost = data.serviceCharge;
+    data.totalAmount = data.serviceCharge + (data.partsCost || 0);
     data.itemPrice = 0;
     data.total = data.totalAmount;
   }
 
   private validateByType(data: Partial<ITallyEntry>) {
+    const itemLabel = String(data.itemType ?? data.item ?? "").trim();
+    if (!itemLabel) {
+      throw new Error("Item / description is required");
+    }
+    data.itemType = itemLabel;
+    data.item = itemLabel;
+
     if (data.serviceType === "sale") {
-      if ((data.itemPrice ?? 0) <= 0) {
+      const price = toNum(data.itemPrice, 0);
+      if (price <= 0) {
         throw new Error("Item price is required for sale entries");
       }
       return;
     }
 
-    const labor = data.serviceCharge ?? 0;
-    const parts = data.partsCost ?? 0;
+    const labor = toNum(data.serviceCharge, 0);
+    const parts = toNum(data.partsCost, 0);
     if (labor <= 0 && parts <= 0) {
       throw new Error("Labor cost or parts cost is required for repair entries");
     }

@@ -168,19 +168,31 @@ export const updateOrderStatus = async (
 };
 
 // -------- TALLY --------
+/** Backend returns Mongo `_id`; frontend expects `id`. */
+function normalizeTallyEntry(raw: unknown): TallyEntry {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Invalid tally data from server");
+  }
+  const r = raw as Record<string, unknown>;
+  const id = String(r.id ?? r._id ?? "");
+  return { ...r, id } as TallyEntry;
+}
+
 export const fetchTallyEntries = async (): Promise<TallyEntry[]> => {
   const res = await apiClient.get("/api/admin/tally");
-  return res.data;
+  const list = res.data;
+  if (!Array.isArray(list)) return [];
+  return list.map(normalizeTallyEntry);
 };
 
 export const createTallyEntry = async (entry: Partial<TallyEntry>): Promise<TallyEntry> => {
   const res = await apiClient.post("/api/admin/tally", entry);
-  return res.data;
+  return normalizeTallyEntry(res.data);
 };
 
 export const updateTallyEntry = async (id: string, updates: Partial<TallyEntry>): Promise<TallyEntry> => {
   const res = await apiClient.put(`/api/admin/tally/${id}`, updates);
-  return res.data;
+  return normalizeTallyEntry(res.data);
 };
 
 export const deleteTallyEntry = async (id: string): Promise<void> => {
