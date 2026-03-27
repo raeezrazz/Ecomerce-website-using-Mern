@@ -59,6 +59,8 @@ export default function Tally() {
   const [customToDate, setCustomToDate] = useState<string>('');
   /** On small screens, filters start collapsed; use toggle to expand. */
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  /** Mobile: read-only entry detail modal */
+  const [mobileDetailEntry, setMobileDetailEntry] = useState<TallyEntry | null>(null);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     customerName: '',
@@ -912,9 +914,9 @@ export default function Tally() {
           <h2 className="text-sm sm:text-base font-semibold mb-2">
             Total (All Time)
           </h2>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
             <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent ${
+              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
                 selectedMonth === 'all' && selectedPaymentStatus === 'all' && selectedServiceType === 'all' && selectedStatus === 'all' && !isCurrentMonthFilter ? 'ring-2 ring-primary' : ''
               }`}
               onClick={() => {
@@ -927,20 +929,21 @@ export default function Tally() {
                 setCustomToDate('');
               }}
             >
-              <CardHeader className="pb-1 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground">
-                  Total Revenue
+              <CardHeader className="pb-0 p-0">
+                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
+                  <span className="md:hidden">Revenue</span>
+                  <span className="hidden md:inline">Total Revenue</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 pt-1">
-                <div className="text-sm sm:text-base font-bold">
+              <CardContent className="p-0 pt-0.5">
+                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">
                   ₹{totalStats.revenue.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
 
             <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent ${
+              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
                 selectedPaymentStatus === 'paid' && !isCurrentMonthFilter ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950' : ''
               }`}
               onClick={() => {
@@ -955,20 +958,20 @@ export default function Tally() {
                 }
               }}
             >
-              <CardHeader className="pb-1 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+              <CardHeader className="pb-0 p-0">
+                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
                   Paid
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 pt-1">
-                <div className="text-sm sm:text-base font-bold text-green-600">
+              <CardContent className="p-0 pt-0.5">
+                <div className="text-xs sm:text-sm md:text-base font-bold text-green-600 tabular-nums">
                   ₹{totalStats.paid.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
 
             <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent ${
+              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
                 selectedPaymentStatus === 'unpaid' && !isCurrentMonthFilter ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-950' : ''
               }`}
               onClick={() => {
@@ -983,20 +986,20 @@ export default function Tally() {
                 }
               }}
             >
-              <CardHeader className="pb-1 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+              <CardHeader className="pb-0 p-0">
+                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
                   Pending
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 pt-1">
-                <div className="text-sm sm:text-base font-bold text-orange-600">
+              <CardContent className="p-0 pt-0.5">
+                <div className="text-xs sm:text-sm md:text-base font-bold text-orange-600 tabular-nums">
                   ₹{totalStats.pending.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
 
             <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent ${
+              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
                 selectedServiceType === 'repair' && !isCurrentMonthFilter ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950' : ''
               }`}
               onClick={() => {
@@ -1011,18 +1014,18 @@ export default function Tally() {
                 }
               }}
             >
-              <CardHeader className="pb-1 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+              <CardHeader className="pb-0 p-0">
+                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
                   Repairs
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 pt-1">
-                <div className="text-sm sm:text-base font-bold">{totalStats.repairs}</div>
+              <CardContent className="p-0 pt-0.5">
+                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">{totalStats.repairs}</div>
               </CardContent>
             </Card>
 
             <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent ${
+              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
                 selectedServiceType === 'sale' && !isCurrentMonthFilter ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-950' : ''
               }`}
               onClick={() => {
@@ -1037,13 +1040,13 @@ export default function Tally() {
                 }
               }}
             >
-              <CardHeader className="pb-1 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+              <CardHeader className="pb-0 p-0">
+                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
                   Sales
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 pt-1">
-                <div className="text-sm sm:text-base font-bold">{totalStats.sales}</div>
+              <CardContent className="p-0 pt-0.5">
+                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">{totalStats.sales}</div>
               </CardContent>
             </Card>
           </div>
@@ -1052,9 +1055,9 @@ export default function Tally() {
         {/* Current Month Statistics */}
         <div>
           <h2 className="text-sm sm:text-base font-semibold mb-2">Current Month ({new Date().toLocaleString('default', { month: 'short', year: 'numeric' })})</h2>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
             <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent ${
+              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
                 selectedMonth === 'current' && selectedPaymentStatus === 'all' && selectedServiceType === 'all' && selectedStatus === 'all' && isCurrentMonthFilter ? 'ring-2 ring-primary' : ''
               }`}
               onClick={() => {
@@ -1067,20 +1070,20 @@ export default function Tally() {
                 setCustomToDate('');
               }}
             >
-              <CardHeader className="pb-1 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+              <CardHeader className="pb-0 p-0">
+                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
                   Revenue
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 pt-1">
-                <div className="text-sm sm:text-base font-bold">
+              <CardContent className="p-0 pt-0.5">
+                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">
                   ₹{currentMonthStats.revenue.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
 
             <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent ${
+              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
                 selectedPaymentStatus === 'paid' && isCurrentMonthFilter ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950' : ''
               }`}
               onClick={() => {
@@ -1095,20 +1098,20 @@ export default function Tally() {
                 }
               }}
             >
-              <CardHeader className="pb-1 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+              <CardHeader className="pb-0 p-0">
+                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
                   Paid
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 pt-1">
-                <div className="text-sm sm:text-base font-bold text-green-600">
+              <CardContent className="p-0 pt-0.5">
+                <div className="text-xs sm:text-sm md:text-base font-bold text-green-600 tabular-nums">
                   ₹{currentMonthStats.paid.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
 
             <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent ${
+              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
                 selectedPaymentStatus === 'unpaid' && isCurrentMonthFilter ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-950' : ''
               }`}
               onClick={() => {
@@ -1123,20 +1126,20 @@ export default function Tally() {
                 }
               }}
             >
-              <CardHeader className="pb-1 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+              <CardHeader className="pb-0 p-0">
+                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
                   Pending
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 pt-1">
-                <div className="text-sm sm:text-base font-bold text-orange-600">
+              <CardContent className="p-0 pt-0.5">
+                <div className="text-xs sm:text-sm md:text-base font-bold text-orange-600 tabular-nums">
                   ₹{currentMonthStats.pending.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
 
             <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent ${
+              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
                 selectedServiceType === 'repair' && isCurrentMonthFilter ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950' : ''
               }`}
               onClick={() => {
@@ -1151,18 +1154,18 @@ export default function Tally() {
                 }
               }}
             >
-              <CardHeader className="pb-1 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+              <CardHeader className="pb-0 p-0">
+                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
                   Repairs
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 pt-1">
-                <div className="text-sm sm:text-base font-bold">{currentMonthStats.repairs}</div>
+              <CardContent className="p-0 pt-0.5">
+                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">{currentMonthStats.repairs}</div>
               </CardContent>
             </Card>
 
             <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent ${
+              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
                 selectedServiceType === 'sale' && isCurrentMonthFilter ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-950' : ''
               }`}
               onClick={() => {
@@ -1177,13 +1180,13 @@ export default function Tally() {
                 }
               }}
             >
-              <CardHeader className="pb-1 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground">
+              <CardHeader className="pb-0 p-0">
+                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
                   Sales
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 pt-1">
-                <div className="text-sm sm:text-base font-bold">{currentMonthStats.sales}</div>
+              <CardContent className="p-0 pt-0.5">
+                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">{currentMonthStats.sales}</div>
               </CardContent>
             </Card>
           </div>
@@ -1191,8 +1194,8 @@ export default function Tally() {
 
         {/* Service Register Table */}
         <Card>
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-xl">
+          <CardHeader className="p-3 pb-2 sm:p-6 sm:pb-6">
+            <CardTitle className="text-base sm:text-xl">
               Service Entries ({filteredEntries.length})
               {selectedMonth !== 'all' && selectedMonth !== 'current' && (
                 <span className="text-sm font-normal text-muted-foreground ml-2">
@@ -1202,89 +1205,71 @@ export default function Tally() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0 sm:p-6">
-            {/* Mobile Card View */}
-            <div className="md:hidden space-y-3 p-4">
+            {/* Mobile: compact table + details in modal */}
+            <div className="md:hidden px-2 pb-4">
               {filteredEntries.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
+                <div className="text-center text-muted-foreground py-8 text-sm px-2">
                   {selectedMonth === 'all' 
                     ? 'No entries yet. Click "Add Entry" to get started.'
                     : `No entries found for ${monthOptions.find(opt => opt.value === selectedMonth)?.label || 'selected month'}.`
                   }
                 </div>
               ) : (
-                filteredEntries.map((entry, index) => (
-                  <Card key={`${entry.id}-${entry.date}-${index}`} className="p-4">
-                    <div className="space-y-3">
-                      {/* Header Row */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-base mb-1">{entry.customerName}</div>
-                          <div className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Phone className="h-3 w-3 flex-shrink-0" />
-                            <span className="truncate">{entry.phone}</span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(entry.date).toLocaleDateString()}
-                          </div>
-                          {getStatusBadge(entry.status)}
-                        </div>
-                      </div>
-
-                      {/* Item and Type */}
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium">{entry.itemType}</span>
-                        <Badge variant={entry.serviceType === 'repair' ? 'secondary' : 'default'} className="text-xs">
-                          {entry.serviceType}
-                        </Badge>
-                        {getPaymentBadge(entry.paymentStatus)}
-                      </div>
-
-                      {/* Financial Info */}
-                      <div className="grid grid-cols-2 gap-2 pt-2 border-t">
-                        <div>
-                          <div className="text-xs text-muted-foreground">
-                            {entry.serviceType === 'sale' ? 'Item Price' : 'Labor Cost'}
-                          </div>
-                          <div className="text-sm font-medium text-right">₹{(entry.serviceType === 'sale' ? getItemPrice(entry) : getLaborCost(entry)).toLocaleString()}</div>
-                        </div>
-                        {entry.serviceType === 'repair' ? (
-                          <div>
-                            <div className="text-xs text-muted-foreground">Parts Cost</div>
-                            <div className="text-sm font-medium text-right">
-                              ₹{getPartsCost(entry).toLocaleString()}
-                            </div>
-                          </div>
-                        ) : <div />}
-                        <div className="col-span-2">
-                          <div className="text-xs text-muted-foreground">Total Amount</div>
-                          <div className="text-base font-bold text-right">₹{getTotalAmount(entry).toLocaleString()}</div>
-                        </div>
-                      </div>
-
-                      {/* Photos */}
-                      {entry.photos && entry.photos.length > 0 && (
-                        <div className="pt-2 border-t">
-                          <div className="text-xs text-muted-foreground mb-2">Photos</div>
-                          <PhotoGallery photos={entry.photos} />
-                        </div>
-                      )}
-
-                      {/* Actions */}
-                      <div className="pt-2 border-t">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenDialog(entry)}
-                          className="w-full"
-                        >
-                          Edit Entry
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))
+                <div className="rounded-md border overflow-hidden bg-card">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[340px] text-xs">
+                      <thead>
+                        <tr className="border-b bg-muted/50 text-left">
+                          <th className="p-2 font-medium text-muted-foreground w-[72px]">Date</th>
+                          <th className="p-2 font-medium text-muted-foreground min-w-[88px]">Customer</th>
+                          <th className="p-2 font-medium text-muted-foreground text-center w-[52px]">Type</th>
+                          <th className="p-2 font-medium text-muted-foreground text-right w-[76px]">Total</th>
+                          <th className="p-2 font-medium text-muted-foreground w-[76px] text-right pr-1"> </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredEntries.map((entry, index) => (
+                          <tr
+                            key={`${entry.id}-${entry.date}-${index}`}
+                            className={`border-b border-border/80 last:border-0 ${isUnpaidDelivered(entry) ? 'bg-destructive/5' : ''}`}
+                          >
+                            <td className="p-2 text-muted-foreground whitespace-nowrap align-middle tabular-nums">
+                              {new Date(entry.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            </td>
+                            <td className="p-2 align-middle">
+                              <span className="font-medium line-clamp-2 break-words block max-w-[120px]" title={entry.customerName}>
+                                {entry.customerName}
+                              </span>
+                            </td>
+                            <td className="p-2 text-center align-middle">
+                              <Badge
+                                variant={entry.serviceType === 'repair' ? 'secondary' : 'default'}
+                                className="text-[10px] px-1.5 py-0 h-5 whitespace-nowrap"
+                                title={entry.serviceType}
+                              >
+                                {entry.serviceType === 'repair' ? 'Rep' : 'Sale'}
+                              </Badge>
+                            </td>
+                            <td className="p-2 text-right font-semibold align-middle tabular-nums whitespace-nowrap">
+                              ₹{getTotalAmount(entry).toLocaleString()}
+                            </td>
+                            <td className="p-1 align-middle text-right">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-[11px] px-2"
+                                onClick={() => setMobileDetailEntry(entry)}
+                              >
+                                Details
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               )}
             </div>
 
@@ -1382,6 +1367,119 @@ export default function Tally() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Mobile: read-only entry detail modal */}
+        <Dialog
+          open={!!mobileDetailEntry}
+          onOpenChange={(open) => {
+            if (!open) setMobileDetailEntry(null);
+          }}
+        >
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md gap-0">
+            {mobileDetailEntry && (
+              <>
+                <DialogHeader className="space-y-1 pb-2">
+                  <DialogTitle className="text-lg">Entry details</DialogTitle>
+                  <DialogDescription className="text-sm">
+                    {new Date(mobileDetailEntry.date).toLocaleDateString(undefined, {
+                      weekday: 'short',
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                    })}{' '}
+                    · {mobileDetailEntry.customerName}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-3 py-3 text-sm border-t">
+                  <div className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-2">
+                    <span className="text-muted-foreground">Phone</span>
+                    <span className="font-medium flex items-center gap-1">
+                      <Phone className="h-3.5 w-3.5 shrink-0" />
+                      {mobileDetailEntry.phone}
+                    </span>
+                    <span className="text-muted-foreground">Item</span>
+                    <span className="font-medium break-words">{mobileDetailEntry.itemType}</span>
+                    <span className="text-muted-foreground">Type</span>
+                    <span>
+                      <Badge variant={mobileDetailEntry.serviceType === 'repair' ? 'secondary' : 'default'} className="capitalize">
+                        {mobileDetailEntry.serviceType}
+                      </Badge>
+                    </span>
+                    <span className="text-muted-foreground">Status</span>
+                    <span>{getStatusBadge(mobileDetailEntry.status)}</span>
+                    <span className="text-muted-foreground">Payment</span>
+                    <span>{getPaymentBadge(mobileDetailEntry.paymentStatus)}</span>
+                    {mobileDetailEntry.serviceType === 'repair' ? (
+                      <>
+                        <span className="text-muted-foreground">Labor</span>
+                        <span className="text-right tabular-nums">₹{getLaborCost(mobileDetailEntry).toLocaleString()}</span>
+                        <span className="text-muted-foreground">Parts</span>
+                        <span className="text-right tabular-nums">₹{getPartsCost(mobileDetailEntry).toLocaleString()}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-muted-foreground">Item price</span>
+                        <span className="text-right tabular-nums font-medium">₹{getItemPrice(mobileDetailEntry).toLocaleString()}</span>
+                      </>
+                    )}
+                    <span className="text-muted-foreground">Total</span>
+                    <span className="text-right text-base font-bold tabular-nums">
+                      ₹{getTotalAmount(mobileDetailEntry).toLocaleString()}
+                    </span>
+                  </div>
+
+                  {mobileDetailEntry.notes?.trim() && (
+                    <div className="pt-2 border-t space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Notes</p>
+                      <p className="text-sm whitespace-pre-wrap break-words">{mobileDetailEntry.notes}</p>
+                    </div>
+                  )}
+
+                  {mobileDetailEntry.usedParts && mobileDetailEntry.usedParts.length > 0 && (
+                    <div className="pt-2 border-t space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Parts used</p>
+                      <ul className="text-xs space-y-1 list-disc list-inside">
+                        {mobileDetailEntry.usedParts.map((p) => (
+                          <li key={p.id}>
+                            {p.partName} × {p.quantity} @ ₹{p.rate} = ₹{p.total}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {mobileDetailEntry.photos && mobileDetailEntry.photos.length > 0 && (
+                    <div className="pt-2 border-t space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                        <ImageIcon className="h-3.5 w-3.5" />
+                        Photos ({mobileDetailEntry.photos.length})
+                      </p>
+                      <PhotoGallery photos={mobileDetailEntry.photos} />
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter className="flex-col-reverse sm:flex-row gap-2 pt-2 border-t sm:justify-end">
+                  <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => setMobileDetailEntry(null)}>
+                    Close
+                  </Button>
+                  <Button
+                    type="button"
+                    className="w-full sm:w-auto"
+                    onClick={() => {
+                      const e = mobileDetailEntry;
+                      setMobileDetailEntry(null);
+                      handleOpenDialog(e);
+                    }}
+                  >
+                    Edit entry
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Entry Dialog */}
         <Dialog open={dialogOpen} onOpenChange={(open) => { setFormOpen(open); setDialogOpen(open); }}>
