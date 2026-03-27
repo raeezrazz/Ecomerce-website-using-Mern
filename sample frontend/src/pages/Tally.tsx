@@ -29,7 +29,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Download, Phone, Calendar, X, Filter, ImageIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Download, Phone, Calendar, X, Filter, ImageIcon, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 import { fetchTallyEntries, fetchWarehouseItems, createTallyEntry, updateTallyEntry } from '@/api/adminApi';
 import type { TallyEntry } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -59,6 +59,8 @@ export default function Tally() {
   const [customToDate, setCustomToDate] = useState<string>('');
   /** On small screens, filters start collapsed; use toggle to expand. */
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  /** All-time + this month metric tiles; hidden until user opens overview. */
+  const [overviewOpen, setOverviewOpen] = useState(false);
   /** Mobile: read-only entry detail modal */
   const [mobileDetailEntry, setMobileDetailEntry] = useState<TallyEntry | null>(null);
   const [formData, setFormData] = useState({
@@ -580,79 +582,125 @@ export default function Tally() {
           </div>
         </div>
 
-        {/* Professional Filter Section */}
-        <Card className="p-3 sm:p-4">
-          <div className="space-y-3">
-            {/* Filter Header — mobile: toggle to show/hide filter controls */}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
-                <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
-                <h3 className="text-sm font-semibold">Filters</h3>
-                {activeFiltersCount > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {activeFiltersCount} active
-                  </Badge>
-                )}
+        {/* Filters — minimal bar when collapsed on mobile; full panel when open */}
+        <div
+          className={`rounded-xl border transition-[background-color,box-shadow,border-color] duration-200 sm:rounded-2xl sm:shadow-sm sm:ring-1 sm:ring-black/[0.03] dark:sm:ring-white/[0.06] ${
+            !mobileFiltersOpen
+              ? 'max-sm:border-border/25 max-sm:bg-muted/20 max-sm:shadow-none max-sm:ring-0'
+              : 'max-sm:border-border/55 max-sm:bg-card/80 max-sm:shadow-sm max-sm:ring-1 max-sm:ring-black/[0.04] dark:max-sm:ring-white/[0.06]'
+          } sm:border-border/80 sm:bg-card`}
+        >
+          <div
+            className={`space-y-3 sm:space-y-4 ${
+              !mobileFiltersOpen ? 'max-sm:p-2.5 max-sm:space-y-2' : 'max-sm:p-3 max-sm:space-y-3'
+            } sm:p-5`}
+          >
+            <div
+              className={`flex flex-wrap items-center justify-between gap-2 sm:gap-3 ${
+                !mobileFiltersOpen ? 'max-sm:gap-1.5' : ''
+              }`}
+            >
+              <div className="flex items-center gap-2 min-w-0 sm:gap-3">
+                <div
+                  className={`flex shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-[width,height] sm:h-10 sm:w-10 sm:rounded-xl sm:bg-primary/10 sm:text-primary ${
+                    !mobileFiltersOpen
+                      ? 'max-sm:h-7 max-sm:w-7 max-sm:bg-transparent max-sm:text-muted-foreground'
+                      : 'max-sm:h-8 max-sm:w-8 max-sm:bg-muted/50'
+                  }`}
+                >
+                  <Filter className="h-4 w-4 max-sm:h-3.5 max-sm:w-3.5" aria-hidden />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap sm:gap-2">
+                    <h3
+                      className={`font-medium tracking-tight text-foreground sm:text-sm sm:font-semibold ${
+                        !mobileFiltersOpen ? 'max-sm:text-xs' : 'max-sm:text-[13px]'
+                      }`}
+                    >
+                      Filters
+                    </h3>
+                    {activeFiltersCount > 0 && (
+                      <span
+                        className={`inline-flex items-center rounded-full bg-muted px-1.5 py-0 text-[10px] font-medium tabular-nums text-muted-foreground sm:hidden ${
+                          !mobileFiltersOpen ? 'max-sm:min-h-[18px]' : ''
+                        }`}
+                      >
+                        {activeFiltersCount}
+                      </span>
+                    )}
+                    {activeFiltersCount > 0 && (
+                      <Badge variant="secondary" className="hidden sm:inline-flex text-[10px] font-medium px-2 py-0 h-5">
+                        {activeFiltersCount} active
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                    Period, payment, type &amp; status
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1 shrink-0 sm:gap-2">
                 {activeFiltersCount > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={clearAllFilters}
-                    className="h-7 text-xs hidden sm:inline-flex"
+                    className="h-8 px-2 text-xs hidden sm:inline-flex text-muted-foreground hover:text-foreground"
                   >
-                    <X className="h-3 w-3 mr-1" />
-                    Clear All
+                    <X className="h-3.5 w-3.5 mr-1" />
+                    Reset all
                   </Button>
                 )}
-                <Button
+                {activeFiltersCount > 0 && !mobileFiltersOpen && (
+                  <button
+                    type="button"
+                    onClick={clearAllFilters}
+                    className="sm:hidden text-[11px] font-medium text-muted-foreground hover:text-foreground px-1.5 py-1 rounded-md hover:bg-muted/60"
+                  >
+                    Clear
+                  </button>
+                )}
+                <button
                   type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-8 text-xs sm:hidden"
                   onClick={() => setMobileFiltersOpen((open) => !open)}
                   aria-expanded={mobileFiltersOpen}
+                  aria-label={mobileFiltersOpen ? 'Collapse filters' : 'Expand filters'}
+                  className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:hidden ${
+                    !mobileFiltersOpen ? 'max-sm:h-7 max-sm:w-7' : ''
+                  }`}
                 >
                   {mobileFiltersOpen ? (
-                    <>
-                      Hide
-                      <ChevronUp className="h-3 w-3 ml-1" />
-                    </>
+                    <ChevronUp className="h-4 w-4" />
                   ) : (
-                    <>
-                      Show filters
-                      <ChevronDown className="h-3 w-3 ml-1" />
-                    </>
+                    <ChevronDown className="h-4 w-4" />
                   )}
-                </Button>
+                </button>
               </div>
             </div>
-            {activeFiltersCount > 0 && (
+            {activeFiltersCount > 0 && mobileFiltersOpen && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearAllFilters}
-                className="h-7 text-xs w-full sm:hidden -mt-1"
+                className="h-8 text-xs w-full sm:hidden rounded-md text-muted-foreground -my-1"
               >
-                <X className="h-3 w-3 mr-1" />
-                Clear All
+                <X className="h-3.5 w-3.5 mr-1" />
+                Reset all filters
               </Button>
             )}
 
             <div
-              className={`space-y-3 ${mobileFiltersOpen ? 'block' : 'hidden'} sm:block`}
+              className={`space-y-4 ${mobileFiltersOpen ? 'block' : 'hidden'} sm:block`}
             >
-            {/* Filter Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {/* Date/Month Filter */}
-              <div className="space-y-1">
-                <Label htmlFor="month-filter" className="text-xs font-medium min-h-5 flex items-center gap-1 shrink-0">
-                  <Calendar className="h-3 w-3 shrink-0" />
-                  Date/Month
+            <div className="rounded-xl border border-border/60 bg-muted/25 dark:bg-muted/10 p-3 sm:p-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="month-filter" className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <Calendar className="h-3 w-3 opacity-70" />
+                  Period
                 </Label>
                 <Select value={selectedMonth} onValueChange={handleMonthChange}>
-                  <SelectTrigger id="month-filter" className="h-8 text-xs">
+                  <SelectTrigger id="month-filter" className="h-9 text-xs rounded-lg bg-background border-border/80 shadow-none">
                     <SelectValue placeholder="All Time" />
                   </SelectTrigger>
                   <SelectContent>
@@ -665,13 +713,12 @@ export default function Tally() {
                 </Select>
               </div>
 
-              {/* Payment Status Filter */}
-              <div className="space-y-1">
-                <Label htmlFor="payment-filter" className="text-xs font-medium min-h-5 flex items-center">
-                  Payment Status
+              <div className="space-y-1.5">
+                <Label htmlFor="payment-filter" className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Payment
                 </Label>
                 <Select value={selectedPaymentStatus} onValueChange={handlePaymentStatusChange}>
-                  <SelectTrigger id="payment-filter" className="h-8 text-xs">
+                  <SelectTrigger id="payment-filter" className="h-9 text-xs rounded-lg bg-background border-border/80 shadow-none">
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
@@ -683,13 +730,12 @@ export default function Tally() {
                 </Select>
               </div>
 
-              {/* Service Type Filter */}
-              <div className="space-y-1">
-                <Label htmlFor="service-type-filter" className="text-xs font-medium min-h-5 flex items-center">
-                  Service Type
+              <div className="space-y-1.5">
+                <Label htmlFor="service-type-filter" className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  Type
                 </Label>
                 <Select value={selectedServiceType} onValueChange={handleServiceTypeChange}>
-                  <SelectTrigger id="service-type-filter" className="h-8 text-xs">
+                  <SelectTrigger id="service-type-filter" className="h-9 text-xs rounded-lg bg-background border-border/80 shadow-none">
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
@@ -700,13 +746,12 @@ export default function Tally() {
                 </Select>
               </div>
 
-              {/* Status Filter */}
-              <div className="space-y-1">
-                <Label htmlFor="status-filter" className="text-xs font-medium min-h-5 flex items-center">
+              <div className="space-y-1.5">
+                <Label htmlFor="status-filter" className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                   Status
                 </Label>
                 <Select value={selectedStatus} onValueChange={handleStatusChange}>
-                  <SelectTrigger id="status-filter" className="h-8 text-xs">
+                  <SelectTrigger id="status-filter" className="h-9 text-xs rounded-lg bg-background border-border/80 shadow-none">
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
@@ -720,51 +765,53 @@ export default function Tally() {
               </div>
             </div>
 
-            {/* Custom date range */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-              <div className="space-y-1">
-                <Label htmlFor="custom-from" className="text-xs font-medium min-h-5 flex items-center gap-1 shrink-0">
-                  <Calendar className="h-3 w-3 shrink-0" />
-                  From date
+            <div className="h-px bg-border/50" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:col-span-1">
+                <Label htmlFor="custom-from" className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <Calendar className="h-3 w-3 opacity-70" />
+                  From
                 </Label>
                 <Input
                   id="custom-from"
                   type="date"
                   value={customFromDate}
                   onChange={(e) => setCustomFromDate(e.target.value)}
-                  className="h-8 text-xs"
+                  className="h-9 text-xs rounded-lg bg-background border-border/80 shadow-none"
                 />
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="custom-to" className="text-xs font-medium min-h-5 flex items-center gap-1 shrink-0">
-                  <Calendar className="h-3 w-3 shrink-0" />
-                  To date
+              <div className="space-y-1.5">
+                <Label htmlFor="custom-to" className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+                  <Calendar className="h-3 w-3 opacity-70" />
+                  To
                 </Label>
                 <Input
                   id="custom-to"
                   type="date"
                   value={customToDate}
                   onChange={(e) => setCustomToDate(e.target.value)}
-                  className="h-8 text-xs"
+                  className="h-9 text-xs rounded-lg bg-background border-border/80 shadow-none"
                 />
               </div>
               {(customFromDate || customToDate) && (
-                <div className="flex items-end">
+                <div className="flex items-end sm:col-span-2 lg:col-span-2">
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="h-8 text-xs"
+                    className="h-9 text-xs rounded-lg w-full sm:w-auto"
                     onClick={() => {
                       setCustomFromDate('');
                       setCustomToDate('');
                     }}
                   >
-                    <X className="h-3 w-3 mr-1" />
-                    Clear date range
+                    <X className="h-3.5 w-3.5 mr-1" />
+                    Clear range
                   </Button>
                 </div>
               )}
+            </div>
             </div>
 
             {/* Active filter chips (inside mobile collapsible) */}
@@ -835,361 +882,362 @@ export default function Tally() {
 
             </div>
 
-            {/* Results Summary — always visible */}
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-2 border-t">
-              <div className="text-xs text-muted-foreground">
-                Showing <span className="font-semibold text-foreground">{filteredEntries.length}</span> of{' '}
-                <span className="font-semibold text-foreground">{entries.length}</span> entries
+            {activeFiltersCount > 0 && (
+              <div className="hidden sm:flex flex-wrap gap-1 pt-2 border-t border-border/60">
+                {selectedMonth !== 'all' && (
+                  <Badge variant="outline" className="text-xs h-5">
+                    {monthOptions.find(opt => opt.value === selectedMonth)?.label || 'Month'}
+                    <button
+                      type="button"
+                      onClick={() => handleMonthChange('all')}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {selectedPaymentStatus !== 'all' && (
+                  <Badge variant="outline" className="text-xs h-5">
+                    {selectedPaymentStatus}
+                    <button
+                      type="button"
+                      onClick={() => handlePaymentStatusChange('all')}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {selectedServiceType !== 'all' && (
+                  <Badge variant="outline" className="text-xs h-5">
+                    {selectedServiceType}
+                    <button
+                      type="button"
+                      onClick={() => handleServiceTypeChange('all')}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {selectedStatus !== 'all' && (
+                  <Badge variant="outline" className="text-xs h-5">
+                    {selectedStatus}
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange('all')}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
+                {(customFromDate || customToDate) && (
+                  <Badge variant="outline" className="text-xs h-5">
+                    {customFromDate && customToDate ? `${customFromDate} → ${customToDate}` : customFromDate ? `${customFromDate} → …` : `… → ${customToDate}`}
+                    <button
+                      type="button"
+                      onClick={() => { setCustomFromDate(''); setCustomToDate(''); }}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                )}
               </div>
-              {activeFiltersCount > 0 && (
-                <div className="hidden sm:flex flex-wrap gap-1">
-                  {selectedMonth !== 'all' && (
-                    <Badge variant="outline" className="text-xs h-5">
-                      {monthOptions.find(opt => opt.value === selectedMonth)?.label || 'Month'}
-                      <button
-                        type="button"
-                        onClick={() => handleMonthChange('all')}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  )}
-                  {selectedPaymentStatus !== 'all' && (
-                    <Badge variant="outline" className="text-xs h-5">
-                      {selectedPaymentStatus}
-                      <button
-                        type="button"
-                        onClick={() => handlePaymentStatusChange('all')}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  )}
-                  {selectedServiceType !== 'all' && (
-                    <Badge variant="outline" className="text-xs h-5">
-                      {selectedServiceType}
-                      <button
-                        type="button"
-                        onClick={() => handleServiceTypeChange('all')}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  )}
-                  {selectedStatus !== 'all' && (
-                    <Badge variant="outline" className="text-xs h-5">
-                      {selectedStatus}
-                      <button
-                        type="button"
-                        onClick={() => handleStatusChange('all')}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  )}
-                  {(customFromDate || customToDate) && (
-                    <Badge variant="outline" className="text-xs h-5">
-                      {customFromDate && customToDate ? `${customFromDate} → ${customToDate}` : customFromDate ? `${customFromDate} → …` : `… → ${customToDate}`}
-                      <button
-                        type="button"
-                        onClick={() => { setCustomFromDate(''); setCustomToDate(''); }}
-                        className="ml-1 hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {/* Total Statistics (All Time - Always shows all data) */}
-        <div>
-          <h2 className="text-sm sm:text-base font-semibold mb-2">
-            Total (All Time)
-          </h2>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
-            <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
-                selectedMonth === 'all' && selectedPaymentStatus === 'all' && selectedServiceType === 'all' && selectedStatus === 'all' && !isCurrentMonthFilter ? 'ring-2 ring-primary' : ''
-              }`}
-              onClick={() => {
-                setSelectedMonth('all');
-                setSelectedPaymentStatus('all');
-                setSelectedServiceType('all');
-                setSelectedStatus('all');
-                setIsCurrentMonthFilter(false);
-                setCustomFromDate('');
-                setCustomToDate('');
-              }}
-            >
-              <CardHeader className="pb-0 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
-                  <span className="md:hidden">Revenue</span>
-                  <span className="hidden md:inline">Total Revenue</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pt-0.5">
-                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">
-                  ₹{totalStats.revenue.toLocaleString()}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
-                selectedPaymentStatus === 'paid' && !isCurrentMonthFilter ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950' : ''
-              }`}
-              onClick={() => {
-                if (selectedPaymentStatus === 'paid' && !isCurrentMonthFilter) {
-                  setSelectedPaymentStatus('all');
-                } else {
-                  setSelectedMonth('all');
-                  setSelectedPaymentStatus('paid');
-                  setSelectedServiceType('all');
-                  setSelectedStatus('all');
-                  setIsCurrentMonthFilter(false);
-                }
-              }}
-            >
-              <CardHeader className="pb-0 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
-                  Paid
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pt-0.5">
-                <div className="text-xs sm:text-sm md:text-base font-bold text-green-600 tabular-nums">
-                  ₹{totalStats.paid.toLocaleString()}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
-                selectedPaymentStatus === 'unpaid' && !isCurrentMonthFilter ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-950' : ''
-              }`}
-              onClick={() => {
-                if (selectedPaymentStatus === 'unpaid' && !isCurrentMonthFilter) {
-                  setSelectedPaymentStatus('all');
-                } else {
-                  setSelectedMonth('all');
-                  setSelectedPaymentStatus('unpaid');
-                  setSelectedServiceType('all');
-                  setSelectedStatus('all');
-                  setIsCurrentMonthFilter(false);
-                }
-              }}
-            >
-              <CardHeader className="pb-0 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
-                  Pending
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pt-0.5">
-                <div className="text-xs sm:text-sm md:text-base font-bold text-orange-600 tabular-nums">
-                  ₹{totalStats.pending.toLocaleString()}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
-                selectedServiceType === 'repair' && !isCurrentMonthFilter ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950' : ''
-              }`}
-              onClick={() => {
-                if (selectedServiceType === 'repair' && !isCurrentMonthFilter) {
-                  setSelectedServiceType('all');
-                } else {
-                  setSelectedMonth('all');
-                  setSelectedPaymentStatus('all');
-                  setSelectedServiceType('repair');
-                  setSelectedStatus('all');
-                  setIsCurrentMonthFilter(false);
-                }
-              }}
-            >
-              <CardHeader className="pb-0 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
-                  Repairs
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pt-0.5">
-                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">{totalStats.repairs}</div>
-              </CardContent>
-            </Card>
-
-            <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
-                selectedServiceType === 'sale' && !isCurrentMonthFilter ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-950' : ''
-              }`}
-              onClick={() => {
-                if (selectedServiceType === 'sale' && !isCurrentMonthFilter) {
-                  setSelectedServiceType('all');
-                } else {
-                  setSelectedMonth('all');
-                  setSelectedPaymentStatus('all');
-                  setSelectedServiceType('sale');
-                  setSelectedStatus('all');
-                  setIsCurrentMonthFilter(false);
-                }
-              }}
-            >
-              <CardHeader className="pb-0 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
-                  Sales
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pt-0.5">
-                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">{totalStats.sales}</div>
-              </CardContent>
-            </Card>
+            )}
           </div>
         </div>
 
-        {/* Current Month Statistics */}
-        <div>
-          <h2 className="text-sm sm:text-base font-semibold mb-2">Current Month ({new Date().toLocaleString('default', { month: 'short', year: 'numeric' })})</h2>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
-            <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
-                selectedMonth === 'current' && selectedPaymentStatus === 'all' && selectedServiceType === 'all' && selectedStatus === 'all' && isCurrentMonthFilter ? 'ring-2 ring-primary' : ''
-              }`}
-              onClick={() => {
-                setSelectedMonth('current');
-                setSelectedPaymentStatus('all');
-                setSelectedServiceType('all');
-                setSelectedStatus('all');
-                setIsCurrentMonthFilter(true);
-                setCustomFromDate('');
-                setCustomToDate('');
-              }}
-            >
-              <CardHeader className="pb-0 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
-                  Revenue
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pt-0.5">
-                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">
-                  ₹{currentMonthStats.revenue.toLocaleString()}
+        <div className="rounded-xl border border-border/70 bg-card/60 shadow-sm ring-1 ring-black/[0.03] dark:ring-white/[0.05] overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setOverviewOpen((o) => !o)}
+            aria-expanded={overviewOpen}
+            className="flex w-full items-center gap-2 px-2.5 py-2 sm:px-3 sm:py-2 text-left transition-colors hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted/80 text-muted-foreground">
+              <BarChart3 className="h-3.5 w-3.5" aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-semibold text-foreground leading-tight">
+                {overviewOpen ? 'Hide overview' : 'Show overview'}
+              </span>
+              <span className="block text-[10px] text-muted-foreground leading-tight mt-0.5">
+                All time &amp; this month — tap a number to filter
+              </span>
+            </span>
+            {overviewOpen ? (
+              <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+            ) : (
+              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+            )}
+          </button>
+
+          {overviewOpen && (
+            <div className="space-y-2.5 border-t border-border/60 bg-muted/15 px-2 pb-2.5 pt-2 sm:px-2.5 sm:pb-3 sm:pt-2.5">
+              {/* All time — compact */}
+              <div className="rounded-lg border border-border/70 bg-background/80 p-2 sm:p-2.5 dark:bg-background/50">
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">All time</p>
+                  <span className="text-[9px] text-muted-foreground hidden sm:inline">Filter by metric</span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-5 sm:gap-2">
+                  <button
+                    type="button"
+                    className={`group flex flex-col rounded-md border bg-background px-2 py-1.5 text-left text-[9px] transition-all hover:border-primary/40 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      selectedMonth === 'all' && selectedPaymentStatus === 'all' && selectedServiceType === 'all' && selectedStatus === 'all' && !isCurrentMonthFilter
+                        ? 'border-primary/45 ring-1 ring-primary/20'
+                        : 'border-border/60'
+                    }`}
+                    onClick={() => {
+                      setSelectedMonth('all');
+                      setSelectedPaymentStatus('all');
+                      setSelectedServiceType('all');
+                      setSelectedStatus('all');
+                      setIsCurrentMonthFilter(false);
+                      setCustomFromDate('');
+                      setCustomToDate('');
+                    }}
+                  >
+                    <span className="font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground/70">
+                      <span className="md:hidden">Revenue</span>
+                      <span className="hidden md:inline">Total</span>
+                    </span>
+                    <span className="mt-0.5 text-xs font-semibold tabular-nums leading-none sm:text-sm">
+                      ₹{totalStats.revenue.toLocaleString()}
+                    </span>
+                  </button>
 
-            <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
-                selectedPaymentStatus === 'paid' && isCurrentMonthFilter ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950' : ''
-              }`}
-              onClick={() => {
-                if (selectedPaymentStatus === 'paid' && isCurrentMonthFilter) {
-                  setSelectedPaymentStatus('all');
-                } else {
-                  setSelectedMonth('current');
-                  setSelectedPaymentStatus('paid');
-                  setSelectedServiceType('all');
-                  setSelectedStatus('all');
-                  setIsCurrentMonthFilter(true);
-                }
-              }}
-            >
-              <CardHeader className="pb-0 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
-                  Paid
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pt-0.5">
-                <div className="text-xs sm:text-sm md:text-base font-bold text-green-600 tabular-nums">
-                  ₹{currentMonthStats.paid.toLocaleString()}
+                  <button
+                    type="button"
+                    className={`group flex flex-col rounded-md border bg-background px-2 py-1.5 text-left text-[9px] transition-all hover:border-emerald-500/35 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      selectedPaymentStatus === 'paid' && !isCurrentMonthFilter
+                        ? 'border-emerald-500/40 bg-emerald-500/[0.06] ring-1 ring-emerald-500/20'
+                        : 'border-border/60'
+                    }`}
+                    onClick={() => {
+                      if (selectedPaymentStatus === 'paid' && !isCurrentMonthFilter) {
+                        setSelectedPaymentStatus('all');
+                      } else {
+                        setSelectedMonth('all');
+                        setSelectedPaymentStatus('paid');
+                        setSelectedServiceType('all');
+                        setSelectedStatus('all');
+                        setIsCurrentMonthFilter(false);
+                      }
+                    }}
+                  >
+                    <span className="font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground/70">Paid</span>
+                    <span className="mt-0.5 text-xs font-semibold tabular-nums leading-none text-emerald-600 dark:text-emerald-400 sm:text-sm">
+                      ₹{totalStats.paid.toLocaleString()}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`group flex flex-col rounded-md border bg-background px-2 py-1.5 text-left text-[9px] transition-all hover:border-amber-500/35 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      selectedPaymentStatus === 'unpaid' && !isCurrentMonthFilter
+                        ? 'border-amber-500/40 bg-amber-500/[0.06] ring-1 ring-amber-500/20'
+                        : 'border-border/60'
+                    }`}
+                    onClick={() => {
+                      if (selectedPaymentStatus === 'unpaid' && !isCurrentMonthFilter) {
+                        setSelectedPaymentStatus('all');
+                      } else {
+                        setSelectedMonth('all');
+                        setSelectedPaymentStatus('unpaid');
+                        setSelectedServiceType('all');
+                        setSelectedStatus('all');
+                        setIsCurrentMonthFilter(false);
+                      }
+                    }}
+                  >
+                    <span className="font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground/70">Pending</span>
+                    <span className="mt-0.5 text-xs font-semibold tabular-nums leading-none text-amber-600 dark:text-amber-400 sm:text-sm">
+                      ₹{totalStats.pending.toLocaleString()}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`group flex flex-col rounded-md border bg-background px-2 py-1.5 text-left text-[9px] transition-all hover:border-sky-500/35 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      selectedServiceType === 'repair' && !isCurrentMonthFilter
+                        ? 'border-sky-500/40 bg-sky-500/[0.06] ring-1 ring-sky-500/20'
+                        : 'border-border/60'
+                    }`}
+                    onClick={() => {
+                      if (selectedServiceType === 'repair' && !isCurrentMonthFilter) {
+                        setSelectedServiceType('all');
+                      } else {
+                        setSelectedMonth('all');
+                        setSelectedPaymentStatus('all');
+                        setSelectedServiceType('repair');
+                        setSelectedStatus('all');
+                        setIsCurrentMonthFilter(false);
+                      }
+                    }}
+                  >
+                    <span className="font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground/70">Repairs</span>
+                    <span className="mt-0.5 text-xs font-semibold tabular-nums leading-none sm:text-sm">{totalStats.repairs}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`group flex flex-col rounded-md border bg-background px-2 py-1.5 text-left text-[9px] transition-all hover:border-violet-500/35 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      selectedServiceType === 'sale' && !isCurrentMonthFilter
+                        ? 'border-violet-500/40 bg-violet-500/[0.06] ring-1 ring-violet-500/20'
+                        : 'border-border/60'
+                    }`}
+                    onClick={() => {
+                      if (selectedServiceType === 'sale' && !isCurrentMonthFilter) {
+                        setSelectedServiceType('all');
+                      } else {
+                        setSelectedMonth('all');
+                        setSelectedPaymentStatus('all');
+                        setSelectedServiceType('sale');
+                        setSelectedStatus('all');
+                        setIsCurrentMonthFilter(false);
+                      }
+                    }}
+                  >
+                    <span className="font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground/70">Sales</span>
+                    <span className="mt-0.5 text-xs font-semibold tabular-nums leading-none sm:text-sm">{totalStats.sales}</span>
+                  </button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
-                selectedPaymentStatus === 'unpaid' && isCurrentMonthFilter ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-950' : ''
-              }`}
-              onClick={() => {
-                if (selectedPaymentStatus === 'unpaid' && isCurrentMonthFilter) {
-                  setSelectedPaymentStatus('all');
-                } else {
-                  setSelectedMonth('current');
-                  setSelectedPaymentStatus('unpaid');
-                  setSelectedServiceType('all');
-                  setSelectedStatus('all');
-                  setIsCurrentMonthFilter(true);
-                }
-              }}
-            >
-              <CardHeader className="pb-0 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
-                  Pending
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pt-0.5">
-                <div className="text-xs sm:text-sm md:text-base font-bold text-orange-600 tabular-nums">
-                  ₹{currentMonthStats.pending.toLocaleString()}
+              {/* This month — compact */}
+              <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-2 sm:p-2.5 dark:bg-primary/[0.07]">
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <p className="text-[9px] font-semibold uppercase tracking-wider text-primary/85">This month</p>
+                  <p className="text-[9px] font-medium text-foreground tabular-nums truncate max-w-[55%] sm:max-w-none">
+                    {new Date().toLocaleString('default', { month: 'short', year: 'numeric' })}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-5 sm:gap-2">
+                  <button
+                    type="button"
+                    className={`group flex flex-col rounded-md border bg-background px-2 py-1.5 text-left text-[9px] transition-all hover:border-primary/40 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      selectedMonth === 'current' && selectedPaymentStatus === 'all' && selectedServiceType === 'all' && selectedStatus === 'all' && isCurrentMonthFilter
+                        ? 'border-primary/50 ring-1 ring-primary/20'
+                        : 'border-border/60'
+                    }`}
+                    onClick={() => {
+                      setSelectedMonth('current');
+                      setSelectedPaymentStatus('all');
+                      setSelectedServiceType('all');
+                      setSelectedStatus('all');
+                      setIsCurrentMonthFilter(true);
+                      setCustomFromDate('');
+                      setCustomToDate('');
+                    }}
+                  >
+                    <span className="font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground/70">Revenue</span>
+                    <span className="mt-0.5 text-xs font-semibold tabular-nums leading-none sm:text-sm">
+                      ₹{currentMonthStats.revenue.toLocaleString()}
+                    </span>
+                  </button>
 
-            <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
-                selectedServiceType === 'repair' && isCurrentMonthFilter ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950' : ''
-              }`}
-              onClick={() => {
-                if (selectedServiceType === 'repair' && isCurrentMonthFilter) {
-                  setSelectedServiceType('all');
-                } else {
-                  setSelectedMonth('current');
-                  setSelectedPaymentStatus('all');
-                  setSelectedServiceType('repair');
-                  setSelectedStatus('all');
-                  setIsCurrentMonthFilter(true);
-                }
-              }}
-            >
-              <CardHeader className="pb-0 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
-                  Repairs
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pt-0.5">
-                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">{currentMonthStats.repairs}</div>
-              </CardContent>
-            </Card>
+                  <button
+                    type="button"
+                    className={`group flex flex-col rounded-md border bg-background px-2 py-1.5 text-left text-[9px] transition-all hover:border-emerald-500/35 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      selectedPaymentStatus === 'paid' && isCurrentMonthFilter
+                        ? 'border-emerald-500/40 bg-emerald-500/[0.06] ring-1 ring-emerald-500/20'
+                        : 'border-border/60'
+                    }`}
+                    onClick={() => {
+                      if (selectedPaymentStatus === 'paid' && isCurrentMonthFilter) {
+                        setSelectedPaymentStatus('all');
+                      } else {
+                        setSelectedMonth('current');
+                        setSelectedPaymentStatus('paid');
+                        setSelectedServiceType('all');
+                        setSelectedStatus('all');
+                        setIsCurrentMonthFilter(true);
+                      }
+                    }}
+                  >
+                    <span className="font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground/70">Paid</span>
+                    <span className="mt-0.5 text-xs font-semibold tabular-nums leading-none text-emerald-600 dark:text-emerald-400 sm:text-sm">
+                      ₹{currentMonthStats.paid.toLocaleString()}
+                    </span>
+                  </button>
 
-            <Card 
-              className={`p-2 cursor-pointer transition-all hover:bg-accent border shadow-none sm:shadow-sm ${
-                selectedServiceType === 'sale' && isCurrentMonthFilter ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-950' : ''
-              }`}
-              onClick={() => {
-                if (selectedServiceType === 'sale' && isCurrentMonthFilter) {
-                  setSelectedServiceType('all');
-                } else {
-                  setSelectedMonth('current');
-                  setSelectedPaymentStatus('all');
-                  setSelectedServiceType('sale');
-                  setSelectedStatus('all');
-                  setIsCurrentMonthFilter(true);
-                }
-              }}
-            >
-              <CardHeader className="pb-0 p-0">
-                <CardTitle className="text-[10px] sm:text-xs font-medium text-muted-foreground leading-tight">
-                  Sales
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0 pt-0.5">
-                <div className="text-xs sm:text-sm md:text-base font-bold tabular-nums">{currentMonthStats.sales}</div>
-              </CardContent>
-            </Card>
-          </div>
+                  <button
+                    type="button"
+                    className={`group flex flex-col rounded-md border bg-background px-2 py-1.5 text-left text-[9px] transition-all hover:border-amber-500/35 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      selectedPaymentStatus === 'unpaid' && isCurrentMonthFilter
+                        ? 'border-amber-500/40 bg-amber-500/[0.06] ring-1 ring-amber-500/20'
+                        : 'border-border/60'
+                    }`}
+                    onClick={() => {
+                      if (selectedPaymentStatus === 'unpaid' && isCurrentMonthFilter) {
+                        setSelectedPaymentStatus('all');
+                      } else {
+                        setSelectedMonth('current');
+                        setSelectedPaymentStatus('unpaid');
+                        setSelectedServiceType('all');
+                        setSelectedStatus('all');
+                        setIsCurrentMonthFilter(true);
+                      }
+                    }}
+                  >
+                    <span className="font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground/70">Pending</span>
+                    <span className="mt-0.5 text-xs font-semibold tabular-nums leading-none text-amber-600 dark:text-amber-400 sm:text-sm">
+                      ₹{currentMonthStats.pending.toLocaleString()}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`group flex flex-col rounded-md border bg-background px-2 py-1.5 text-left text-[9px] transition-all hover:border-sky-500/35 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      selectedServiceType === 'repair' && isCurrentMonthFilter
+                        ? 'border-sky-500/40 bg-sky-500/[0.06] ring-1 ring-sky-500/20'
+                        : 'border-border/60'
+                    }`}
+                    onClick={() => {
+                      if (selectedServiceType === 'repair' && isCurrentMonthFilter) {
+                        setSelectedServiceType('all');
+                      } else {
+                        setSelectedMonth('current');
+                        setSelectedPaymentStatus('all');
+                        setSelectedServiceType('repair');
+                        setSelectedStatus('all');
+                        setIsCurrentMonthFilter(true);
+                      }
+                    }}
+                  >
+                    <span className="font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground/70">Repairs</span>
+                    <span className="mt-0.5 text-xs font-semibold tabular-nums leading-none sm:text-sm">{currentMonthStats.repairs}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`group flex flex-col rounded-md border bg-background px-2 py-1.5 text-left text-[9px] transition-all hover:border-violet-500/35 focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                      selectedServiceType === 'sale' && isCurrentMonthFilter
+                        ? 'border-violet-500/40 bg-violet-500/[0.06] ring-1 ring-violet-500/20'
+                        : 'border-border/60'
+                    }`}
+                    onClick={() => {
+                      if (selectedServiceType === 'sale' && isCurrentMonthFilter) {
+                        setSelectedServiceType('all');
+                      } else {
+                        setSelectedMonth('current');
+                        setSelectedPaymentStatus('all');
+                        setSelectedServiceType('sale');
+                        setSelectedStatus('all');
+                        setIsCurrentMonthFilter(true);
+                      }
+                    }}
+                  >
+                    <span className="font-medium uppercase tracking-wide text-muted-foreground group-hover:text-foreground/70">Sales</span>
+                    <span className="mt-0.5 text-xs font-semibold tabular-nums leading-none sm:text-sm">{currentMonthStats.sales}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Service Register Table */}
