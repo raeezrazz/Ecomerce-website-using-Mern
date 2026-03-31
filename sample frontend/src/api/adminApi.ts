@@ -168,14 +168,49 @@ export const updateOrderStatus = async (
 };
 
 // -------- TALLY --------
-/** Backend returns Mongo `_id`; frontend expects `id`. */
+function toFinNum(v: unknown): number {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (v === null || v === undefined || v === "") return 0;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Map API document to `TallyEntry` (`_id` → `id`, stable numeric fields). */
 function normalizeTallyEntry(raw: unknown): TallyEntry {
   if (!raw || typeof raw !== "object") {
     throw new Error("Invalid tally data from server");
   }
   const r = raw as Record<string, unknown>;
   const id = String(r.id ?? r._id ?? "");
-  return { ...r, id } as TallyEntry;
+  if (!id) {
+    throw new Error("Invalid tally data from server");
+  }
+  const usedParts = Array.isArray(r.usedParts) ? r.usedParts : [];
+  const saleItems = Array.isArray(r.saleItems) ? r.saleItems : [];
+  const disc = toFinNum(r.discountAmount, 0);
+  const net = toFinNum(r.totalAmount ?? r.total, 0);
+  let subtotal = toFinNum(r.subtotal, 0);
+  if (subtotal <= 0) {
+    subtotal = disc > 0 ? net + disc : net;
+  }
+  return {
+    ...(r as object),
+    id,
+    serviceCharge: toFinNum(r.serviceCharge ?? r.laborCost),
+    laborCost: toFinNum(r.laborCost ?? r.serviceCharge),
+    partsCost: toFinNum(r.partsCost),
+    itemPrice: r.itemPrice != null && r.itemPrice !== "" ? toFinNum(r.itemPrice) : undefined,
+    subtotal,
+    discountAmount: disc,
+    totalAmount: net,
+    total: net,
+    usedParts: usedParts as TallyEntry["usedParts"],
+    saleItems: saleItems as TallyEntry["saleItems"],
+    reference:
+      r.reference != null && String(r.reference).trim() !== ""
+        ? String(r.reference).trim()
+        : undefined,
+  } as TallyEntry;
 }
 
 export const fetchTallyEntries = async (): Promise<TallyEntry[]> => {

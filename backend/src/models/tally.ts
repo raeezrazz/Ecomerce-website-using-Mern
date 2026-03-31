@@ -34,9 +34,14 @@ export interface ITallyEntry {
   usedParts: IUsedPart[];
   saleItems: ISaleItem[];
   itemPrice?: number;
+  /** Sum before discount (labor + parts for repair; sum of sale lines / quick total for sale). */
+  subtotal: number;
+  discountAmount: number;
   total?: number;
   totalAmount: number;
   paymentStatus: 'paid' | 'unpaid' | 'partial';
+  /** Optional job / invoice / work order reference for records. */
+  reference?: string;
   dateCompleted?: Date;
   notes: string;
   photos: string[];
@@ -85,6 +90,8 @@ const TallyEntrySchema = new Schema<ITallyEntry>({
   usedParts: { type: [UsedPartSchema], default: [] },
   saleItems: { type: [SaleItemSchema], default: [] },
   itemPrice: { type: Number, default: 0, min: 0 },
+  subtotal: { type: Number, default: 0, min: 0 },
+  discountAmount: { type: Number, default: 0, min: 0 },
   total: { type: Number, default: 0, min: 0 },
   totalAmount: { type: Number, required: true, min: 0 },
   paymentStatus: {
@@ -92,6 +99,7 @@ const TallyEntrySchema = new Schema<ITallyEntry>({
     enum: ['paid', 'unpaid', 'partial'],
     default: 'unpaid'
   },
+  reference: { type: String, default: '' },
   dateCompleted: { type: Date },
   notes: { type: String, default: '' },
   photos: { type: [String], default: [] },

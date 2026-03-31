@@ -108,9 +108,13 @@ export const mockTallyEntries: TallyEntry[] = Array.from({ length: 60 }, (_, i) 
   const date = new Date(Date.now() - (59 - i) * 24 * 60 * 60 * 1000);
   const serviceType = i % 3 === 0 ? 'sale' : 'repair';
   const status = ['pending', 'in-progress', 'completed', 'delivered'][Math.floor(Math.random() * 4)] as TallyEntry['status'];
-  const serviceCharge = serviceType === 'repair' ? Math.floor(Math.random() * 800) + 200 : Math.floor(Math.random() * 2000) + 500;
+  const serviceCharge = serviceType === 'repair' ? Math.floor(Math.random() * 800) + 200 : 0;
   const partsCost = serviceType === 'repair' ? Math.floor(Math.random() * 500) : 0;
-  
+  const saleGross = serviceType === 'sale' ? Math.floor(Math.random() * 2000) + 500 : 0;
+  const subtotal = serviceType === 'repair' ? serviceCharge + partsCost : saleGross;
+  const discountAmount = i % 7 === 0 ? Math.min(100, Math.floor(subtotal * 0.05)) : 0;
+  const totalAmount = Math.max(0, subtotal - discountAmount);
+
   return {
     id: `tally-${i + 1}`,
     date: date.toISOString().split('T')[0],
@@ -120,8 +124,13 @@ export const mockTallyEntries: TallyEntry[] = Array.from({ length: 60 }, (_, i) 
     serviceType,
     status,
     serviceCharge,
+    laborCost: serviceCharge,
+    usedParts: [],
     partsCost,
-    totalAmount: serviceCharge + partsCost,
+    itemPrice: serviceType === 'sale' ? saleGross : 0,
+    subtotal,
+    discountAmount,
+    totalAmount,
     paymentStatus: ['paid', 'unpaid', 'partial'][Math.floor(Math.random() * 3)] as TallyEntry['paymentStatus'],
     dateCompleted: status === 'completed' || status === 'delivered' ? date.toISOString().split('T')[0] : undefined,
     notes: i % 4 === 0 ? 'Urgent repair needed' : i % 3 === 0 ? 'Customer complained about accuracy' : '',

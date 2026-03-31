@@ -18,7 +18,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className={`flex flex-1 flex-col min-w-0 ${formOpen ? '' : 'lg:ml-64'}`}>
         <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 print:p-2 print:overflow-visible">
           {children}
         </main>
       </div>

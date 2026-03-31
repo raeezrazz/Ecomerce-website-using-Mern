@@ -62,6 +62,16 @@ export interface UsedPart {
   total: number;
 }
 
+export interface SaleItem {
+  id: string;
+  warehouseItemId: string;
+  itemName: string;
+  quantity: number;
+  actualPrice: number;
+  sellingPrice: number;
+  total: number;
+}
+
 export interface TallyEntry {
   id: string;
   date: string;
@@ -75,11 +85,17 @@ export interface TallyEntry {
   laborCost?: number; // alias for serviceCharge
   serviceCharge: number;
   usedParts: UsedPart[];
+  saleItems?: SaleItem[];
   partsCost: number; // Keep for backward compatibility, calculated from usedParts
-  itemPrice?: number; // sale-specific price field
+  itemPrice?: number; // sale gross (pre-discount) when no line items; else matches subtotal
+  /** Amount before discount (labor + parts or sum of sale lines / quick total). */
+  subtotal?: number;
+  discountAmount?: number;
   total?: number; // alias for totalAmount
   totalAmount: number;
   paymentStatus: 'paid' | 'unpaid' | 'partial';
+  /** Job #, invoice ref, or work order (optional). */
+  reference?: string;
   dateCompleted?: string;
   notes: string;
   photos?: string[];

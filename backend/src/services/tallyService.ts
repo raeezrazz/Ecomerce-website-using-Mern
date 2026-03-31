@@ -8,6 +8,22 @@ function toNum(v: unknown, fallback = 0): number {
 }
 
 class TallyService {
+  /** Normalize request payload dates so Mongoose always gets a valid Date. */
+  private normalizePayloadDates(data: Partial<ITallyEntry>) {
+    if (data.date != null && String(data.date).trim() !== "") {
+      const d = new Date(data.date as string | Date);
+      if (!Number.isNaN(d.getTime())) {
+        data.date = d;
+      }
+    }
+    if (data.dateCompleted != null && String(data.dateCompleted).trim() !== "") {
+      const d = new Date(data.dateCompleted as string | Date);
+      if (!Number.isNaN(d.getTime())) {
+        data.dateCompleted = d;
+      }
+    }
+  }
+
   async getAllEntries(): Promise<ITallyEntry[]> {
     return await TallyEntry.find().sort({ date: -1 });
   }
@@ -17,6 +33,7 @@ class TallyService {
   }
 
   async createEntry(data: Partial<ITallyEntry>): Promise<ITallyEntry> {
+    this.normalizePayloadDates(data);
     this.prepareTallyAmounts(data);
     this.validateByType(data);
 
@@ -43,6 +60,7 @@ class TallyService {
       await this.restoreWarehouseStockForSaleItems(oldEntry.saleItems);
     }
 
+    this.normalizePayloadDates(data);
     this.prepareTallyAmounts(data);
     this.validateByType(data);
 
@@ -69,6 +87,12 @@ class TallyService {
     return !!result;
   }
 
+  private applyDiscount(subtotal: number, discountRaw: unknown) {
+    const discount = Math.max(0, toNum(discountRaw, 0));
+    const capped = Math.min(discount, subtotal);
+    return { discountAmount: capped, totalAmount: Math.max(0, subtotal - capped) };
+  }
+
   private prepareTallyAmounts(data: Partial<ITallyEntry>) {
     data.serviceType = data.serviceType ?? data.type ?? "repair";
     data.type = data.serviceType;
@@ -79,19 +103,29 @@ class TallyService {
     data.laborCost = data.serviceCharge;
 
     if (data.serviceType === "sale") {
-      const saleItems = data.saleItems ?? [];
+      const saleItemsRaw = data.saleItems ?? [];
+      for (const item of saleItemsRaw) {
+        const qty = Math.max(0, toNum(item.quantity, 0));
+        const sell = toNum(item.sellingPrice, 0);
+        item.quantity = qty;
+        item.actualPrice = toNum(item.actualPrice, 0);
+        item.sellingPrice = sell;
+        item.total = qty * sell;
+      }
+      const saleItems = saleItemsRaw;
+
       data.usedParts = [];
       data.partsCost = 0;
       data.serviceCharge = 0;
       data.laborCost = 0;
-      const saleItemsTotal = saleItems.reduce(
-        (sum, item) => sum + toNum(item.total, 0),
-        0
-      );
+      const saleItemsTotal = saleItems.reduce((sum, item) => sum + toNum(item.total, 0), 0);
       const directItemPrice = toNum(data.itemPrice, 0);
-      const effectiveItemPrice = saleItemsTotal > 0 ? saleItemsTotal : directItemPrice;
-      data.itemPrice = effectiveItemPrice;
-      data.totalAmount = effectiveItemPrice;
+      const subtotal = saleItemsTotal > 0 ? saleItemsTotal : directItemPrice;
+      data.itemPrice = subtotal;
+      data.subtotal = subtotal;
+      const { discountAmount, totalAmount } = this.applyDiscount(subtotal, data.discountAmount);
+      data.discountAmount = discountAmount;
+      data.totalAmount = totalAmount;
       data.total = data.totalAmount;
       return;
     }
@@ -101,8 +135,12 @@ class TallyService {
     data.partsCost = usedParts.reduce((sum, part) => sum + toNum(part.total, 0), 0);
     data.serviceCharge = toNum(data.serviceCharge, 0);
     data.laborCost = data.serviceCharge;
-    data.totalAmount = data.serviceCharge + (data.partsCost || 0);
+    const subtotal = data.serviceCharge + (data.partsCost || 0);
     data.itemPrice = 0;
+    data.subtotal = subtotal;
+    const { discountAmount, totalAmount } = this.applyDiscount(subtotal, data.discountAmount);
+    data.discountAmount = discountAmount;
+    data.totalAmount = totalAmount;
     data.total = data.totalAmount;
   }
 
@@ -115,9 +153,9 @@ class TallyService {
     data.item = itemLabel;
 
     if (data.serviceType === "sale") {
-      const price = toNum(data.itemPrice, 0);
-      if (price <= 0) {
-        throw new Error("Item price is required for sale entries");
+      const subtotal = toNum(data.subtotal, toNum(data.itemPrice, 0));
+      if (subtotal <= 0) {
+        throw new Error("Add sale line items with quantity and price, or enter a sale total");
       }
       return;
     }

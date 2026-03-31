@@ -16,6 +16,10 @@ interface PhotoUploadProps {
   /** If not provided, no "add file" UI (photos only, e.g. Tally) */
   onPendingFilesChange?: (files: File[]) => void;
   disabled?: boolean;
+  /** Override main label (default: Product images) */
+  titleLabel?: string;
+  /** Override hint next to count */
+  hintText?: string;
 }
 
 export function PhotoUpload({
@@ -25,6 +29,8 @@ export function PhotoUpload({
   onPhotosChange,
   onPendingFilesChange,
   disabled = false,
+  titleLabel = 'Product images',
+  hintText,
 }: PhotoUploadProps) {
   const photos = photosProp ?? EMPTY_STRING_ARRAY;
   const pendingFiles = pendingFilesProp ?? EMPTY_FILE_ARRAY;
@@ -71,13 +77,17 @@ export function PhotoUpload({
 
   const canAddMore = Boolean(onPendingFilesChange && !disabled && photos.length + pendingFiles.length < maxPhotos);
   const totalCount = photos.length + pendingFiles.length;
+  const defaultHint = onPendingFilesChange
+    ? 'Uploaded to Cloudinary when you click Submit'
+    : 'Paste or manage image URLs for this record';
+  const hint = hintText ?? defaultHint;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">Product images</label>
+        <label className="text-sm font-medium">{titleLabel}</label>
         <span className="text-xs text-muted-foreground">
-          {totalCount}/{maxPhotos} • Uploaded to Cloudinary when you click Submit
+          {totalCount}/{maxPhotos} • {hint}
         </span>
       </div>
 
