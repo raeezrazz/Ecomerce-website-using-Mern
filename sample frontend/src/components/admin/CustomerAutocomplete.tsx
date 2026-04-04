@@ -48,10 +48,17 @@ export function CustomerAutocomplete({
   );
   const showAddInDropdown = canAdd && !exactMatch;
 
-  // Debounce search (same as ItemTypeAutocomplete)
+  // Debounce search by name or by phone (4+ digits) so picking a row fills both fields reliably.
+
+  const searchQuery =
+    customerName.trim().length > 0
+      ? customerName.trim()
+      : phoneDigits.length >= 4
+        ? phoneDigits
+        : '';
 
   useEffect(() => {
-    if (!customerName || customerName.trim().length === 0) {
+    if (!searchQuery) {
       setSuggestions([]);
       return;
     }
@@ -59,7 +66,7 @@ export function CustomerAutocomplete({
     const searchTimeout = setTimeout(async () => {
       setLoading(true);
       try {
-        const results = await searchCustomers(customerName.trim());
+        const results = await searchCustomers(searchQuery);
         setSuggestions(results);
       } catch {
         setSuggestions([]);
@@ -69,7 +76,7 @@ export function CustomerAutocomplete({
     }, 300);
 
     return () => clearTimeout(searchTimeout);
-  }, [customerName]);
+  }, [searchQuery]);
 
 // Close suggestions when clicking outside (same as ItemTypeAutocomplete)
 
@@ -133,7 +140,12 @@ export function CustomerAutocomplete({
   };
 
   const handleNameFocus = () => {
-    if (suggestions.length > 0 || customerName.trim().length > 0 || showAddInDropdown) {
+    if (
+      suggestions.length > 0 ||
+      customerName.trim().length > 0 ||
+      phoneDigits.length >= 4 ||
+      showAddInDropdown
+    ) {
       setShowSuggestions(true);
     }
   };
@@ -184,9 +196,12 @@ export function CustomerAutocomplete({
           <Input
             id="phone"
             value={phone}
-            onChange={(e) => onPhoneChange(e.target.value)}
+            onChange={(e) => {
+              onPhoneChange(e.target.value);
+              setShowSuggestions(true);
+            }}
             onFocus={() => {
-              if (showAddInDropdown) setShowSuggestions(true);
+              if (showAddInDropdown || phoneDigits.length >= 4) setShowSuggestions(true);
             }}
             placeholder={phonePlaceholder}
             className={cn(phoneError && 'border-red-500')}

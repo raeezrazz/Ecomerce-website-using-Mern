@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, Fragment } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,7 @@ import {
   fetchTallyEntries,
   fetchWarehouseItems,
   createWarehouseItem,
+  createCustomer,
   createTallyEntry,
   updateTallyEntry,
   deleteTallyEntry,
@@ -163,6 +164,18 @@ function entrySortTimestamp(dateInput: string | undefined): number {
   if (!k) return 0;
   const [y, m, d] = k.split('-').map((n) => parseInt(n, 10));
   return new Date(y, m - 1, d).getTime();
+}
+
+/** Label for day divider rows (calendar YYYY-MM-DD). */
+function formatDaySeparatorLabel(calendarKey: string): string {
+  const [y, m, d] = calendarKey.split('-').map(Number);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return calendarKey;
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 }
 
 function entrySubtotalForSort(e: TallyEntry): number {
@@ -414,20 +427,9 @@ export default function Tally() {
       if (!formData.itemType?.trim()) {
         newErrors.itemType = 'Item/Meter Type is required';
       }
-      const laborCost = parseFloat(formData.serviceCharge) || 0;
-      const completeParts = getCompleteUsedParts(formData.usedParts);
-      const partsCost = completeParts.reduce((sum, part) => sum + part.quantity * part.rate, 0);
-      if (laborCost <= 0 && partsCost <= 0) {
-        newErrors.serviceCharge = 'Labor cost or parts cost is required';
-      }
     } else if (formData.serviceType === 'sale') {
       if (!formData.itemType?.trim()) {
         newErrors.itemType = 'Sale description is required';
-      }
-      const lines = getCompleteSaleItems(formData.saleItems);
-      const quick = parseFloat(formData.itemPrice) || 0;
-      if (lines.length === 0 && quick <= 0) {
-        newErrors.saleItems = 'Add at least one product from warehouse, or enter a quick sale total below';
       }
     }
     
@@ -576,6 +578,15 @@ export default function Tally() {
       return;
     } finally {
       setIsSubmitting(false);
+    }
+
+    try {
+      await createCustomer(formData.customerName.trim(), formData.phone.trim());
+    } catch (custErr: unknown) {
+      const status = (custErr as { response?: { status?: number } })?.response?.status;
+      if (status !== 409) {
+        // Duplicate name+phone is OK; other errors should not undo a saved tally.
+      }
     }
 
     await loadData();
@@ -922,9 +933,20 @@ export default function Tally() {
     }
     return entry.itemPrice ?? net;
   };
-  const getTotalAmount = (entry: TallyEntry) => entry.total ?? entry.totalAmount ?? 0;
+  /** Net payable after discount (stored total, or subtotal − discount if missing). */
+  const getEntryNetTotal = (entry: TallyEntry) => {
+    const direct = entry.total ?? entry.totalAmount;
+    if (typeof direct === 'number' && Number.isFinite(direct)) {
+      return Math.max(0, direct);
+    }
+    const sub = getEntrySubtotal(entry);
+    const disc = getEntryDiscount(entry);
+    return Math.max(0, sub - disc);
+  };
+  const getTotalAmount = (entry: TallyEntry) => getEntryNetTotal(entry);
   const showSaleColumns = selectedServiceType === 'sale';
   const showRepairColumns = selectedServiceType !== 'sale';
+  const registerColSpan = 5 + (showRepairColumns ? 2 : 0) + 3 + 2;
   const isUnpaidDelivered = (entry: TallyEntry) =>
     entry.status === 'delivered' && entry.paymentStatus !== 'paid';
 
@@ -956,7 +978,7 @@ export default function Tally() {
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Daily tally</h1>
             <p className="mt-1 text-sm text-muted-foreground max-w-3xl leading-relaxed">
               Professional service register: repairs and sales with warehouse lines, discounts, payments, and job references.
-              Lists refresh from the server after every save or delete.
+             
             </p>
             {lastSyncedAt && (
               <p className="mt-1.5 text-xs text-muted-foreground tabular-nums">
@@ -965,7 +987,7 @@ export default function Tally() {
             )}
           </div>
           <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full sm:items-center sm:justify-end">
-            <Button
+            {/* <Button
               type="button"
               variant="outline"
               size="sm"
@@ -975,7 +997,7 @@ export default function Tally() {
             >
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
               Refresh
-            </Button>
+            </Button> */}
             <Button type="button" variant="outline" size="sm" className="w-full sm:w-auto" onClick={() => window.print()}>
               <Printer className="mr-2 h-4 w-4" />
               Print
@@ -1754,55 +1776,89 @@ export default function Tally() {
               ) : (
                 <div className="rounded-md border overflow-hidden bg-card">
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[340px] text-xs">
+                    <table className="w-full min-w-[300px] text-xs">
                       <thead>
                         <tr className="border-b bg-muted/50 text-left">
-                          <th className="p-2 font-medium text-muted-foreground w-[72px]">Date</th>
-                          <th className="p-2 font-medium text-muted-foreground min-w-[88px]">Customer</th>
+                          <th className="p-2 font-medium text-muted-foreground min-w-[120px]">Customer</th>
                           <th className="p-2 font-medium text-muted-foreground text-center w-[52px]">Type</th>
-                          <th className="p-2 font-medium text-muted-foreground text-right w-[76px]">Total</th>
-                          <th className="p-2 font-medium text-muted-foreground w-[76px] text-right pr-1"> </th>
+                          <th className="p-2 font-medium text-muted-foreground text-right min-w-[100px]">
+                            Net / pay
+                          </th>
+                          <th className="p-2 font-medium text-muted-foreground text-right min-w-[108px] pr-1">
+                            Actions
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredEntries.map((entry, index) => (
-                          <tr
-                            key={`${entry.id}-${entry.date}-${index}`}
-                            className={`border-b border-border/80 last:border-0 ${isUnpaidDelivered(entry) ? 'bg-destructive/5' : ''}`}
-                          >
-                            <td className="p-2 text-muted-foreground whitespace-nowrap align-middle tabular-nums">
-                              {formatRowDate(entry.date)}
-                            </td>
-                            <td className="p-2 align-middle">
-                              <span className="font-medium line-clamp-2 break-words block max-w-[120px]" title={entry.customerName}>
-                                {entry.customerName}
-                              </span>
-                            </td>
-                            <td className="p-2 text-center align-middle">
-                              <Badge
-                                variant={entry.serviceType === 'repair' ? 'secondary' : 'default'}
-                                className="text-[10px] px-1.5 py-0 h-5 whitespace-nowrap"
-                                title={entry.serviceType}
+                        {filteredEntries.map((entry, index) => {
+                          const dayKey = entryToCalendarKey(entry.date);
+                          const prevDayKey =
+                            index > 0 ? entryToCalendarKey(filteredEntries[index - 1].date) : null;
+                          const showDaySeparator =
+                            index > 0 && dayKey != null && prevDayKey != null && dayKey !== prevDayKey;
+                          return (
+                            <Fragment key={`${entry.id}-${entry.date}-${index}`}>
+                              {showDaySeparator && dayKey && (
+                                <tr className="border-t-2 border-border bg-muted/35">
+                                  <td
+                                    colSpan={4}
+                                    className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wide"
+                                  >
+                                    {formatDaySeparatorLabel(dayKey)}
+                                  </td>
+                                </tr>
+                              )}
+                              <tr
+                                className={`border-b border-border/80 last:border-0 ${isUnpaidDelivered(entry) ? 'bg-destructive/5' : ''}`}
                               >
-                                {entry.serviceType === 'repair' ? 'Rep' : 'Sale'}
-                              </Badge>
-                            </td>
-                            <td className="p-2 text-right font-semibold align-middle tabular-nums whitespace-nowrap">
-                              ₹{getTotalAmount(entry).toLocaleString()}
-                            </td>
-                            <td className="p-1 align-middle text-right">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 text-[11px] px-2"
-                                onClick={() => setMobileDetailEntry(entry)}
-                              >
-                                Details
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
+                                <td className="p-2 align-middle">
+                                  <div className="min-w-0 max-w-[160px]">
+                                    <div className="font-medium line-clamp-2 break-words" title={entry.customerName}>
+                                      {entry.customerName}
+                                    </div>
+                                    <div className="text-muted-foreground flex items-center gap-1 mt-0.5 tabular-nums">
+                                      <Phone className="h-3 w-3 shrink-0" />
+                                      <span className="truncate">{entry.phone}</span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-2 text-center align-middle">
+                                  <Badge
+                                    variant={entry.serviceType === 'repair' ? 'secondary' : 'default'}
+                                    className="text-[10px] px-1.5 py-0 h-5 whitespace-nowrap"
+                                    title={entry.serviceType}
+                                  >
+                                    {entry.serviceType === 'repair' ? 'Rep' : 'Sale'}
+                                  </Badge>
+                                </td>
+                                <td className="p-2 text-right align-middle">
+                                  <div className="flex flex-col items-end gap-1">
+                                    <span className="font-semibold tabular-nums whitespace-nowrap">
+                                      ₹{getEntryNetTotal(entry).toLocaleString()}
+                                    </span>
+                                    <span className="scale-90 origin-right">
+                                      {getPaymentBadge(entry.paymentStatus)}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="p-1 align-middle text-right">
+                                  <div className="flex flex-col items-end gap-0.5">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 text-[11px] px-2"
+                                      onClick={() => setMobileDetailEntry(entry)}
+                                    >
+                                      Details
+                                    </Button>
+                                   
+                                  </div>
+                                </td>
+                              </tr>
+                            </Fragment>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -1815,30 +1871,36 @@ export default function Tally() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[110px]">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 -ml-2 px-2 font-semibold"
-                        onClick={() => toggleSort('date')}
-                      >
-                        Date <span className="text-muted-foreground font-normal">{sortIndicator('date')}</span>
-                      </Button>
-                    </TableHead>
                     <TableHead className="w-[100px] text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                       Ref
                     </TableHead>
-                    <TableHead>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 -ml-2 px-2 font-semibold"
-                        onClick={() => toggleSort('customer')}
-                      >
-                        Customer <span className="text-muted-foreground font-normal">{sortIndicator('customer')}</span>
-                      </Button>
+                    <TableHead className="min-w-[160px]">
+                      <div className="flex flex-col items-start gap-0.5 py-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 -ml-2 px-2 font-semibold"
+                          onClick={() => toggleSort('customer')}
+                        >
+                          Customer{' '}
+                          <span className="text-muted-foreground font-normal">
+                            {sort.key === 'customer' ? sortIndicator('customer') : ''}
+                          </span>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 -ml-2 px-2 text-xs font-normal text-muted-foreground"
+                          onClick={() => toggleSort('date')}
+                        >
+                          By day{' '}
+                          <span className="font-normal">
+                            {sort.key === 'date' ? sortIndicator('date') : ''}
+                          </span>
+                        </Button>
+                      </div>
                     </TableHead>
                     <TableHead className="min-w-[120px]">Item / description</TableHead>
                     <TableHead>
@@ -1885,10 +1947,9 @@ export default function Tally() {
                         className="h-8 -ml-1 px-2 font-semibold"
                         onClick={() => toggleSort('net')}
                       >
-                        Net total <span className="text-muted-foreground font-normal">{sortIndicator('net')}</span>
+                        Net + payment <span className="text-muted-foreground font-normal">{sortIndicator('net')}</span>
                       </Button>
                     </TableHead>
-                    <TableHead>Payment</TableHead>
                     <TableHead className="w-[72px]">Photos</TableHead>
                     <TableHead className="w-[120px] text-right">Actions</TableHead>
                   </TableRow>
@@ -1897,7 +1958,7 @@ export default function Tally() {
                   {filteredEntries.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={6 + (showRepairColumns ? 2 : 0) + 3 + 3}
+                        colSpan={registerColSpan}
                         className="text-center text-muted-foreground py-10"
                       >
                         {searchQuery.trim()
@@ -1910,78 +1971,96 @@ export default function Tally() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredEntries.map((entry, index) => (
-                      <TableRow
-                        key={`${entry.id}-${entry.date}-${index}`}
-                        className={isUnpaidDelivered(entry) ? 'bg-destructive/5' : ''}
-                      >
-                        <TableCell className="tabular-nums text-muted-foreground whitespace-nowrap">
-                          {formatRowDate(entry.date)}
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-[100px] truncate" title={entry.reference}>
-                          {entry.reference?.trim() || '—'}
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{entry.customerName}</div>
-                            <div className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Phone className="h-3 w-3 shrink-0" />
-                              {entry.phone}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium max-w-[200px] break-words">{entry.itemType}</TableCell>
-                        <TableCell>
-                          <Badge variant={entry.serviceType === 'repair' ? 'secondary' : 'default'}>
-                            {entry.serviceType}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{getStatusBadge(entry.status)}</TableCell>
-                        {showRepairColumns && (
-                          <TableCell className="text-right">₹{getLaborCost(entry).toLocaleString()}</TableCell>
-                        )}
-                        {showRepairColumns && (
-                          <TableCell className="text-right">₹{getPartsCost(entry).toLocaleString()}</TableCell>
-                        )}
-                        <TableCell className="text-right tabular-nums">
-                          ₹{getEntrySubtotal(entry).toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          ₹{getEntryDiscount(entry).toLocaleString()}
-                        </TableCell>
-                        <TableCell className="font-bold text-right tabular-nums">
-                          ₹{getTotalAmount(entry).toLocaleString()}
-                        </TableCell>
-                        <TableCell>{getPaymentBadge(entry.paymentStatus)}</TableCell>
-                        <TableCell>
-                          {entry.photos && entry.photos.length > 0 ? (
-                            <div className="inline-flex items-center gap-1 text-primary">
-                              <ImageIcon className="h-4 w-4" />
-                              <span className="text-xs">{entry.photos.length}</span>
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">No photos</span>
+                    filteredEntries.map((entry, index) => {
+                      const dayKey = entryToCalendarKey(entry.date);
+                      const prevDayKey =
+                        index > 0 ? entryToCalendarKey(filteredEntries[index - 1].date) : null;
+                      const showDaySeparator =
+                        index > 0 && dayKey != null && prevDayKey != null && dayKey !== prevDayKey;
+                      return (
+                        <Fragment key={`${entry.id}-${entry.date}-${index}`}>
+                          {showDaySeparator && dayKey && (
+                            <TableRow className="bg-muted/35 hover:bg-muted/35 border-t-2 border-border">
+                              <TableCell
+                                colSpan={registerColSpan}
+                                className="py-2 px-3 text-xs font-semibold text-muted-foreground"
+                              >
+                                {formatDaySeparatorLabel(dayKey)}
+                              </TableCell>
+                            </TableRow>
                           )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(entry)}>
-                              Edit
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              aria-label={`Delete entry for ${entry.customerName}`}
-                              onClick={() => setDeleteTarget(entry)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                          <TableRow className={isUnpaidDelivered(entry) ? 'bg-destructive/5' : ''}>
+                            <TableCell className="text-xs text-muted-foreground max-w-[100px] truncate" title={entry.reference}>
+                              {entry.reference?.trim() || '—'}
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">{entry.customerName}</div>
+                                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                                  <Phone className="h-3 w-3 shrink-0" />
+                                  {entry.phone}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium max-w-[200px] break-words">{entry.itemType}</TableCell>
+                            <TableCell>
+                              <Badge variant={entry.serviceType === 'repair' ? 'secondary' : 'default'}>
+                                {entry.serviceType}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{getStatusBadge(entry.status)}</TableCell>
+                            {showRepairColumns && (
+                              <TableCell className="text-right">₹{getLaborCost(entry).toLocaleString()}</TableCell>
+                            )}
+                            {showRepairColumns && (
+                              <TableCell className="text-right">₹{getPartsCost(entry).toLocaleString()}</TableCell>
+                            )}
+                            <TableCell className="text-right tabular-nums">
+                              ₹{getEntrySubtotal(entry).toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              ₹{getEntryDiscount(entry).toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right align-middle">
+                              <div className="flex flex-col items-end gap-1">
+                                <span className="font-bold tabular-nums">
+                                  ₹{getEntryNetTotal(entry).toLocaleString()}
+                                </span>
+                                {getPaymentBadge(entry.paymentStatus)}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              {entry.photos && entry.photos.length > 0 ? (
+                                <div className="inline-flex items-center gap-1 text-primary">
+                                  <ImageIcon className="h-4 w-4" />
+                                  <span className="text-xs">{entry.photos.length}</span>
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground text-sm">No photos</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex flex-wrap items-center justify-end gap-1">
+                                <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(entry)}>
+                                  Edit
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  aria-label={`Delete entry for ${entry.customerName}`}
+                                  onClick={() => setDeleteTarget(entry)}
+                                >
+                                  <Trash2 className="h-4 w-4 sm:mr-1" />
+                                  <span className="hidden sm:inline">Delete</span>
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        </Fragment>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -2105,9 +2184,22 @@ export default function Tally() {
                   )}
                 </div>
 
-                <DialogFooter className="flex-col-reverse sm:flex-row gap-2 pt-2 border-t sm:justify-end">
+                <DialogFooter className="flex-col-reverse sm:flex-row gap-2 pt-2 border-t sm:justify-end sm:flex-wrap">
                   <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => setMobileDetailEntry(null)}>
                     Close
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    className="w-full sm:w-auto"
+                    onClick={() => {
+                      const e = mobileDetailEntry;
+                      setMobileDetailEntry(null);
+                      setDeleteTarget(e);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete entry
                   </Button>
                   <Button
                     type="button"
@@ -2194,10 +2286,10 @@ export default function Tally() {
                 customerName={formData.customerName}
                 phone={formData.phone}
                 onCustomerNameChange={(value) =>
-                  setFormData({ ...formData, customerName: value })
+                  setFormData((prev) => ({ ...prev, customerName: value }))
                 }
                 onPhoneChange={(value) =>
-                  setFormData({ ...formData, phone: value })
+                  setFormData((prev) => ({ ...prev, phone: value }))
                 }
                 nameError={errors.customerName}
                 phoneError={errors.phone}
@@ -2434,7 +2526,7 @@ export default function Tally() {
                 {deleteTarget && (
                   <>
                     This removes the record for <strong>{deleteTarget.customerName}</strong> on{' '}
-                    {formatRowDate(deleteTarget.date)} (₹{(deleteTarget.total ?? deleteTarget.totalAmount ?? 0).toLocaleString()} net).
+                    {formatRowDate(deleteTarget.date)} (₹{getEntryNetTotal(deleteTarget).toLocaleString()} net).
                     Warehouse stock will be restored for linked items. This cannot be undone.
                   </>
                 )}

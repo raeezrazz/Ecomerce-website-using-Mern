@@ -5,8 +5,8 @@ export interface TokenPayload {
   role?: string; // Include role in token
 }
 
-// Access token expires in 15 minutes
-const ACCESS_TOKEN_EXPIRY = "15m";
+// Access token (short-lived; refresh rotates via /refreshToken)
+const ACCESS_TOKEN_EXPIRY = "2h";
 // Refresh token expires in 7 days
 const REFRESH_TOKEN_EXPIRY = "7d";
 

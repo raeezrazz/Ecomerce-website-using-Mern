@@ -16,8 +16,8 @@ class AdminService {
         if (!isMatch) throw new Error("Incorrect password");
 
         const userId = user._id.toString();
-        const accessToken = generateAccessToken(userId);
-        const refreshToken = generateRefreshToken(userId);
+        const accessToken = generateAccessToken(userId, user.role);
+        const refreshToken = generateRefreshToken(userId, user.role);
 
         // Store refresh token in database
         const expiresAt = new Date();

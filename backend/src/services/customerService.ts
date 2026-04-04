@@ -5,10 +5,20 @@ class CustomerService {
     if (!query || query.trim().length === 0) {
       return await Customer.find().sort({ name: 1 }).limit(15);
     }
-    const searchRegex = new RegExp(query.trim(), "i");
-    return await Customer.find({ name: searchRegex })
-      .sort({ name: 1 })
-      .limit(15);
+    const raw = query.trim();
+    const escaped = raw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const nameRegex = new RegExp(escaped, "i");
+    const digits = raw.replace(/\D/g, "");
+
+    if (digits.length >= 4) {
+      return await Customer.find({
+        $or: [{ name: nameRegex }, { phone: { $regex: digits } }],
+      })
+        .sort({ name: 1 })
+        .limit(15);
+    }
+
+    return await Customer.find({ name: nameRegex }).sort({ name: 1 }).limit(15);
   }
 
   async createCustomer(name: string, phone: string): Promise<ICustomer> {

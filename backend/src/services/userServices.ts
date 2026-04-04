@@ -132,7 +132,7 @@ export class UserService {
     }
 
     // Generate new access token
-    const newAccessToken = generateAccessToken(decoded.userId);
+    const newAccessToken = generateAccessToken(decoded.userId, decoded.role);
 
     return {
       accessToken: newAccessToken,

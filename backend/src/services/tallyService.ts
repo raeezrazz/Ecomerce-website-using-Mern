@@ -153,18 +153,10 @@ class TallyService {
     data.item = itemLabel;
 
     if (data.serviceType === "sale") {
-      const subtotal = toNum(data.subtotal, toNum(data.itemPrice, 0));
-      if (subtotal <= 0) {
-        throw new Error("Add sale line items with quantity and price, or enter a sale total");
-      }
       return;
     }
 
-    const labor = toNum(data.serviceCharge, 0);
-    const parts = toNum(data.partsCost, 0);
-    if (labor <= 0 && parts <= 0) {
-      throw new Error("Labor cost or parts cost is required for repair entries");
-    }
+    // Repair: allow ₹0 labor and ₹0 parts (free job, stock-only, or record-keeping).
   }
 
   private async reduceWarehouseStockForUsedParts(usedParts: ITallyEntry["usedParts"]) {
